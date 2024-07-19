@@ -16,6 +16,14 @@ const formConfig: FormConfigs = [
     customValidation: function (value) { return value !== 'admin'; }
   },
   {
+    type: "color",
+    name: "color",
+    placeholder: "Color",
+    label: "Color",
+    labelPosition: 'top',
+    required: true,
+  },
+  {
     type: "password",
     name: "password",
     placeholder: "Password",
@@ -58,6 +66,14 @@ const formConfig: FormConfigs = [
     required: false,
     min: 0,
     max: 100
+  },
+  {
+    type: "tel",
+    name: "Mobile",
+    placeholder: "Mobile",
+    label: "Mobile",
+    labelPosition: 'top',
+    required: false
   },
   {
     type: "select",
@@ -110,7 +126,7 @@ const formConfig: FormConfigs = [
     name: "profilePicture",
     placeholder: "Profile Picture",
     label: "Profile Picture",
-     labelPosition: "top",
+    labelPosition: "top",
     required: false,
     accept: "image/*",
     multiple: false
@@ -126,7 +142,7 @@ const formConfig: FormConfigs = [
     max: "2024-12-31"
   },
   {
-    type: "datetime-local",
+    type: "datetime",
     name: "appointment",
     placeholder: "Appointment Date and Time",
     labelPosition: "top",

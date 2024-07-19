@@ -13,9 +13,6 @@ export class ColorInput extends FormInput {
         this.inputElement.addEventListener('input', () => {
             this.validate();
         });
-
-        // Initial validation check if the form is loaded with existing data
-        this.validate();
     }
 
     private validate(): void {

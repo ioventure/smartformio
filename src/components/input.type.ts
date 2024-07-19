@@ -32,7 +32,7 @@ export interface NumberInputBaseOptions extends InputBase {
 }
 
 export interface DateInputBaseOptions extends InputBase {
-    type: 'date' | 'datetime-local' | 'month' | 'time' | 'week';
+    type: 'date' | 'datetime' | 'month' | 'time' | 'week';
     min?: string;
     max?: string;
 }
