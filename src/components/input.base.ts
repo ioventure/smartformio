@@ -82,7 +82,7 @@ export abstract class FormInput {
             case 'tel':
             case 'url':
             case 'date':
-            case 'datetime-local':
+            case 'datetime':
             case 'month':
             case 'time':
             case 'week':
@@ -209,7 +209,7 @@ export abstract class FormInput {
             (this.inputElement as HTMLInputElement).setAttribute('maxLength', maxLength.toString());
         }
         if (pattern) {
-            (this.inputElement as HTMLInputElement).setAttribute('pattern', pattern.source);
+            (this.inputElement as HTMLInputElement).setAttribute('pattern', pattern);
         }
     }
 
@@ -225,7 +225,7 @@ export abstract class FormInput {
             (this.inputElement as HTMLInputElement).setAttribute('max', max.toString());
         }
         if (pattern) {
-            (this.inputElement as HTMLInputElement).setAttribute('pattern', pattern.source);
+            (this.inputElement as HTMLInputElement).setAttribute('pattern', pattern);
         }
     }
 

@@ -32,7 +32,7 @@ export class TelInput extends FormInput {
         }
 
         // Pattern Validation
-        if (this.options.pattern && !this.options.pattern.test(value)) {
+        if (this.options.pattern && !new RegExp(this.options.pattern).test(value)) {
             this.setErrorMessage(fieldName, 'Please enter a valid phone number.');
         }
 

@@ -20,7 +20,7 @@ export interface TextInputBaseOptions extends InputBase {
     type: 'text' | 'password' | 'email' | 'tel' | 'url';
     minLength?: number;
     maxLength?: number;
-    pattern?: RegExp;
+    pattern?: string;
    
 }
 export interface NumberInputBaseOptions extends InputBase {
@@ -28,7 +28,7 @@ export interface NumberInputBaseOptions extends InputBase {
     min?: number;
     max?: number;
     step?: number;
-    pattern?: RegExp;
+    pattern?: string;
 }
 
 export interface DateInputBaseOptions extends InputBase {

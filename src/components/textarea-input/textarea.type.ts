@@ -9,5 +9,5 @@ export interface TextareaInputOptions extends InputBase {
     maxWords?: number;
     minWords?: number;
     value?: string;
-    pattern?: RegExp;
+    pattern?: string;
 }

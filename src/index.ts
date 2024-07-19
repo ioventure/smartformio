@@ -12,7 +12,7 @@ const formConfig: FormConfigs = [
     required: true,
     minLength: 3,
     maxLength: 20,
-    pattern: new RegExp("^[a-zA-Z0-9_]+$"),
+    pattern: "^[a-zA-Z0-9_]+$",
     customValidation: function (value) { return value !== 'admin'; }
   },
   {
@@ -32,7 +32,7 @@ const formConfig: FormConfigs = [
     required: true,
     minLength: 8,
     maxLength: 30,
-    pattern: new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$"),
+    pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$",
     customValidation: function (value) { return !value.includes('1234'); }
   },
   {
@@ -42,7 +42,7 @@ const formConfig: FormConfigs = [
     label: "Email",
     labelPosition: 'top',
     required: true,
-    pattern: new RegExp("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"),
+    pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
     customValidation: function (value) { return value.endsWith('@example.com'); }
   },
   {
@@ -54,7 +54,7 @@ const formConfig: FormConfigs = [
     required: true,
     min: 18,
     max: 99,
-    pattern: new RegExp("^\\d+$"),
+    pattern: "^\\d+$",
     customValidation: function (value) { return value > 0; }
   },
   {
@@ -99,7 +99,7 @@ const formConfig: FormConfigs = [
     required: false,
     minLength: 10,
     maxLength: 500,
-    pattern: new RegExp("^[a-zA-Z0-9\\s,.!?]*$"),
+    pattern: "^[a-zA-Z0-9\\s,.!?]*$",
     customValidation: function (value) { return !value.includes('spam'); }
   },
   {
@@ -168,7 +168,7 @@ const formConfig: FormConfigs = [
     label: "Website",
     labelPosition: "top",
     required: false,
-    pattern: new RegExp("^(https?|ftp)://[^\s/$.?#].[^\s]*$")
+    pattern: "^(https?|ftp)://[^\s/$.?#].[^\s]*$"
   },
   {
     type: "month",
@@ -198,6 +198,22 @@ const formConfig: FormConfigs = [
     name: "hiddenField",
     value: "hiddenValue",
     required: false
+  },
+  {
+    type: 'button',
+    buttonType: 'submit',
+    label: 'Submit',
+    disabled: false,
+    name: 'submitButton',
+    id: 'submitBtn'
+  },
+  {
+    type: 'button',
+    buttonType: 'reset',
+    label: 'Reset',
+    disabled: false,
+    name: 'resetButton',
+    id: 'resetButton'
   }
 ]
 

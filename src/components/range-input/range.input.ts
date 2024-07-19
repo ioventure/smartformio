@@ -35,7 +35,7 @@ export class RangeInput extends FormInput {
         }
 
         // Validate against pattern if provided
-        if (this.options.pattern && !this.options.pattern.test(value.toString())) {
+        if (this.options.pattern && !new RegExp(this.options.pattern).test(value.toString())) {
             this.setErrorMessage(fieldName, `Value must match the pattern ${this.options.pattern}.`);
         }
 

@@ -42,7 +42,7 @@ export class PasswordInput extends FormInput {
         }
 
         // Pattern validation
-        if (this.options.pattern && !this.options.pattern.test(value)) {
+        if (this.options.pattern && !new RegExp(this.options.pattern).test(value)) {
             this.setErrorMessage(fieldName, `Please enter a valid ${fieldName}.`);
             return;
         }

@@ -20,6 +20,7 @@ import { UrlInput } from '@components/url-input/url.input';
 import { WeekInput } from '@components/week-input/week.input';
 import { FormConfig, FormConfigs } from './form.type';
 import { RangeInputOptions } from '@components/range-input/range.type';
+import { ButtonInput } from '@components/button-input/button.input';
 
 export class PPForm extends HTMLElement {
     private shadow: ShadowRoot;
@@ -61,7 +62,7 @@ export class PPForm extends HTMLElement {
         this.updateStyles(`.error-message { color: red; }`);
     }
 
-    createInput(config: FormConfig): FormInput | null {
+    createInput(config: FormConfig): FormInput | ButtonInput | null {
         switch (config.type) {
             case 'text':
                 return new TextInput(config);
@@ -79,7 +80,7 @@ export class PPForm extends HTMLElement {
                 return new ColorInput(config);
             case 'date':
                 return new DateInput(config);
-            case 'datetime-local':
+            case 'datetime':
                 return new DateTimeInput(config);
             case 'file':
                 return new FileInput(config);
@@ -101,6 +102,8 @@ export class PPForm extends HTMLElement {
                 return new UrlInput(config);
             case 'week':
                 return new WeekInput(config);
+            case 'button':
+                return new ButtonInput(config);
             default:
                 return null;
         }
