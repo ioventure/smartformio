@@ -97,6 +97,8 @@ export abstract class FormInput {
                 break;
             case 'number':
             case 'range':
+                this.inputElement = document.createElement('input');
+                (this.inputElement as HTMLInputElement).type = type;
                 this._setNumberAttributes();
                 break;
             default:

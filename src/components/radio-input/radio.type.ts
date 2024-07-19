@@ -4,6 +4,7 @@ export interface RadioInputOptions extends InputBase {
     type: 'radio';
     options: RadioOption[];
     value?: string;
+    multiple?: boolean;
 }
 
 export interface RadioOption {

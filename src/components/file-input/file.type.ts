@@ -8,4 +8,5 @@ export interface FileInputOptions extends InputBase {
     minSize?: number; 
     maxFiles?: number; 
     minFiles?: number; 
+    multiple?: boolean;
 }
