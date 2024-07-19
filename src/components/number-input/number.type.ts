@@ -1,1 +1,3 @@
-export interface NumberInputOptions extends InputOptions{}
+import { InputBase, NumberInputBaseOptions } from "@components/input.type";
+
+export interface NumberInputOptions extends InputBase, NumberInputBaseOptions {}

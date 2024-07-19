@@ -1,1 +1,6 @@
-export interface ColorInputOptions extends InputOptions {}
+import { InputBase } from "@components/input.type";
+
+export interface ColorInputOptions extends InputBase {
+    type: 'color';
+    value?: string;
+}

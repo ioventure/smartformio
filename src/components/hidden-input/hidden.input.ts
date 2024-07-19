@@ -2,22 +2,31 @@ import { FormInput } from "@components/input.base";
 import { HiddenInputOptions } from "./hidden.type";
 
 export class HiddenInput extends FormInput {
+    protected options: HiddenInputOptions;
+
     constructor(options: HiddenInputOptions) {
         super(options);
+        this.options = options;
     }
 
     protected setupValidation(): void {
         if (this.options.required) {
-            this.inputElement.addEventListener('change', () => {
-                const value = (this.inputElement as HTMLInputElement).value;
-                const fieldName = this.options.name;
+            this.validate();
+        }
+    }
 
-                this.clearErrorMessage(fieldName);
+    private validate(): void {
+        const value = (this.inputElement as HTMLInputElement).value;
+        const fieldName = this.options.name;
 
-                if (this.options.required && value.trim() === '') {
-                    this.setErrorMessage(fieldName, 'Field is required.');
-                }
-            });
+        this.clearErrorMessage(fieldName);
+
+        if (this.options.required && value.trim() === '') {
+            this.setErrorMessage(fieldName, 'Field is required.');
+        }
+
+        if (this.options.customValidation && !this.options.customValidation(value)) {
+            this.setErrorMessage(fieldName, 'Custom validation failed.');
         }
     }
 }

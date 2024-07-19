@@ -2,25 +2,51 @@ import { FormInput } from "@components/input.base";
 import { UrlInputOptions } from "./url.type";
 
 export class UrlInput extends FormInput {
+    protected options: UrlInputOptions;
+
     constructor(options: UrlInputOptions) {
         super(options);
+        this.options = options;
     }
 
-
     protected setupValidation(): void {
-        this.inputElement.addEventListener('input', () => {
-            const value = (this.inputElement as HTMLInputElement).value;
-            const fieldName = this.options.name;
+        // Validate on input event for real-time feedback
+        this.inputElement.addEventListener('input', () => this.validate());
 
-            this.clearErrorMessage(fieldName);
+        // Optional: Additional validation on blur event
+        this.inputElement.addEventListener('blur', () => this.validate());
+    }
 
-            if (this.options.required && !value) {
-                this.setErrorMessage(fieldName, 'URL is required.');
-            }
+    private validate(): void {
+        const value = (this.inputElement as HTMLInputElement).value;
+        const fieldName = this.options.name;
 
-            if (this.options.pattern && !this.options.pattern.test(value)) {
-                this.setErrorMessage(fieldName, 'Please enter a valid URL.');
-            }
-        });
+        this.clearErrorMessage(fieldName);
+
+        // Required Field Validation
+        if (this.options.required && !value.trim()) {
+            this.setErrorMessage(fieldName, 'URL is required.');
+        }
+
+        // URL Format Validation
+        if (value && !this.isValidUrl(value)) {
+            this.setErrorMessage(fieldName, 'Please enter a valid URL.');
+        }
+
+        // Custom Validation
+        if (this.options.customValidation && !this.options.customValidation(value)) {
+            this.setErrorMessage(fieldName, 'Custom validation failed.');
+        }
+    }
+
+    // Helper method to validate URL format
+    private isValidUrl(url: string): boolean {
+        try {
+            // Check if URL is valid using the URL constructor
+            new URL(url);
+            return true;
+        } catch {
+            return false;
+        }
     }
 }

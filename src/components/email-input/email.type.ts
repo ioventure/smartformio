@@ -1,1 +1,3 @@
-export interface EmailInputOptions extends InputOptions { }
+import { TextInputBaseOptions } from "@components/input.type";
+
+export interface EmailInputOptions extends TextInputBaseOptions { }

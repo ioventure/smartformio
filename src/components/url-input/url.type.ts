@@ -1,1 +1,3 @@
-export interface UrlInputOptions extends InputOptions {}
+import { TextInputBaseOptions } from "@components/input.type";
+
+export interface UrlInputOptions extends TextInputBaseOptions {}

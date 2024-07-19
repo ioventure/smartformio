@@ -7,10 +7,12 @@ import { DataParser } from '@src/services/data.parser';
 export class SelectInput extends FormInput {
     protected options: SelectInputOptions;
     private apiService: ApiService;
+
     constructor(options: SelectInputOptions) {
         super(options);
         this.options = options;
         this.apiService = new ApiService({ baseUrl: API_CONFIG.apiBaseUrl });
+
         if (this.options.api) {
             this.populateFromApis();
         } else {
@@ -19,33 +21,49 @@ export class SelectInput extends FormInput {
     }
 
     protected setupValidation(): void {
-        this.inputElement.addEventListener('keyup', () => {
-            const value = this.inputElement.value;
-            const fieldName = this.options.name;
-            this.clearErrorMessage(fieldName);
-            if (this.options.required && value.trim() === '') {
-                this.setErrorMessage(fieldName, 'Field is required.');
-            }
-            if (this.options.customValidation && !this.options.customValidation(value)) {
+        this.inputElement.addEventListener('change', () => {
+            this.validate();
+        });
+    }
+
+    private validate(): void {
+        const value = this.inputElement.value;
+        const fieldName = this.options.name;
+
+        this.clearErrorMessage(fieldName);
+
+        // Check if a selection is required
+        if (this.options.required && value.trim() === '') {
+            this.setErrorMessage(fieldName, 'Selection is required.');
+        }
+
+        // Apply custom validation if provided
+        if (this.options.customValidation) {
+            const isValid = this.options.customValidation(value);
+            if (!isValid) {
                 this.setErrorMessage(fieldName, 'Custom validation failed.');
             }
-        });
+        }
     }
 
     private async populateFromApis() {
         if (this.options.api) {
-            const data = await this.apiService.request<SelectOption[]>(this.options.api)
-            this.createOptions(data);
-        } else {
-            this.createOptions([])
+            try {
+                const data = await this.apiService.request<SelectOption[]>(this.options.api);
+                this.createOptions(data);
+            } catch (error) {
+                console.error('Failed to fetch options from API:', error);
+                // Optionally set an error message or handle API errors
+            }
         }
     }
 
-    private createOptions(data: any[]): void {
+    private createOptions(data: SelectOption[]): void {
         // Clear existing options
         while (this.inputElement.firstChild) {
             this.inputElement.removeChild(this.inputElement.firstChild!);
         }
+
         // Create default not selectable option
         const defaultOption = document.createElement('option');
         defaultOption.value = '';
@@ -53,6 +71,7 @@ export class SelectInput extends FormInput {
         defaultOption.disabled = true;
         defaultOption.selected = true;
         this.inputElement.appendChild(defaultOption);
+
         // Create options from data
         data.forEach(item => {
             const option = document.createElement('option');

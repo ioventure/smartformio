@@ -1,1 +1,3 @@
-export interface DateTimeInputOptions extends InputOptions {}
+import { DateInputBaseOptions } from "@components/input.type";
+
+export interface DateTimeInputOptions extends DateInputBaseOptions {}

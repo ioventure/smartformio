@@ -3,51 +3,63 @@ import { NumberInputOptions } from "./number.type";
 
 export class NumberInput extends FormInput {
     protected options: NumberInputOptions;
+
     constructor(options: NumberInputOptions) {
         super(options);
         this.options = options;
     }
 
     protected setupValidation(): void {
-        this.inputElement.addEventListener('keyup', () => {
-            const value = (this.inputElement as HTMLInputElement).value;
-            const fieldName = this.options.name;
+        // Attach event listeners for validation
+        this.inputElement.addEventListener('input', () => this.validate());
+        this.inputElement.addEventListener('change', () => this.validate());
+    }
 
-            this.clearErrorMessage(fieldName);
+    private validate(): void {
+        const value = (this.inputElement as HTMLInputElement).value;
+        const fieldName = this.options.name;
 
-            if (this.options.required && value.trim() === '') {
-                this.setErrorMessage(fieldName, 'Field is required.');
+        this.clearErrorMessage(fieldName);
+
+        // Required field validation
+        if (this.options.required && value.trim() === '') {
+            this.setErrorMessage(fieldName, 'Field is required.');
+            return;
+        }
+
+        // Pattern validation
+        if (this.options.pattern && !this.options.pattern.test(value)) {
+            this.setErrorMessage(fieldName, `Please enter a valid ${fieldName}.`);
+            return;
+        }
+
+        // Numeric value validation
+        const numberValue = parseFloat(value);
+        if (isNaN(numberValue)) {
+            this.setErrorMessage(fieldName, 'Value must be a number.');
+            return;
+        }
+
+        // Range validation
+        if (this.options.min !== undefined && numberValue < this.options.min) {
+            this.setErrorMessage(fieldName, `Value must be greater than or equal to ${this.options.min}.`);
+        }
+
+        if (this.options.max !== undefined && numberValue > this.options.max) {
+            this.setErrorMessage(fieldName, `Value must be less than or equal to ${this.options.max}.`);
+        }
+
+        // Step validation
+        if (this.options.step !== undefined) {
+            const step = parseFloat(this.options.step.toString());
+            if (step > 0 && (numberValue % step) !== 0) {
+                this.setErrorMessage(fieldName, `Value must be a multiple of ${this.options.step}.`);
             }
+        }
 
-            if (this.options.minLength && value.length < this.options.minLength) {
-                this.setErrorMessage(fieldName, `Minimum length should be ${this.options.minLength}.`);
-            }
-
-            if (this.options.maxLength && value.length > this.options.maxLength) {
-                this.setErrorMessage(fieldName, `Maximum length should be ${this.options.maxLength}.`);
-            }
-
-            if (this.options.pattern && !this.options.pattern.test(value)) {
-                this.setErrorMessage(fieldName, `Please enter valid ${fieldName}.`);
-            }
-
-            if (this.options.customValidation && !this.options.customValidation(value)) {
-                this.setErrorMessage(fieldName, 'Custom validation failed.');
-            }
-
-            const numberValue = parseFloat(value);
-            
-            if (isNaN(numberValue)) {
-                this.setErrorMessage(fieldName, 'Value must be a number.');
-            } else {
-                if (this.options.min !== undefined && numberValue < this.options.min) {
-                    this.setErrorMessage(fieldName, `Value must be greater than or equal to ${this.options.min}.`);
-                }
-
-                if (this.options.max !== undefined && numberValue > this.options.max) {
-                    this.setErrorMessage(fieldName, `Value must be less than or equal to ${this.options.max}.`);
-                }
-            }
-        });
+        // Custom validation
+        if (this.options.customValidation && !this.options.customValidation(value)) {
+            this.setErrorMessage(fieldName, 'Custom validation failed.');
+        }
     }
 }

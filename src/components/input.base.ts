@@ -1,12 +1,15 @@
+import { TextareaInputOptions } from "@components/textarea-input/textarea.type";
+import { InputOptions, NumberInputBaseOptions, TextInputBaseOptions } from "./input.type";
+
 /**
  * Abstract class representing a form input element with validation and error handling.
  */
 export abstract class FormInput {
     protected inputElement!: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
     protected labelElement?: HTMLLabelElement;
-    private inputErrorElement!: HTMLDivElement;
     protected options: InputOptions;
-    protected errorMessages: InputErrorMessages;
+    protected errorMessages: { [key: string]: string } = {};
+    private _inputErrorElement!: HTMLDivElement;
 
     /**
      * Constructs a new FormInput instance.
@@ -14,26 +17,30 @@ export abstract class FormInput {
      */
     constructor(options: InputOptions) {
         this.options = options;
-        this.errorMessages = {};
         this.createInputElement();
         this.createLabelElement();
-        this.createInputErrorElement();
         this.setupValidation();
-        this.handleInputElementError();
+        this._createInputErrorElement();
+        this._handleInputError();
     }
 
     /**
-     * Renders the input element.
-     * @returns The rendered HTMLInputElement.
+     * Abstract method to be implemented by subclasses for setting up validation rules.
      */
-    public render() {
+    protected abstract setupValidation(): void;
+
+    /**
+     * Renders the input element.
+     * @returns The rendered HTML element.
+     */
+    public render(): HTMLDivElement {
         const inputContainer = document.createElement('div');
         inputContainer.classList.add('input-container');
         if (this.labelElement) {
+            const labelContainer = document.createElement('div');
+            labelContainer.classList.add('label-container');
             switch (this.options.labelPosition) {
                 case 'top':
-                    const labelContainer = document.createElement('div');
-                    labelContainer.classList.add('label-container')
                     labelContainer.appendChild(this.labelElement);
                     inputContainer.appendChild(labelContainer);
                     inputContainer.appendChild(this.inputElement);
@@ -50,83 +57,61 @@ export abstract class FormInput {
         } else {
             inputContainer.appendChild(this.inputElement);
         }
-
-        if (this.inputErrorElement) {
-            inputContainer.appendChild(this.inputErrorElement);
+        if (this._inputErrorElement) {
+            inputContainer.appendChild(this._inputErrorElement);
         }
-
         return inputContainer;
     }
 
     /**
-     * Abstract method to be implemented by subclasses for setting up validation rules.
+     * Creates the input element with specified options.
      */
-    protected abstract setupValidation(): void;
-
-    /**
-     * Sets an error message for the specified field.
-     * @param fieldName - The name of the field.
-     * @param message - The error message to display.
-     */
-    protected setErrorMessage(fieldName: string, message: string): void {
-        this.errorMessages[fieldName] = message;
-        this.displayError();
-    }
-
-    /**
-     * Clears the error message for the specified field.
-     * @param fieldName - The name of the field.
-     */
-    protected clearErrorMessage(fieldName: string): void {
-        delete this.errorMessages[fieldName];
-        this.displayError();
-    }
-
-    /**
-     * Handles input element errors and updates error display accordingly.
-     */
-    private handleInputElementError(): void {
-        this.inputElement.addEventListener('input', () => {
-            this.displayError();
-        });
-
-        this.inputElement.addEventListener('invalid', (event) => {
-            event.preventDefault();
-            this.displayError();
-        });
-    }
-
-    /**
-     * Displays error messages if present.
-     */
-    private displayError(): void {
-        const fieldName = this.options.name;
-        const errorMessage = this.errorMessages[fieldName];
-        if (errorMessage) {
-            this.inputErrorElement.textContent = errorMessage;
-            this.inputElement.setCustomValidity(errorMessage);
-        } else {
-            this.inputErrorElement.textContent = '';
-            this.inputElement.setCustomValidity('');
+    protected createInputElement(): void {
+        const { type } = this.options;
+        switch (type) {
+            case 'select':
+                this.inputElement = document.createElement('select');
+                break;
+            case 'textarea':
+                this.inputElement = document.createElement('textarea');
+                this._setTextareaAttributes();
+                break;
+            case 'text':
+            case 'password':
+            case 'email':
+            case 'tel':
+            case 'url':
+            case 'date':
+            case 'datetime-local':
+            case 'month':
+            case 'time':
+            case 'week':
+            case 'file':
+            case 'hidden':
+            case 'color':
+            case 'radio':
+            case 'checkbox':
+                this.inputElement = document.createElement('input');
+                (this.inputElement as HTMLInputElement).type = type;
+                this._setTextAttributes();
+                break;
+            case 'number':
+            case 'range':
+                this._setNumberAttributes();
+                break;
+            default:
+                throw new Error(`Unsupported input type: ${type}`);
         }
-        if (!this.inputErrorElement.parentNode && this.inputElement.parentNode) {
-            this.inputElement.parentNode.insertBefore(this.inputErrorElement, this.inputElement.nextSibling);
-        }
+        this._setCommonAttributes();
     }
 
     /**
-     * Creates the error message element.
+     * Creates the label element based on options.
      */
-    private createInputErrorElement() {
-        this.inputErrorElement = document.createElement('div');
-        this.inputErrorElement.setAttribute('role', 'alert');
-        this.inputErrorElement.classList.add('error-message');
-    }
-
-    protected createLabelElement() {
+    protected createLabelElement(): void {
         if (this.options.label) {
             this.labelElement = document.createElement('label');
-            this.labelElement.classList.add('label')
+            this.labelElement.classList.add('label');
             this.labelElement.textContent = this.options.label;
             if (this.inputElement.id) {
                 this.labelElement.setAttribute('for', this.inputElement.id);
@@ -135,51 +120,123 @@ export abstract class FormInput {
     }
 
     /**
-     * Creates the input element with specified options.
+     * Sets an error message for the specified field.
+     * @param fieldName - The name of the field.
+     * @param message - The error message to display.
      */
-    protected createInputElement() {
-        if (this.options.type && this.options.type === 'select') {
-            this.inputElement = document.createElement('select');
-        } else if (this.options.type && this.options.type === 'textarea') {
-            this.inputElement = document.createElement('textarea');
-        }else {
-            this.inputElement = document.createElement('input');
+    protected setErrorMessage(fieldName: string, message: string): void {
+        this.errorMessages[fieldName] = message;
+        this._displayError();
+    }
+
+     /**
+     * Clears the error message for the specified field.
+     * @param fieldName - The name of the field.
+     */
+     protected clearErrorMessage(fieldName: string): void {
+        delete this.errorMessages[fieldName];
+        this._displayError();
+    }
+
+     /**
+     * Creates the error message element.
+     */
+    private _createInputErrorElement(): void {
+        this._inputErrorElement = document.createElement('div');
+        this._inputErrorElement.setAttribute('role', 'alert');
+        this._inputErrorElement.classList.add('error-message');
+    }
+
+    /**
+     * Handles input element errors and updates error display accordingly.
+     */
+    private _handleInputError(): void {
+        this.inputElement.addEventListener('input', () => this._displayError());
+        this.inputElement.addEventListener('invalid', (event) => {
+            event.preventDefault();
+            this._displayError();
+        });
+    }
+
+    /**
+     * Displays error messages if present.
+     */
+    private _displayError(): void {
+        const fieldName = this.options.name;
+        const errorMessage = this.errorMessages[fieldName];
+        if (errorMessage) {
+            this._inputErrorElement.textContent = errorMessage;
+            this.inputElement.setCustomValidity(errorMessage);
+        } else {
+            this._inputErrorElement.textContent = '';
+            this.inputElement.setCustomValidity('');
         }
-        if (this.options.type && this.options.type !== 'select' && this.options.type !== 'textarea') {
-            this.inputElement.setAttribute('type', this.options.type);
+        if (!this._inputErrorElement.parentNode && this.inputElement.parentNode) {
+            this.inputElement.parentNode.insertBefore(this._inputErrorElement, this.inputElement.nextSibling);
         }
-        if (this.options.name) {
-            this.inputElement.setAttribute('name', this.options.name);
+    }
+
+    /**
+     * Set common attributes to the input element.
+     */
+    private _setCommonAttributes(): void {
+        const { name, placeholder, required, value } = this.options;
+        if (name) {
+            this.inputElement.setAttribute('name', name);
         }
-        if (this.options.value) {
-            this.inputElement.setAttribute('value', this.options.value);
+        if (placeholder) {
+            this.inputElement.setAttribute('placeholder', placeholder);
         }
-        if (this.options.placeholder) {
-            this.inputElement.setAttribute('placeholder', this.options.placeholder || '');
-        }
-        if (this.options.required) {
+        if (required) {
             this.inputElement.setAttribute('required', 'true');
         }
-        if (this.options.minLength) {
-            this.inputElement.setAttribute('minLength', this.options.minLength.toString());
+        if (value) {
+            (this.inputElement as HTMLInputElement).value = value;
         }
-        if (this.options.maxLength && this.options.maxLength !== Infinity) {
-            this.inputElement.setAttribute('maxLength', this.options.maxLength.toString());
+    }
+
+    /**
+     * Set text-specific attributes.
+     */
+    private _setTextAttributes(): void {
+        const { minLength, maxLength, pattern } = this.options as TextInputBaseOptions;
+        if (minLength !== undefined) {
+            (this.inputElement as HTMLInputElement).setAttribute('minLength', minLength.toString());
         }
-        if (this.options.pattern) {
-            this.inputElement.setAttribute('pattern', this.options.pattern.source);
+        if (maxLength !== undefined) {
+            (this.inputElement as HTMLInputElement).setAttribute('maxLength', maxLength.toString());
         }
-        if (this.options.min !== undefined) {
-            this.inputElement.setAttribute('min', this.options.min.toString());
+        if (pattern) {
+            (this.inputElement as HTMLInputElement).setAttribute('pattern', pattern.source);
         }
-        if (this.options.max !== undefined) {
-            this.inputElement.setAttribute('max', this.options.max.toString());
+    }
+
+    /**
+     * Set number-specific attributes.
+     */
+    private _setNumberAttributes(): void {
+        const { pattern, min, max } = this.options as NumberInputBaseOptions;
+        if (min !== undefined) {
+            (this.inputElement as HTMLInputElement).setAttribute('min', min.toString());
         }
-        if (this.options.rows) {
-            this.inputElement.setAttribute('rows', this.options.rows.toString());
+        if (max !== undefined) {
+            (this.inputElement as HTMLInputElement).setAttribute('max', max.toString());
         }
-        if (this.options.cols) {
-            this.inputElement.setAttribute('cols', this.options.cols.toString());
+        if (pattern) {
+            (this.inputElement as HTMLInputElement).setAttribute('pattern', pattern.source);
+        }
+    }
+
+    /**
+     * Set textarea-specific attributes.
+     */
+    private _setTextareaAttributes(): void {
+        const { rows, cols } = this.options as TextareaInputOptions;
+        if (rows !== undefined) {
+            (this.inputElement as HTMLTextAreaElement).rows = rows;
+        }
+        if (cols !== undefined) {
+            (this.inputElement as HTMLTextAreaElement).cols = cols;
         }
     }
 }
