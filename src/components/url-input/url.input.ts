@@ -11,13 +11,13 @@ export class UrlInput extends FormInput {
 
     protected setupValidation(): void {
         // Validate on input event for real-time feedback
-        this.inputElement.addEventListener('input', () => this.validate());
+        this.inputElement.addEventListener('input', () => this._validate());
 
         // Optional: Additional validation on blur event
-        this.inputElement.addEventListener('blur', () => this.validate());
+        this.inputElement.addEventListener('blur', () => this._validate());
     }
 
-    private validate(): void {
+    private _validate(): void {
         const value = (this.inputElement as HTMLInputElement).value;
         const fieldName = this.options.name;
 
@@ -29,7 +29,7 @@ export class UrlInput extends FormInput {
         }
 
         // URL Format Validation
-        if (value && !this.isValidUrl(value)) {
+        if (value && !this._isValidUrl(value)) {
             this.setErrorMessage(fieldName, 'Please enter a valid URL.');
         }
 
@@ -40,7 +40,7 @@ export class UrlInput extends FormInput {
     }
 
     // Helper method to validate URL format
-    private isValidUrl(url: string): boolean {
+    private _isValidUrl(url: string): boolean {
         try {
             // Check if URL is valid using the URL constructor
             new URL(url);

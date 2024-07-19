@@ -11,11 +11,11 @@ export class NumberInput extends FormInput {
 
     protected setupValidation(): void {
         // Attach event listeners for validation
-        this.inputElement.addEventListener('input', () => this.validate());
-        this.inputElement.addEventListener('change', () => this.validate());
+        this.inputElement.addEventListener('input', () => this._validate());
+        this.inputElement.addEventListener('change', () => this._validate());
     }
 
-    private validate(): void {
+    private _validate(): void {
         const value = (this.inputElement as HTMLInputElement).value;
         const fieldName = this.options.name;
 

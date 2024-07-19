@@ -3,13 +3,20 @@ import './form/form';
 import { FormConfigs } from '@form/form.type';
 
 const formConfig: FormConfigs = [
-  { type: 'text', name: 'firstName', label: 'First Name',  required: true },
-  { type: 'text', name: 'lastName', label: 'Last Name', required: true },
-  { type: 'email', name: 'email', label: 'Email', required: true },
-  { type: 'password', name: 'password', label: 'Password', required: true },
-  { type: 'date', name: 'birthdate', label: 'Birth Date', required: false },
+  { type: 'select', name: 'carBrand', label: 'Brand', required: false, 
+    options: [{ id: 'hyundai', label: 'Hyundai' }, { id: 'tata', label: 'tata' }, { id: 'mahindra', label: 'Mahindra' }], textKey: 'label', valueKey: 'id' 
+  },
+  { type: 'text', name: 'modelName', label: 'Model Name', required: true },
+  // { type: 'number', name: 'age', label: 'Age', required: true, min: 18, max: 50 },
+  // { type: 'email', name: 'email', label: 'Email', required: true },
+  // { type: 'password', name: 'password', label: 'Password', required: true },
+  { type: 'date', name: 'launchYear', label: 'Launch Year', required: false },
+  { type: 'select', name: 'country', label: 'Country', required: false, 
+    options: [{ id: 'india', label: 'India' }, { id: 'nepal', label: 'Nepal' }], textKey: 'label', valueKey: 'id' 
+  },
   { type: 'button', name: 'submit', label: 'Submit', buttonType: 'submit' }
 ];
+
 
 const styles = `
     :host {
@@ -128,6 +135,7 @@ const styles = `
 
 document.querySelector('#root')!.innerHTML = `
   <div class="form-container">
+    <image src="https://spn-sta.spinny.com/blog/20221004191046/Hyundai-Venue-2022.jpg?compress=true&quality=80&w=1200&dpr=2" width="440px" height="200px" style="margin: 0 auto; display: flex">
     <pp-form id="form" config='${JSON.stringify(formConfig)}' styles='${styles}'></pp-form>
   </div>
 `;

@@ -11,11 +11,11 @@ export class FileInput extends FormInput {
 
     protected setupValidation(): void {
         this.inputElement.addEventListener('change', () => {
-            this.validate();
+            this._validate();
         });
     }
 
-    private validate(): void {
+    private _validate(): void {
         let files = (this.inputElement as HTMLInputElement).files;
         const fieldName = this.options.name;
         this.clearErrorMessage(fieldName);

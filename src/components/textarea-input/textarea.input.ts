@@ -11,13 +11,13 @@ export class TextareaInput extends FormInput {
 
     protected setupValidation(): void {
         // Use 'input' event to handle real-time validation
-        this.inputElement.addEventListener('input', () => this.validate());
+        this.inputElement.addEventListener('input', () => this._validate());
 
         // Optional: Additional validation on 'blur' event
-        this.inputElement.addEventListener('blur', () => this.validate());
+        this.inputElement.addEventListener('blur', () => this._validate());
     }
 
-    private validate(): void {
+    private _validate(): void {
         const value = (this.inputElement as HTMLTextAreaElement).value;
         const fieldName = this.options.name;
 

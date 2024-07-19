@@ -13,11 +13,11 @@ export class PasswordInput extends FormInput {
      * Sets up validation rules for the password input.
      */
     protected setupValidation(): void {
-        this.inputElement.addEventListener('keyup', () => this.validate());
-        this.inputElement.addEventListener('change', () => this.validate());
+        this.inputElement.addEventListener('keyup', () => this._validate());
+        this.inputElement.addEventListener('change', () => this._validate());
     }
 
-    private validate(): void {
+    private _validate(): void {
         const value = this.inputElement.value;
         const fieldName = this.options.name;
 
@@ -55,7 +55,7 @@ export class PasswordInput extends FormInput {
 
         // Strength validation (optional)
         if (this.options.minStrength) {
-            const strengthMessage = this.checkStrength(value);
+            const strengthMessage = this._checkStrength(value);
             if (strengthMessage) {
                 this.setErrorMessage(fieldName, strengthMessage);
             }
@@ -67,7 +67,7 @@ export class PasswordInput extends FormInput {
      * @param password - The password value to be checked.
      * @returns An error message if the strength requirement is not met; otherwise, null.
      */
-    private checkStrength(password: string): string | null {
+    private _checkStrength(password: string): string | null {
         if (this.options.minStrength) {
             const minStrength = this.options.minStrength;
             let strength = 0;

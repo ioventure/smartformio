@@ -6,27 +6,27 @@ import { DataParser } from '@src/services/data.parser';
 
 export class SelectInput extends FormInput {
     protected options: SelectInputOptions;
-    private apiService: ApiService;
+    private _apiService: ApiService;
 
     constructor(options: SelectInputOptions) {
         super(options);
         this.options = options;
-        this.apiService = new ApiService({ baseUrl: API_CONFIG.apiBaseUrl });
+        this._apiService = new ApiService({ baseUrl: API_CONFIG.apiBaseUrl });
 
         if (this.options.api) {
-            this.populateFromApis();
+            this._populateFromApis();
         } else {
-            this.createOptions(this.options.options ? this.options.options : []);
+            this._createOptions(this.options.options ? this.options.options : []);
         }
     }
 
     protected setupValidation(): void {
         this.inputElement.addEventListener('change', () => {
-            this.validate();
+            this._validate();
         });
     }
 
-    private validate(): void {
+    private _validate(): void {
         const value = this.inputElement.value;
         const fieldName = this.options.name;
 
@@ -46,11 +46,11 @@ export class SelectInput extends FormInput {
         }
     }
 
-    private async populateFromApis() {
+    private async _populateFromApis() {
         if (this.options.api) {
             try {
-                const data = await this.apiService.request<SelectOption[]>(this.options.api);
-                this.createOptions(data);
+                const data = await this._apiService.request<SelectOption[]>(this.options.api);
+                this._createOptions(data);
             } catch (error) {
                 console.error('Failed to fetch options from API:', error);
                 // Optionally set an error message or handle API errors
@@ -58,7 +58,7 @@ export class SelectInput extends FormInput {
         }
     }
 
-    private createOptions(data: SelectOption[]): void {
+    private _createOptions(data: SelectOption[]): void {
         // Clear existing options
         while (this.inputElement.firstChild) {
             this.inputElement.removeChild(this.inputElement.firstChild!);

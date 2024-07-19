@@ -1,21 +1,21 @@
 import { ApiRequestOption as ApiRequestOptions, ApiServiceOptions } from "@services/api/api.type";
 
 export class ApiService {
-    private baseUrl: string;
-    private defaultHeaders: Record<string, string>;
+    private _baseUrl: string;
+    private _defaultHeaders: Record<string, string>;
 
     constructor(options: ApiServiceOptions) {
-        this.baseUrl = options.baseUrl;
-        this.defaultHeaders = options.defaultHeaders || {};
+        this._baseUrl = options.baseUrl;
+        this._defaultHeaders = options.defaultHeaders || {};
     }
 
     async request<T>(
         options: ApiRequestOptions
     ): Promise<T> {
-        const response = await fetch(this.createUrlWithParams(options), {
+        const response = await fetch(this._createUrlWithParams(options), {
             method: options.method,
             headers: {
-                ...this.defaultHeaders,
+                ...this._defaultHeaders,
                 ...options.headers,
                 'Content-Type': 'application/json',
             },
@@ -30,18 +30,18 @@ export class ApiService {
         return response.json();
     }
 
-    private createUrlWithParams(options: ApiRequestOptions) {
-        let url = `${this.baseUrl}${options.endpoint}`
+    private _createUrlWithParams(options: ApiRequestOptions) {
+        let url = `${this._baseUrl}${options.endpoint}`
         if (options.endpoint.startsWith('http')) {
             url = options.endpoint;
         }
         if (options.params) {
-            url += this.buildQueryString(options.params);
+            url += this._buildQueryString(options.params);
         }
         return url;
     }
 
-    private buildQueryString(params: Record<string, string | number | boolean>): string {
+    private _buildQueryString(params: Record<string, string | number | boolean>): string {
         const query = new URLSearchParams(params as any).toString();
         return query ? `?${query}` : '';
     }

@@ -11,11 +11,11 @@ export class MonthInput extends FormInput {
 
     protected setupValidation(): void {
         // Handle validation on 'input' and 'change' events
-        this.inputElement.addEventListener('input', () => this.validate());
-        this.inputElement.addEventListener('change', () => this.validate());
+        this.inputElement.addEventListener('input', () => this._validate());
+        this.inputElement.addEventListener('change', () => this._validate());
     }
 
-    private validate(): void {
+    private _validate(): void {
         const monthValue = (this.inputElement as HTMLInputElement).value;
         const fieldName = this.options.name;
 
@@ -28,7 +28,7 @@ export class MonthInput extends FormInput {
         }
 
         // Check if monthValue is a valid month format (YYYY-MM)
-        if (!this.isValidMonthFormat(monthValue)) {
+        if (!this._isValidMonthFormat(monthValue)) {
             this.setErrorMessage(fieldName, 'Please enter a valid month in the format YYYY-MM.');
             return;
         }
@@ -49,13 +49,13 @@ export class MonthInput extends FormInput {
         }
     }
 
-    private isValidMonthFormat(value: string): boolean {
+    private _isValidMonthFormat(value: string): boolean {
         // Validates if the input is in the format YYYY-MM
         const monthFormatRegex = /^\d{4}-\d{2}$/;
-        return monthFormatRegex.test(value) && this.isValidMonthValue(value);
+        return monthFormatRegex.test(value) && this._isValidMonthValue(value);
     }
 
-    private isValidMonthValue(value: string): boolean {
+    private _isValidMonthValue(value: string): boolean {
         // Check if the value is a valid month and year
         const [year, month] = value.split('-').map(Number);
         return month >= 1 && month <= 12;

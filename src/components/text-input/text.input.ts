@@ -11,16 +11,16 @@ export class TextInput extends FormInput {
 
     protected setupValidation(): void {
         this.inputElement.addEventListener('input', () => {
-            this.validate();
+            this._validate();
         });
 
         // Additional validation on blur event to handle cases when the user leaves the field
         this.inputElement.addEventListener('blur', () => {
-            this.validate();
+            this._validate();
         });
     }
 
-    private validate(): void {
+    private _validate(): void {
         const value = this.inputElement.value;
         const fieldName = this.options.name;
 

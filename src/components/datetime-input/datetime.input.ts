@@ -11,11 +11,11 @@ export class DateTimeInput extends FormInput {
 
     protected setupValidation(): void {
         this.inputElement.addEventListener('input', () => {
-            this.validate();
+            this._validate();
         });
     }
 
-    private validate(): void {
+    private _validate(): void {
         const dateTimeValue = (this.inputElement as HTMLInputElement).value;
         const fieldName = this.options.name;
 

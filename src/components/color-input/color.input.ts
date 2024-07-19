@@ -11,11 +11,11 @@ export class ColorInput extends FormInput {
 
     protected setupValidation(): void {
         this.inputElement.addEventListener('input', () => {
-            this.validate();
+            this._validate();
         });
     }
 
-    private validate(): void {
+    private _validate(): void {
         const colorValue = (this.inputElement as HTMLInputElement).value;
         const fieldName = this.options.name;
 

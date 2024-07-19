@@ -11,11 +11,11 @@ export class HiddenInput extends FormInput {
 
     protected setupValidation(): void {
         if (this.options.required) {
-            this.validate();
+            this._validate();
         }
     }
 
-    private validate(): void {
+    private _validate(): void {
         const value = (this.inputElement as HTMLInputElement).value;
         const fieldName = this.options.name;
 

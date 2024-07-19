@@ -11,11 +11,11 @@ export class CheckboxInput extends FormInput {
 
     protected setupValidation(): void {
         this.inputElement.addEventListener('change', () => {
-            this.validate();
+            this._validate();
         });
     }
 
-    private validate(): void {
+    private _validate(): void {
         const isChecked = (this.inputElement as HTMLInputElement).checked;
         const fieldName = this.options.name;
 

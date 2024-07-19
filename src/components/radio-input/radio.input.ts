@@ -3,7 +3,7 @@ import { RadioInputOptions } from "./radio.type";
 
 export class RadioInput extends FormInput {
     protected options: RadioInputOptions;
-    private parentInputContainer?: HTMLDivElement;
+    private _parentInputContainer?: HTMLDivElement;
 
     constructor(options: RadioInputOptions) {
         super(options);
@@ -11,25 +11,25 @@ export class RadioInput extends FormInput {
     }
 
     public render() {
-        this.parentInputContainer = super.render();
-        this.parentInputContainer.classList.add('radio-group');
-        if (this.parentInputContainer && this.parentInputContainer.firstChild) {
-            const firstChild = this.parentInputContainer.firstChild;
+        this._parentInputContainer = super.render();
+        this._parentInputContainer.classList.add('radio-group');
+        if (this._parentInputContainer && this._parentInputContainer.firstChild) {
+            const firstChild = this._parentInputContainer.firstChild;
             if (firstChild.nodeName === 'INPUT') {
-                this.parentInputContainer.removeChild(this.parentInputContainer.firstChild);
+                this._parentInputContainer.removeChild(this._parentInputContainer.firstChild);
             } else {
-                this.parentInputContainer.removeChild(this.parentInputContainer.children[1]);
+                this._parentInputContainer.removeChild(this._parentInputContainer.children[1]);
             }
         }
-        this.createOptions();
-        return this.parentInputContainer;
+        this._createOptions();
+        return this._parentInputContainer;
     }
 
     protected setupValidation(): void {
-        this.inputElement.addEventListener('change', () => this.validate());
+        this.inputElement.addEventListener('change', () => this._validate());
     }
 
-    private validate(): void {
+    private _validate(): void {
         const selected = (this.inputElement as HTMLDivElement).querySelector('input[type="radio"]:checked');
         const fieldName = this.options.name;
 
@@ -45,7 +45,7 @@ export class RadioInput extends FormInput {
         }
     }
 
-    private createOptions() {
+    private _createOptions() {
         this.options.options.forEach((option, index) => {
             const radioWrapper = document.createElement('div');
             radioWrapper.classList.add('radio-option');
@@ -59,9 +59,9 @@ export class RadioInput extends FormInput {
                 radioWrapper.appendChild(this.inputElement);
                 radioWrapper.appendChild(this.labelElement!);
             }
-            if (this.parentInputContainer && this.parentInputContainer.children && this.parentInputContainer.children.length > 0) {
-                const lastElement = this.parentInputContainer.children[this.parentInputContainer.children.length - 1]
-                this.parentInputContainer.insertBefore(radioWrapper, lastElement)
+            if (this._parentInputContainer && this._parentInputContainer.children && this._parentInputContainer.children.length > 0) {
+                const lastElement = this._parentInputContainer.children[this._parentInputContainer.children.length - 1]
+                this._parentInputContainer.insertBefore(radioWrapper, lastElement)
             }
         });
     }

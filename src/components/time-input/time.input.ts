@@ -11,13 +11,13 @@ export class TimeInput extends FormInput {
 
     protected setupValidation(): void {
         // Validate on input event for real-time feedback
-        this.inputElement.addEventListener('input', () => this.validate());
+        this.inputElement.addEventListener('input', () => this._validate());
 
         // Optional: Additional validation on blur event
-        this.inputElement.addEventListener('blur', () => this.validate());
+        this.inputElement.addEventListener('blur', () => this._validate());
     }
 
-    private validate(): void {
+    private _validate(): void {
         const value = (this.inputElement as HTMLInputElement).value;
         const fieldName = this.options.name;
 
@@ -29,7 +29,7 @@ export class TimeInput extends FormInput {
         }
 
         // Time Format Validation (Ensure value is a valid time)
-        if (!this.isValidTime(value)) {
+        if (!this._isValidTime(value)) {
             this.setErrorMessage(fieldName, 'Please enter a valid time in HH:MM format.');
         }
 
@@ -45,7 +45,7 @@ export class TimeInput extends FormInput {
     }
 
     // Helper method to validate time format
-    private isValidTime(time: string): boolean {
+    private _isValidTime(time: string): boolean {
         const timePattern = /^([01]\d|2[0-3]):([0-5]\d)$/;
         return timePattern.test(time);
     }

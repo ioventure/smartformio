@@ -10,10 +10,10 @@ export class RangeInput extends FormInput {
     }
 
     protected setupValidation(): void {
-        this.inputElement.addEventListener('input', () => this.validateValue());
+        this.inputElement.addEventListener('input', () => this._validate());
     }
 
-    private validateValue(): void {
+    private _validate(): void {
         const value = (this.inputElement as HTMLInputElement).valueAsNumber;
         const fieldName = this.options.name;
 

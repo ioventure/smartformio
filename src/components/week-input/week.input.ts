@@ -10,13 +10,13 @@ export class WeekInput extends FormInput {
     }
 
     protected setupValidation(): void {
-        this.inputElement.addEventListener('input', () => this.validate());
+        this.inputElement.addEventListener('input', () => this._validate());
 
         // Optional: Additional validation on blur event
-        this.inputElement.addEventListener('blur', () => this.validate());
+        this.inputElement.addEventListener('blur', () => this._validate());
     }
 
-    private validate(): void {
+    private _validate(): void {
         const value = (this.inputElement as HTMLInputElement).value;
         const fieldName = this.options.name;
 
@@ -29,7 +29,7 @@ export class WeekInput extends FormInput {
         }
 
         // Week Format Validation (assumes ISO week format: YYYY-Www)
-        if (value && !this.isValidWeek(value)) {
+        if (value && !this._isValidWeek(value)) {
             this.setErrorMessage(fieldName, 'Please enter a valid week in format YYYY-Www.');
             return;
         }
@@ -53,7 +53,7 @@ export class WeekInput extends FormInput {
     }
 
     // Helper method to validate week format
-    private isValidWeek(week: string): boolean {
+    private _isValidWeek(week: string): boolean {
         // Regex to match ISO week format: YYYY-Www (e.g., 2024-W30)
         const weekRegex = /^\d{4}-W[0-5][0-9]$/;
         return weekRegex.test(week);
