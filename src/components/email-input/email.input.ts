@@ -23,7 +23,7 @@ export class EmailInput extends FormInput {
 
         // Required field validation
         if (this.options.required && value.trim() === '') {
-            this.setErrorMessage(fieldName, 'Field is required.');
+            this.setErrorMessage(fieldName, `${this.options.label ? this.options.label : 'Field'} is required.`);
         }
 
         // Email format validation

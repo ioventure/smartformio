@@ -23,7 +23,7 @@ export class DateInput extends FormInput {
 
         // Required validation
         if (this.options.required && !dateValue) {
-            this.setErrorMessage(fieldName, 'Date is required.');
+            this.setErrorMessage(fieldName, `${this.options.label ? this.options.label : 'Field'} is required.`);
         }
 
         // Minimum date validation

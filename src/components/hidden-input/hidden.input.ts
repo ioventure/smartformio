@@ -22,7 +22,7 @@ export class HiddenInput extends FormInput {
         this.clearErrorMessage(fieldName);
 
         if (this.options.required && value.trim() === '') {
-            this.setErrorMessage(fieldName, 'Field is required.');
+            this.setErrorMessage(fieldName, `${this.options.label ? this.options.label : 'Field'} is required.`);
         }
 
         if (this.options.customValidation && !this.options.customValidation(value)) {

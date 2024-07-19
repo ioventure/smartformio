@@ -28,7 +28,7 @@ export class TextInput extends FormInput {
 
         // Required Field Validation
         if (this.options.required && value.trim() === '') {
-            this.setErrorMessage(fieldName, 'Field is required.');
+            this.setErrorMessage(fieldName, `${this.options.label ? this.options.label : 'Field'} is required.`);
         }
 
         // Min Length Validation

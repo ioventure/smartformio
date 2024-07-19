@@ -5,7 +5,7 @@ import { ButtonInputOptions } from "./button.type";
  */
 export class ButtonInput {
     protected options: ButtonInputOptions;
-    protected inputElement!: HTMLButtonElement;
+    protected buttonElement!: HTMLButtonElement;
 
     /**
      * Constructs a new ButtonInput instance.
@@ -13,23 +13,26 @@ export class ButtonInput {
      */
     constructor(options: ButtonInputOptions) {
         this.options = options;
-        this.createInputElement();
+        this._createButtonElement();
     }
 
     /**
      * Renders the button element.
      * @returns The rendered HTML button element.
      */
-    public render(): HTMLButtonElement {
-        return this.inputElement;
+    public render(): HTMLDivElement {
+        const buttonContainer = document.createElement('div');
+        buttonContainer.classList.add('button-container');
+        buttonContainer.appendChild(this.buttonElement);
+        return buttonContainer;
     }
 
 
     /**
      * Creates the input element for the button with specified options.
      */
-    protected createInputElement(): void {
-        this.inputElement = document.createElement('button');
+    protected _createButtonElement(): void {
+        this.buttonElement = document.createElement('button');
         this._setButtonAttributes();
     }
 
@@ -39,20 +42,19 @@ export class ButtonInput {
     private _setButtonAttributes(): void {
         const { buttonType, name, label, disabled, id } = this.options;
         if (buttonType) {
-            (this.inputElement as HTMLButtonElement).type = buttonType;
+            (this.buttonElement as HTMLButtonElement).type = buttonType;
         }
         if (name) {
-            (this.inputElement as HTMLButtonElement).name = name;
+            (this.buttonElement as HTMLButtonElement).name = name;
         }
         if (label) {
-            (this.inputElement as HTMLButtonElement).textContent = label;
+            (this.buttonElement as HTMLButtonElement).textContent = label;
         }
         if (disabled) {
-            (this.inputElement as HTMLButtonElement).disabled = disabled;
+            (this.buttonElement as HTMLButtonElement).disabled = disabled;
         }
         if (id) {
-            (this.inputElement as HTMLButtonElement).id = id;
+            (this.buttonElement as HTMLButtonElement).id = id;
         }
-
     }
 }

@@ -34,7 +34,7 @@ export class SelectInput extends FormInput {
 
         // Check if a selection is required
         if (this.options.required && value.trim() === '') {
-            this.setErrorMessage(fieldName, 'Selection is required.');
+            this.setErrorMessage(fieldName, `${this.options.label ? this.options.label : 'Field'} is required.`);
         }
 
         // Apply custom validation if provided

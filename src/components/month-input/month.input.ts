@@ -23,7 +23,7 @@ export class MonthInput extends FormInput {
 
         // Required field validation
         if (this.options.required && !monthValue) {
-            this.setErrorMessage(fieldName, 'Month is required.');
+            this.setErrorMessage(fieldName, `${this.options.label ? this.options.label : 'Field'} is required.`);
             return;
         }
 

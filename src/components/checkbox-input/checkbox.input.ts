@@ -23,7 +23,7 @@ export class CheckboxInput extends FormInput {
 
         // Required validation
         if (this.options.required && !isChecked) {
-            this.setErrorMessage(fieldName, 'This checkbox is required.');
+            this.setErrorMessage(fieldName, `${this.options.label ? this.options.label : 'Field'} is required.`);
         }
 
         // Custom validation

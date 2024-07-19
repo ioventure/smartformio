@@ -36,7 +36,7 @@ export class RadioInput extends FormInput {
         this.clearErrorMessage(fieldName);
 
         if (this.options.required && !selected) {
-            this.setErrorMessage(fieldName, 'Selection is required.');
+            this.setErrorMessage(fieldName, `${this.options.label ? this.options.label : 'Field'} is required.`);
         }
 
         // Custom Validation

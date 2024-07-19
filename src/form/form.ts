@@ -31,12 +31,15 @@ export class PPForm extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['config'];
+        return ['config', 'styles'];
     }
 
     attributeChangedCallback(name: string, oldValue: any, newValue: any) {
         if (name === 'config' && oldValue !== newValue) {
             this.renderForm(JSON.parse(newValue));
+        }
+        if (name === 'styles' && oldValue !== newValue) {
+            this.updateStyles(newValue)
         }
     }
 
@@ -44,6 +47,10 @@ export class PPForm extends HTMLElement {
         const config = this.getAttribute('config');
         if (config) {
             this.renderForm(JSON.parse(config));
+        }
+        const styles = this.getAttribute('styles') || '';
+        if (config) {
+            this.updateStyles(styles);
         }
     }
 
@@ -58,8 +65,10 @@ export class PPForm extends HTMLElement {
             }
         });
 
+        // Attach submit event listener
+        form.addEventListener('submit', (event) => this.handleSubmit(event));
+
         this.shadow.appendChild(form);
-        this.updateStyles(`.error-message { color: red; }`);
     }
 
     createInput(config: FormConfig): FormInput | ButtonInput | null {
@@ -107,6 +116,21 @@ export class PPForm extends HTMLElement {
             default:
                 return null;
         }
+    }
+
+    private handleSubmit(event: Event) {
+        event.preventDefault(); // Prevent the default form submission
+        const form = event.target as HTMLFormElement;
+        const formData = new FormData(form);
+
+        // Convert FormData to a plain object
+        const data: { [key: string]: any } = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+
+        console.log('Form Data Submitted:', data);
+        // You can handle the form data here (e.g., send it to a server)
     }
 
     private updateStyles(styles: string) {

@@ -21,7 +21,7 @@ export class RangeInput extends FormInput {
 
         // Check if a value is required
         if (this.options.required && isNaN(value)) {
-            this.setErrorMessage(fieldName, 'Value is required.');
+            this.setErrorMessage(fieldName, `${this.options.label ? this.options.label : 'Field'} is required.`);
             return; // Exit early to avoid further checks
         }
 

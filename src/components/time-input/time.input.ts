@@ -25,7 +25,7 @@ export class TimeInput extends FormInput {
 
         // Required Field Validation
         if (this.options.required && !value) {
-            this.setErrorMessage(fieldName, 'Time is required.');
+            this.setErrorMessage(fieldName, `${this.options.label ? this.options.label : 'Field'} is required.`);
         }
 
         // Time Format Validation (Ensure value is a valid time)

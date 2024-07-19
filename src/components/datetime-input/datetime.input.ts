@@ -23,7 +23,7 @@ export class DateTimeInput extends FormInput {
 
         // Required validation
         if (this.options.required && !dateTimeValue) {
-            this.setErrorMessage(fieldName, 'Date and time are required.');
+            this.setErrorMessage(fieldName, `${this.options.label ? this.options.label : 'Field'} is required.`);
         }
 
         // Minimum date and time validation

@@ -25,7 +25,7 @@ export class UrlInput extends FormInput {
 
         // Required Field Validation
         if (this.options.required && !value.trim()) {
-            this.setErrorMessage(fieldName, 'URL is required.');
+            this.setErrorMessage(fieldName, `${this.options.label ? this.options.label : 'Field'} is required.`);
         }
 
         // URL Format Validation

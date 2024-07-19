@@ -40,11 +40,6 @@ export abstract class FormInput {
             const labelContainer = document.createElement('div');
             labelContainer.classList.add('label-container');
             switch (this.options.labelPosition) {
-                case 'top':
-                    labelContainer.appendChild(this.labelElement);
-                    inputContainer.appendChild(labelContainer);
-                    inputContainer.appendChild(this.inputElement);
-                    break;
                 case 'left':
                     inputContainer.appendChild(this.labelElement);
                     inputContainer.appendChild(this.inputElement);
@@ -52,6 +47,12 @@ export abstract class FormInput {
                 case 'right':
                     inputContainer.appendChild(this.inputElement);
                     inputContainer.appendChild(this.labelElement);
+                    break;
+                case 'top':
+                default:
+                    labelContainer.appendChild(this.labelElement);
+                    inputContainer.appendChild(labelContainer);
+                    inputContainer.appendChild(this.inputElement);
                     break;
             }
         } else {
@@ -131,18 +132,18 @@ export abstract class FormInput {
         this._displayError();
     }
 
-     /**
-     * Clears the error message for the specified field.
-     * @param fieldName - The name of the field.
-     */
-     protected clearErrorMessage(fieldName: string): void {
+    /**
+    * Clears the error message for the specified field.
+    * @param fieldName - The name of the field.
+    */
+    protected clearErrorMessage(fieldName: string): void {
         delete this.errorMessages[fieldName];
         this._displayError();
     }
 
-     /**
-     * Creates the error message element.
-     */
+    /**
+    * Creates the error message element.
+    */
     private _createInputErrorElement(): void {
         this._inputErrorElement = document.createElement('div');
         this._inputErrorElement.setAttribute('role', 'alert');

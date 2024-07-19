@@ -23,7 +23,7 @@ export class ColorInput extends FormInput {
 
         // Required validation
         if (this.options.required && !colorValue) {
-            this.setErrorMessage(fieldName, 'Color selection is required.');
+            this.setErrorMessage(fieldName, `${this.options.label ? this.options.label : 'Field'} is required.`);
         }
 
         // Custom validation

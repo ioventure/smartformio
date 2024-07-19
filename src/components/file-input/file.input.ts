@@ -24,7 +24,7 @@ export class FileInput extends FormInput {
         }
         // Required file validation
         if (this.options.required && (!files || files.length === 0)) {
-            this.setErrorMessage(fieldName, 'File is required.');
+            this.setErrorMessage(fieldName, `${this.options.label ? this.options.label : 'Field'} is required.`);
             return;
         }
         // File type validation

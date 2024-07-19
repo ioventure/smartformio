@@ -3,223 +3,132 @@ import './form/form';
 import { FormConfigs } from '@form/form.type';
 
 const formConfig: FormConfigs = [
-  {
-    type: "text",
-    name: "username",
-    placeholder: "Username",
-    label: "Username",
-    labelPosition: 'top',
-    required: true,
-    minLength: 3,
-    maxLength: 20,
-    pattern: "^[a-zA-Z0-9_]+$",
-    customValidation: function (value) { return value !== 'admin'; }
-  },
-  {
-    type: "color",
-    name: "color",
-    placeholder: "Color",
-    label: "Color",
-    labelPosition: 'top',
-    required: true,
-  },
-  {
-    type: "password",
-    name: "password",
-    placeholder: "Password",
-    label: "Password",
-    labelPosition: 'top',
-    required: true,
-    minLength: 8,
-    maxLength: 30,
-    pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$",
-    customValidation: function (value) { return !value.includes('1234'); }
-  },
-  {
-    type: "email",
-    name: "email",
-    placeholder: "Email",
-    label: "Email",
-    labelPosition: 'top',
-    required: true,
-    pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
-    customValidation: function (value) { return value.endsWith('@example.com'); }
-  },
-  {
-    type: "number",
-    name: "age",
-    placeholder: "Age",
-    label: "Age",
-    labelPosition: 'top',
-    required: true,
-    min: 18,
-    max: 99,
-    pattern: "^\\d+$",
-    customValidation: function (value) { return value > 0; }
-  },
-  {
-    type: "range",
-    name: "volume",
-    placeholder: "Volume",
-    label: "Volume",
-    labelPosition: 'top',
-    required: false,
-    min: 0,
-    max: 100
-  },
-  {
-    type: "tel",
-    name: "Mobile",
-    placeholder: "Mobile",
-    label: "Mobile",
-    labelPosition: 'top',
-    required: false
-  },
-  {
-    type: "select",
-    name: "country",
-    label: "Country",
-    labelPosition: 'top',
-    required: true,
-    options: [
-      { code: "us", name: "United States" },
-      { code: "ca", name: "Canada" },
-      { code: "uk", name: "United Kingdom" }
-    ],
-    placeholder: "Select a country",
-    valueKey: "code",
-    textKey: "name"
-  },
-  {
-    type: "textarea",
-    name: "comments",
-    placeholder: "Comments",
-    label: "Comments",
-    labelPosition: 'top',
-    required: false,
-    minLength: 10,
-    maxLength: 500,
-    pattern: "^[a-zA-Z0-9\\s,.!?]*$",
-    customValidation: function (value) { return !value.includes('spam'); }
-  },
-  {
-    type: "radio",
-    name: "gender",
-    label: "Gender",
-    required: true,
-    options: [
-      { value: "male", label: "Male" },
-      { value: "female", label: "Female" },
-      { value: "other", label: "Other" }
-    ],
-    labelPosition: "right"
-  },
-  {
-    type: "checkbox",
-    name: "terms",
-    label: "I agree to the terms and conditions",
-    required: true,
-    labelPosition: "right"
-  },
-  {
-    type: "file",
-    name: "profilePicture",
-    placeholder: "Profile Picture",
-    label: "Profile Picture",
-    labelPosition: "top",
-    required: false,
-    accept: "image/*",
-    multiple: false
-  },
-  {
-    type: "date",
-    name: "birthDate",
-    placeholder: "Birth Date",
-    label: "Birth Date",
-    labelPosition: "top",
-    required: true,
-    min: "1900-01-01",
-    max: "2024-12-31"
-  },
-  {
-    type: "datetime",
-    name: "appointment",
-    placeholder: "Appointment Date and Time",
-    labelPosition: "top",
-    label: "Appointment Date and Time",
-    required: true,
-    min: "2024-01-01T00:00",
-    max: "2024-12-31T23:59"
-  },
-  {
-    type: "time",
-    name: "meetingTime",
-    placeholder: "Meeting Time",
-    label: "Meeting Time",
-    labelPosition: "top",
-    required: true,
-    min: "08:00",
-    max: "18:00"
-  },
-  {
-    type: "url",
-    name: "website",
-    placeholder: "Website",
-    label: "Website",
-    labelPosition: "top",
-    required: false,
-    pattern: "^(https?|ftp)://[^\s/$.?#].[^\s]*$"
-  },
-  {
-    type: "month",
-    name: "subscriptionMonth",
-    placeholder: "Subscription Month",
-    label: "Subscription Month",
-    required: true,
-    labelPosition: "top",
-    min: "2024-01",
-    max: "2024-12"
-  },
-  {
-    type: "week",
-    name: "projectWeek",
-    placeholder: "Project Week",
-    label: "Project Week",
-    labelPosition: "top",
-    required: true,
-    min: "2024-W01",
-    max: "2024-W52"
-  },
-  {
-    type: "hidden",
-    placeholder: 'Hidden Field',
-    label: 'Hidden field',
-    labelPosition: "top",
-    name: "hiddenField",
-    value: "hiddenValue",
-    required: false
-  },
-  {
-    type: 'button',
-    buttonType: 'submit',
-    label: 'Submit',
-    disabled: false,
-    name: 'submitButton',
-    id: 'submitBtn'
-  },
-  {
-    type: 'button',
-    buttonType: 'reset',
-    label: 'Reset',
-    disabled: false,
-    name: 'resetButton',
-    id: 'resetButton'
-  }
-]
+  { type: 'text', name: 'firstName', label: 'First Name',  required: true },
+  { type: 'text', name: 'lastName', label: 'Last Name', required: true },
+  { type: 'email', name: 'email', label: 'Email', required: true },
+  { type: 'password', name: 'password', label: 'Password', required: true },
+  { type: 'date', name: 'birthdate', label: 'Birth Date', required: false },
+  { type: 'button', name: 'submit', label: 'Submit', buttonType: 'submit' }
+];
+
+const styles = `
+    :host {
+      display: block;
+      font-family: Arial, sans-serif;
+    }
+
+    form {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      margin: auto auto;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="date"],
+    input[type="time"],
+    input[type="datetime-local"],
+    input[type="month"],
+    input[type="week"],
+    input[type="search"],
+    input[type="color"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 2px solid #dcdcdc;
+      border-radius: 5px;
+      font-size: 16px;
+      color: #333;
+      box-sizing: border-box;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #9c27b0;
+      outline: none;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #7b1fa2;
+    }
+
+    .checkbox-group,
+    .radio-group,
+    .remember-me {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .checkbox-group input[type="checkbox"],
+    .radio-group input[type="radio"],
+    .remember-me input[type="checkbox"] {
+      margin-right: 10px;
+    }
+
+    .checkbox-group label,
+    .radio-group label,
+    .remember-me label {
+      margin: 0;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .forgot-password {
+      text-align: right;
+      margin-bottom: 20px;
+    }
+
+    .forgot-password a {
+      color: #7b1fa2;
+      text-decoration: none;
+    }
+
+    .forgot-password a:hover {
+      text-decoration: underline;
+    }
+
+    button[type="submit"],
+    button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      color: white;
+      margin-bottom: 10px;
+      background-color: #7b1fa2;
+    }
+
+    button:hover {
+      background-color: #6a1b9a;
+    }
+
+    .error-message {
+      color: red;
+      border-radius: 4px;
+      font-size: 14px;
+      margin: 0 0 20px 0;
+    }
+`;
 
 document.querySelector('#root')!.innerHTML = `
-  <div>
-    <pp-form id="form" config='${JSON.stringify(formConfig)}'></pp-form>
+  <div class="form-container">
+    <pp-form id="form" config='${JSON.stringify(formConfig)}' styles='${styles}'></pp-form>
   </div>
 `;
 
