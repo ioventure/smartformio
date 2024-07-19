@@ -1,0 +1,1 @@
+export interface TextareaInputOptions extends InputOptions {}

@@ -1,0 +1,1 @@
+export interface FileInputOptions extends InputOptions {}

@@ -1,0 +1,1 @@
+export interface HiddenInputOptions extends InputOptions{}

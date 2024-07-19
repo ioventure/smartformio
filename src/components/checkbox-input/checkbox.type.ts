@@ -1,0 +1,1 @@
+export interface CheckboxInputOptions extends InputOptions {}

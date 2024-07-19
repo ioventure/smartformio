@@ -1,0 +1,1 @@
+export interface WeekInputOptions extends InputOptions{}

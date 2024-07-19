@@ -1,0 +1,1 @@
+export interface UrlInputOptions extends InputOptions {}
