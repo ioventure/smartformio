@@ -17,6 +17,7 @@
       "@services/*": ["services/*"],
       "@config/*": ["config/*"],
       "@form/*": ["form/*"],
+      "@styles/*": ["styles/*"],
       "@src/*": ["*"]
     }
   },
