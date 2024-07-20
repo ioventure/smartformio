@@ -1,6 +1,6 @@
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
-export interface ApiServiceOptions {
+export interface ApiOptions {
   baseUrl: string;
   defaultHeaders?: Record<string, string>;
 }

@@ -18,7 +18,7 @@ import { TextareaInput } from '@components/textarea-input/textarea.input';
 import { TimeInput } from '@components/time-input/time.input';
 import { UrlInput } from '@components/url-input/url.input';
 import { WeekInput } from '@components/week-input/week.input';
-import { FormConfig } from './form.type';
+import { FormConfig, FormDefaultConfig } from './form.type';
 import { RangeInputOptions } from '@components/range-input/range.type';
 import { ButtonInput } from '@components/button-input/button.input';
 import { InputOptions } from '@components/input.type';
@@ -26,40 +26,52 @@ import { ButtonInputOptions } from '@components/button-input/button.type';
 import { ApiService } from '@services/api/api.service';
 import { ApiRequestOption } from '@services/api/api.type';
 
-export class PPForm extends HTMLElement {
+export class SmartForm extends HTMLElement {
   private _shadow: ShadowRoot;
-  private _form?: HTMLFormElement;
-  private _config?: FormConfig;
-  private _submitButton?: ButtonInput;
+  private _formElement?: HTMLFormElement;
+  private _formConfig?: FormConfig;
+  private _formSubmitButtonElement?: ButtonInput;
   private _apiService: ApiService;
+  private _formDefaultConfig: FormDefaultConfig;
+  static formDefaultConfig: FormDefaultConfig;
 
   constructor() {
     super();
     this._shadow = this.attachShadow({ mode: 'open' });
-    this._apiService = new ApiService();
+    this._formDefaultConfig = SmartForm.formDefaultConfig;
+    this._apiService = new ApiService(this._formDefaultConfig.api);
   }
 
   static get observedAttributes() {
     return ['config', 'styles'];
   }
 
+  static setDefaultConfig(config: FormDefaultConfig) {
+    SmartForm.formDefaultConfig = {
+      ...SmartForm.formDefaultConfig,
+      ...config,
+    };
+  }
+
   attributeChangedCallback(name: string, oldValue: any, newValue: any) {
     if (name === 'config' && oldValue !== newValue) {
       this._getAndSetConfig(newValue);
-      if (this._config) {
-        this._render(this._config);
+      if (this._formConfig) {
+        this._render(this._formConfig);
       }
     }
     if (name === 'styles' && oldValue !== newValue) {
-      this._setStyles(newValue);
+      const styles = newValue || this._formDefaultConfig.styles || '';
+      this._setStyles(styles);
     }
   }
 
   connectedCallback() {
     this._getAndSetConfig();
-    if (this._config) {
-      this._render(this._config);
-      const styles = this.getAttribute('styles') || '';
+    if (this._formConfig) {
+      this._render(this._formConfig);
+      const styles =
+        this.getAttribute('styles') || this._formDefaultConfig.styles || '';
       this._setStyles(styles);
     }
   }
@@ -67,24 +79,26 @@ export class PPForm extends HTMLElement {
   private _getAndSetConfig(config?: string) {
     const _config = config || this.getAttribute('config') || JSON.stringify({});
     if (config) {
-      this._config = JSON.parse(_config);
+      this._formConfig = JSON.parse(_config);
     }
   }
 
   private _render(config: FormConfig) {
-    this._form = document.createElement('form');
+    this._formElement = document.createElement('form');
     this._shadow.innerHTML = '';
     this._renderInput(config.elements);
     this._renderButton(Object.values(config.actionButtons));
-    this._form.addEventListener('submit', event => this._handleSubmit(event));
-    this._shadow.appendChild(this._form);
+    this._formElement.addEventListener('submit', event =>
+      this._handleSubmit(event)
+    );
+    this._shadow.appendChild(this._formElement);
   }
 
   private _renderInput(config: InputOptions[]) {
     config.forEach(inputConfig => {
       const inputElement = this._createInput(inputConfig);
       if (inputElement) {
-        this._form?.appendChild(inputElement.render());
+        this._formElement?.appendChild(inputElement.render());
       }
     });
   }
@@ -93,7 +107,7 @@ export class PPForm extends HTMLElement {
     config.forEach(buttonConfig => {
       const buttonElement = this._createButton(buttonConfig);
       if (buttonElement) {
-        this._form?.appendChild(buttonElement.render());
+        this._formElement?.appendChild(buttonElement.render());
       }
     });
   }
@@ -146,8 +160,8 @@ export class PPForm extends HTMLElement {
   private _createButton(config: ButtonInputOptions): ButtonInput | null {
     switch (config.buttonType) {
       case 'submit':
-        this._submitButton = new ButtonInput(config);
-        return this._submitButton;
+        this._formSubmitButtonElement = new ButtonInput(config);
+        return this._formSubmitButtonElement;
       case 'reset':
         return new ButtonInput(config);
       default:
@@ -165,14 +179,14 @@ export class PPForm extends HTMLElement {
       data[key] = value;
     });
     // Handle API Calls
-    if (this._config) {
+    if (this._formConfig) {
       const apiOptions: ApiRequestOption = {
-        ...this._config.submitApi,
+        ...this._formConfig.submitApi,
         body: data,
       };
-      this._submitButton?.showLoader(true);
+      this._formSubmitButtonElement?.showLoader(true);
       await this._apiService.request(apiOptions);
-      this._submitButton?.showLoader(false);
+      this._formSubmitButtonElement?.showLoader(false);
     }
   }
 
@@ -183,4 +197,4 @@ export class PPForm extends HTMLElement {
   }
 }
 
-customElements.define('pp-form', PPForm);
+customElements.define('smart-form', SmartForm);

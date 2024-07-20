@@ -1,13 +1,13 @@
 import {
   ApiRequestOption as ApiRequestOptions,
-  ApiServiceOptions,
+  ApiOptions,
 } from '@services/api/api.type';
 
 export class ApiService {
   private _baseUrl?: string;
   private _defaultHeaders?: Record<string, string>;
 
-  constructor(options?: ApiServiceOptions) {
+  constructor(options?: ApiOptions) {
     this._baseUrl = options?.baseUrl;
     this._defaultHeaders = options?.defaultHeaders || {};
   }

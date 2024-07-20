@@ -1,11 +1,22 @@
 import './index.css';
 import './form/form.component';
 import { FormConfig } from '@form/form.type';
+import { SmartForm } from './form/form.component';
 
 const formConfig: FormConfig = {
   elements: [
-    { type: 'text', name: 'title', label: 'Title', required: true },
-    { type: 'number', name: 'userId', label: 'User Id', required: true },
+    {
+      type: 'text',
+      name: 'title',
+      label: 'Title',
+      required: true,
+    },
+    {
+      type: 'number',
+      name: 'userId',
+      label: 'User Id',
+      required: true,
+    },
   ],
   actionButtons: {
     submit: {
@@ -16,7 +27,7 @@ const formConfig: FormConfig = {
     },
   },
   submitApi: {
-    endpoint: 'https://dummyjson.com/posts/add',
+    endpoint: '/posts/add',
     method: 'POST',
   },
 };
@@ -144,9 +155,14 @@ const styles = `
     }
 `;
 
+SmartForm.setDefaultConfig({
+  api: { baseUrl: 'https://dummyjson.com' },
+  styles,
+});
+
 document.querySelector('#root')!.innerHTML = `
   <div class="form-container">
     <image src="https://spn-sta.spinny.com/blog/20221004191046/Hyundai-Venue-2022.jpg?compress=true&quality=80&w=1200&dpr=2" width="440px" height="200px" style="margin: 0 auto; display: flex">
-    <pp-form id="form" config='${JSON.stringify(formConfig)}' styles='${styles}'></pp-form>
+    <smart-form id="form" config='${JSON.stringify(formConfig)}'></smart-form>
   </div>
 `;
