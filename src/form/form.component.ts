@@ -18,16 +18,25 @@ import { TextareaInput } from '@components/textarea-input/textarea.input';
 import { TimeInput } from '@components/time-input/time.input';
 import { UrlInput } from '@components/url-input/url.input';
 import { WeekInput } from '@components/week-input/week.input';
-import { FormConfig, FormConfigs } from './form.type';
+import { FormConfig } from './form.type';
 import { RangeInputOptions } from '@components/range-input/range.type';
 import { ButtonInput } from '@components/button-input/button.input';
+import { InputOptions } from '@components/input.type';
+import { ButtonInputOptions } from '@components/button-input/button.type';
+import { ApiService } from '@services/api/api.service';
+import { ApiRequestOption } from '@services/api/api.type';
 
 export class PPForm extends HTMLElement {
-  private shadow: ShadowRoot;
+  private _shadow: ShadowRoot;
+  private _form?: HTMLFormElement;
+  private _config?: FormConfig;
+  private _submitButton?: ButtonInput;
+  private _apiService: ApiService;
 
   constructor() {
     super();
-    this.shadow = this.attachShadow({ mode: 'open' });
+    this._shadow = this.attachShadow({ mode: 'open' });
+    this._apiService = new ApiService();
   }
 
   static get observedAttributes() {
@@ -36,7 +45,10 @@ export class PPForm extends HTMLElement {
 
   attributeChangedCallback(name: string, oldValue: any, newValue: any) {
     if (name === 'config' && oldValue !== newValue) {
-      this._render(JSON.parse(newValue));
+      this._getAndSetConfig(newValue);
+      if (this._config) {
+        this._render(this._config);
+      }
     }
     if (name === 'styles' && oldValue !== newValue) {
       this._setStyles(newValue);
@@ -44,34 +56,49 @@ export class PPForm extends HTMLElement {
   }
 
   connectedCallback() {
-    const config = this.getAttribute('config');
-    if (config) {
-      this._render(JSON.parse(config));
-    }
-    const styles = this.getAttribute('styles') || '';
-    if (config) {
+    this._getAndSetConfig();
+    if (this._config) {
+      this._render(this._config);
+      const styles = this.getAttribute('styles') || '';
       this._setStyles(styles);
     }
   }
 
-  private _render(config: FormConfigs) {
-    this.shadow.innerHTML = ''; // Clear previous content
-    let form = document.createElement('form');
+  private _getAndSetConfig(config?: string) {
+    const _config = config || this.getAttribute('config') || JSON.stringify({});
+    if (config) {
+      this._config = JSON.parse(_config);
+    }
+  }
 
+  private _render(config: FormConfig) {
+    this._form = document.createElement('form');
+    this._shadow.innerHTML = '';
+    this._renderInput(config.elements);
+    this._renderButton(Object.values(config.actionButtons));
+    this._form.addEventListener('submit', event => this._handleSubmit(event));
+    this._shadow.appendChild(this._form);
+  }
+
+  private _renderInput(config: InputOptions[]) {
     config.forEach(inputConfig => {
       const inputElement = this._createInput(inputConfig);
       if (inputElement) {
-        form.appendChild(inputElement.render());
+        this._form?.appendChild(inputElement.render());
       }
     });
-
-    // Attach submit event listener
-    form.addEventListener('submit', event => this._handleSubmit(event));
-
-    this.shadow.appendChild(form);
   }
 
-  private _createInput(config: FormConfig): FormInput | ButtonInput | null {
+  private _renderButton(config: ButtonInputOptions[]) {
+    config.forEach(buttonConfig => {
+      const buttonElement = this._createButton(buttonConfig);
+      if (buttonElement) {
+        this._form?.appendChild(buttonElement.render());
+      }
+    });
+  }
+
+  private _createInput(config: InputOptions): FormInput | ButtonInput | null {
     switch (config.type) {
       case 'text':
         return new TextInput(config);
@@ -111,32 +138,48 @@ export class PPForm extends HTMLElement {
         return new UrlInput(config);
       case 'week':
         return new WeekInput(config);
-      case 'button':
+      default:
+        return null;
+    }
+  }
+
+  private _createButton(config: ButtonInputOptions): ButtonInput | null {
+    switch (config.buttonType) {
+      case 'submit':
+        this._submitButton = new ButtonInput(config);
+        return this._submitButton;
+      case 'reset':
         return new ButtonInput(config);
       default:
         return null;
     }
   }
 
-  private _handleSubmit(event: Event) {
-    event.preventDefault(); // Prevent the default form submission
+  private async _handleSubmit(event: Event) {
+    event.preventDefault();
     const form = event.target as HTMLFormElement;
     const formData = new FormData(form);
-
     // Convert FormData to a plain object
     const data: { [key: string]: any } = {};
     formData.forEach((value, key) => {
       data[key] = value;
     });
-
-    console.log('Form Data Submitted:', data);
-    // You can handle the form data here (e.g., send it to a server)
+    // Handle API Calls
+    if (this._config) {
+      const apiOptions: ApiRequestOption = {
+        ...this._config.submitApi,
+        body: data,
+      };
+      this._submitButton?.showLoader(true);
+      await this._apiService.request(apiOptions);
+      this._submitButton?.showLoader(false);
+    }
   }
 
   private _setStyles(styles: string) {
     const style = document.createElement('style');
     style.textContent = styles;
-    this.shadow.appendChild(style);
+    this._shadow.appendChild(style);
   }
 }
 

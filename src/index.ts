@@ -1,46 +1,25 @@
 import './index.css';
 import './form/form.component';
-import { FormConfigs } from '@form/form.type';
+import { FormConfig } from '@form/form.type';
 
-const formConfig: FormConfigs = [
-  {
-    type: 'select',
-    name: 'carBrand',
-    label: 'Brand',
-    required: false,
-    options: [
-      { id: 'hyundai', label: 'Hyundai' },
-      { id: 'tata', label: 'tata' },
-      { id: 'mahindra', label: 'Mahindra' },
-    ],
-    textKey: 'label',
-    valueKey: 'id',
+const formConfig: FormConfig = {
+  elements: [
+    { type: 'text', name: 'title', label: 'Title', required: true },
+    { type: 'number', name: 'userId', label: 'User Id', required: true },
+  ],
+  actionButtons: {
+    submit: {
+      type: 'button',
+      name: 'submit',
+      label: 'Create Post',
+      buttonType: 'submit',
+    },
   },
-  { type: 'text', name: 'modelName', label: 'Model Name', required: true },
-  // { type: 'number', name: 'age', label: 'Age', required: true, min: 18, max: 50 },
-  // { type: 'email', name: 'email', label: 'Email', required: true },
-  // { type: 'password', name: 'password', label: 'Password', required: true },
-  { type: 'date', name: 'launchYear', label: 'Launch Year', required: false },
-  {
-    type: 'datetime-local',
-    name: 'launchYear2',
-    label: 'Launch Year',
-    required: false,
+  submitApi: {
+    endpoint: 'https://dummyjson.com/posts/add',
+    method: 'POST',
   },
-  {
-    type: 'select',
-    name: 'country',
-    label: 'Country',
-    required: false,
-    options: [
-      { id: 'india', label: 'India' },
-      { id: 'nepal', label: 'Nepal' },
-    ],
-    textKey: 'label',
-    valueKey: 'id',
-  },
-  { type: 'button', name: 'submit', label: 'Submit', buttonType: 'submit' },
-];
+};
 
 const styles = `
     :host {
@@ -147,6 +126,14 @@ const styles = `
 
     button:hover {
       background-color: #6a1b9a;
+    }
+
+    button:disabled {
+      background-color: #e0e0e0;
+      color: #a0a0a0;
+      cursor: not-allowed;
+      opacity: 0.65;
+      border: 1px solid #d0d0d0;
     }
 
     .error-message {

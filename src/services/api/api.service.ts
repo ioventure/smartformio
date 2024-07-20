@@ -4,16 +4,16 @@ import {
 } from '@services/api/api.type';
 
 export class ApiService {
-  private _baseUrl: string;
-  private _defaultHeaders: Record<string, string>;
+  private _baseUrl?: string;
+  private _defaultHeaders?: Record<string, string>;
 
-  constructor(options: ApiServiceOptions) {
-    this._baseUrl = options.baseUrl;
-    this._defaultHeaders = options.defaultHeaders || {};
+  constructor(options?: ApiServiceOptions) {
+    this._baseUrl = options?.baseUrl;
+    this._defaultHeaders = options?.defaultHeaders || {};
   }
 
   async request<T>(options: ApiRequestOptions): Promise<T> {
-    const response = await fetch(this._createUrlWithParams(options), {
+    const requestOptions = {
       method: options.method,
       headers: {
         ...this._defaultHeaders,
@@ -21,8 +21,11 @@ export class ApiService {
         'Content-Type': 'application/json',
       },
       body: options.body ? JSON.stringify(options.body) : undefined,
-    });
-
+    };
+    const response = await fetch(
+      this._createUrlWithParams(options),
+      requestOptions
+    );
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'An error occurred');

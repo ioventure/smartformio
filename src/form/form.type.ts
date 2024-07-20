@@ -1,6 +1,12 @@
 import { ButtonInputOptions } from '@components/button-input/button.type';
 import { InputOptions } from '@components/input.type';
+import { ApiRequestOption } from '@services/api/api.type';
 
-export type FormConfigs = FormConfig[];
-
-export type FormConfig = InputOptions | ButtonInputOptions;
+export interface FormConfig {
+  elements: InputOptions[];
+  actionButtons: {
+    submit: ButtonInputOptions;
+    reset?: ButtonInputOptions;
+  };
+  submitApi: ApiRequestOption;
+}

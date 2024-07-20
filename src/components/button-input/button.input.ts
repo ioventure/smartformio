@@ -27,10 +27,14 @@ export class ButtonInput {
     return buttonContainer;
   }
 
+  public showLoader(disabled: boolean = false) {
+    (this.buttonElement as HTMLButtonElement).disabled = disabled;
+  }
+
   /**
    * Creates the input element for the button with specified options.
    */
-  protected _createButtonElement(): void {
+  private _createButtonElement(): void {
     this.buttonElement = document.createElement('button');
     this._setButtonAttributes();
   }
@@ -50,7 +54,7 @@ export class ButtonInput {
       (this.buttonElement as HTMLButtonElement).textContent = label;
     }
     if (disabled) {
-      (this.buttonElement as HTMLButtonElement).disabled = disabled;
+      this.showLoader(disabled);
     }
     if (id) {
       (this.buttonElement as HTMLButtonElement).id = id;
