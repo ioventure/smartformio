@@ -1,3 +1,3 @@
 export const API_CONFIG = {
-    apiBaseUrl: 'https://restcountries.com'
-}
+  apiBaseUrl: 'https://restcountries.com',
+};

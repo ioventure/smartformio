@@ -1,3 +1,3 @@
 interface InputErrorMessages {
-    [key: string]: string;
+  [key: string]: string;
 }

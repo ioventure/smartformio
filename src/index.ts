@@ -1,22 +1,46 @@
 import './index.css';
-import './form/form';
+import './form/form.component';
 import { FormConfigs } from '@form/form.type';
 
 const formConfig: FormConfigs = [
-  { type: 'select', name: 'carBrand', label: 'Brand', required: false, 
-    options: [{ id: 'hyundai', label: 'Hyundai' }, { id: 'tata', label: 'tata' }, { id: 'mahindra', label: 'Mahindra' }], textKey: 'label', valueKey: 'id' 
+  {
+    type: 'select',
+    name: 'carBrand',
+    label: 'Brand',
+    required: false,
+    options: [
+      { id: 'hyundai', label: 'Hyundai' },
+      { id: 'tata', label: 'tata' },
+      { id: 'mahindra', label: 'Mahindra' },
+    ],
+    textKey: 'label',
+    valueKey: 'id',
   },
   { type: 'text', name: 'modelName', label: 'Model Name', required: true },
   // { type: 'number', name: 'age', label: 'Age', required: true, min: 18, max: 50 },
   // { type: 'email', name: 'email', label: 'Email', required: true },
   // { type: 'password', name: 'password', label: 'Password', required: true },
   { type: 'date', name: 'launchYear', label: 'Launch Year', required: false },
-  { type: 'select', name: 'country', label: 'Country', required: false, 
-    options: [{ id: 'india', label: 'India' }, { id: 'nepal', label: 'Nepal' }], textKey: 'label', valueKey: 'id' 
+  {
+    type: 'datetime-local',
+    name: 'launchYear2',
+    label: 'Launch Year',
+    required: false,
   },
-  { type: 'button', name: 'submit', label: 'Submit', buttonType: 'submit' }
+  {
+    type: 'select',
+    name: 'country',
+    label: 'Country',
+    required: false,
+    options: [
+      { id: 'india', label: 'India' },
+      { id: 'nepal', label: 'Nepal' },
+    ],
+    textKey: 'label',
+    valueKey: 'id',
+  },
+  { type: 'button', name: 'submit', label: 'Submit', buttonType: 'submit' },
 ];
-
 
 const styles = `
     :host {
@@ -139,6 +163,3 @@ document.querySelector('#root')!.innerHTML = `
     <pp-form id="form" config='${JSON.stringify(formConfig)}' styles='${styles}'></pp-form>
   </div>
 `;
-
-
-
