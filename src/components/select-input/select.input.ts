@@ -4,17 +4,16 @@ import {
   SelectInputOptions,
 } from '@components/select-input/select.type';
 import { ApiService } from '@services/api/api.service';
-import { API_CONFIG } from '@src/config/api.config';
 import { DataParser } from '@src/services/data.parser';
 
 export class SelectInput extends FormInput {
   protected options: SelectInputOptions;
   private _apiService: ApiService;
 
-  constructor(options: SelectInputOptions) {
+  constructor(options: SelectInputOptions, apiService: ApiService) {
     super(options);
     this.options = options;
-    this._apiService = new ApiService({ baseUrl: API_CONFIG.apiBaseUrl });
+    this._apiService = apiService;
 
     if (this.options.api) {
       this._populateFromApis();

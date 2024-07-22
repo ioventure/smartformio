@@ -24,19 +24,22 @@ import { UrlInput } from '@components/url-input/url.input';
 import { WeekInput } from '@components/week-input/week.input';
 import { SmartForm } from './form.component';
 import { FormConfig } from './form.type';
+import { ApiService } from '@services/api/api.service';
 
 /**
  * Utility class for handling form-related operations.
  */
 export class FormUtils {
   private _smartForm: SmartForm;
+  private _apiService: ApiService;
 
   /**
    * Creates an instance of FormUtils.
    * @param smartForm - Instance of the SmartForm.
    */
-  constructor(smartForm: SmartForm) {
+  constructor(smartForm: SmartForm, apiService: ApiService) {
     this._smartForm = smartForm;
+    this._apiService = apiService;
   }
 
   /**
@@ -51,7 +54,7 @@ export class FormUtils {
       case 'email':
         return new EmailInput(config);
       case 'select':
-        return new SelectInput(config);
+        return new SelectInput(config, this._apiService);
       case 'password':
         return new PasswordInput(config);
       case 'number':
@@ -65,7 +68,7 @@ export class FormUtils {
       case 'datetime-local':
         return new DateTimeInput(config);
       case 'file':
-        return new FileInput(config);
+        return new FileInput(config, this._apiService);
       case 'hidden':
         return new HiddenInput(config);
       case 'month':
@@ -127,7 +130,10 @@ export class FormUtils {
     const formData = new FormData(form);
     const data: { [key: string]: any } = {};
     formData.forEach((value, key) => {
-      data[key] = value;
+      // Ignore the File Data
+      if (!(value instanceof File)) {
+        data[key] = value;
+      }
     });
     return data;
   }

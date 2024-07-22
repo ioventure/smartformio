@@ -1,4 +1,5 @@
 import { InputBase } from '@components/input.type';
+import { ApiRequestOption } from '@services/api/api.type';
 
 export interface FileInputOptions extends InputBase {
   type: 'file';
@@ -8,5 +9,10 @@ export interface FileInputOptions extends InputBase {
   minSize?: number;
   maxFiles?: number;
   minFiles?: number;
-  multiple?: boolean;
+  api?: FileInputApiOptions;
+}
+
+export interface FileInputApiOptions extends ApiRequestOption {
+  payloadKey: string;
+  valueKey: string;
 }

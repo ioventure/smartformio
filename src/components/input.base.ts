@@ -9,6 +9,7 @@ import {
  * Abstract class representing a form input element with validation and error handling.
  */
 export abstract class FormInput {
+  protected inputContainer!: HTMLDivElement;
   protected inputElement!:
     | HTMLInputElement
     | HTMLSelectElement
@@ -41,34 +42,34 @@ export abstract class FormInput {
    * @returns The rendered HTML element.
    */
   public render(): HTMLDivElement {
-    const inputContainer = document.createElement('div');
-    inputContainer.classList.add('input-container');
+    this.inputContainer = document.createElement('div');
+    this.inputContainer.classList.add('input-container');
     if (this.labelElement) {
       const labelContainer = document.createElement('div');
       labelContainer.classList.add('label-container');
       switch (this.options.labelPosition) {
         case 'left':
-          inputContainer.appendChild(this.labelElement);
-          inputContainer.appendChild(this.inputElement);
+          this.inputContainer.appendChild(this.labelElement);
+          this.inputContainer.appendChild(this.inputElement);
           break;
         case 'right':
-          inputContainer.appendChild(this.inputElement);
-          inputContainer.appendChild(this.labelElement);
+          this.inputContainer.appendChild(this.inputElement);
+          this.inputContainer.appendChild(this.labelElement);
           break;
         case 'top':
         default:
           labelContainer.appendChild(this.labelElement);
-          inputContainer.appendChild(labelContainer);
-          inputContainer.appendChild(this.inputElement);
+          this.inputContainer.appendChild(labelContainer);
+          this.inputContainer.appendChild(this.inputElement);
           break;
       }
     } else {
-      inputContainer.appendChild(this.inputElement);
+      this.inputContainer.appendChild(this.inputElement);
     }
     if (this._inputErrorElement) {
-      inputContainer.appendChild(this._inputErrorElement);
+      this.inputContainer.appendChild(this._inputErrorElement);
     }
-    return inputContainer;
+    return this.inputContainer;
   }
 
   /**
@@ -94,11 +95,11 @@ export abstract class FormInput {
       case 'month':
       case 'time':
       case 'week':
-      case 'file':
       case 'hidden':
       case 'color':
       case 'radio':
       case 'checkbox':
+      case 'file':
         this.inputElement = document.createElement('input');
         (this.inputElement as HTMLInputElement).type = type;
         this._setTextAttributes();
@@ -122,7 +123,9 @@ export abstract class FormInput {
     if (this.options.label) {
       this.labelElement = document.createElement('label');
       this.labelElement.classList.add('label');
-      this.labelElement.textContent = this.options.label;
+      this.labelElement.textContent = this.options.required
+        ? this.options.label + '*'
+        : this.options.label;
       if (this.inputElement.id) {
         this.labelElement.setAttribute('for', this.inputElement.id);
       }

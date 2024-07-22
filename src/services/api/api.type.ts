@@ -6,6 +6,7 @@ export interface ApiOptions {
 }
 
 export interface ApiRequestOption {
+  type?: 'JSON' | 'FORM_DATA';
   endpoint: string;
   method: HttpMethod;
   body?: any;

@@ -28,7 +28,7 @@ export class SmartForm extends HTMLElement {
     this._shadow = this.attachShadow({ mode: 'open' });
     this._defaultConfig = SmartForm.defaultConfig;
     this._apiService = new ApiService(this._defaultConfig.api);
-    this._formUtils = new FormUtils(this);
+    this._formUtils = new FormUtils(this, this._apiService);
   }
 
   /**

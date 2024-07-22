@@ -18,6 +18,19 @@ const formConfig: FormConfig = {
       label: 'User Id',
       required: true,
     },
+    {
+      type: 'file',
+      name: 'profileImage',
+      label: 'Profile Image',
+      required: true,
+      api: {
+        type: 'FORM_DATA',
+        endpoint: 'https://api.escuelajs.co/api/v1/files/upload',
+        method: 'POST',
+        payloadKey: 'file',
+        valueKey: 'location',
+      },
+    },
   ],
   actionButtons: {
     submit: {
@@ -34,6 +47,7 @@ const formConfig: FormConfig = {
 };
 
 SmartForm.setDefaultConfig({
+  // api: { baseUrl: 'https://api.escuelajs.co' },
   api: { baseUrl: 'https://dummyjson.com' },
   style: DEFAULT_STYLE,
 });

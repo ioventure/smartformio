@@ -134,4 +134,14 @@ export const DEFAULT_STYLE = `
         margin: 0 auto;
         display: flex;
     }
+
+    .preview-container {
+        margin-top: 10px;
+    }
+
+    .file-preview {
+        max-width: 100%;
+        max-height: 200px;
+        object-fit: cover;
+    }
 `;

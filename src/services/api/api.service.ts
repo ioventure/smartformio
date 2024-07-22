@@ -13,14 +13,24 @@ export class ApiService {
   }
 
   async request<T>(options: ApiRequestOptions): Promise<T> {
+    const headers = {
+      ...this._defaultHeaders,
+      ...options.headers,
+    };
+    let body = options.body;
+    if (!options.type) {
+      options.type = 'JSON';
+    }
+
+    if (options.type != 'FORM_DATA') {
+      headers['Content-Type'] = 'application/json';
+      body = body ? JSON.stringify(body) : undefined;
+    }
+
     const requestOptions = {
       method: options.method,
-      headers: {
-        ...this._defaultHeaders,
-        ...options.headers,
-        'Content-Type': 'application/json',
-      },
-      body: options.body ? JSON.stringify(options.body) : undefined,
+      headers: headers,
+      body: body,
     };
     const response = await fetch(
       this._createUrlWithParams(options),
