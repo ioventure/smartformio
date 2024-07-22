@@ -13,5 +13,15 @@ export interface FormConfig {
 
 export interface FormDefaultConfig {
   api?: ApiOptions;
-  styles?: string;
+  style?: string;
+}
+
+export enum FormAttributes {
+  CONFIG = 'config',
+  STYLE = 'style',
+}
+
+export enum FormEvents {
+  SUBMIT = 'submit',
+  ON_SUBMIT = 'onSubmit',
 }

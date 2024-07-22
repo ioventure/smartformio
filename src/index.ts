@@ -2,6 +2,7 @@ import './form/form.component';
 import '@styles/index.css';
 import { FormConfig } from '@form/form.type';
 import { SmartForm } from './form/form.component';
+import { DEFAULT_STYLE } from '@styles/default.style';
 
 const formConfig: FormConfig = {
   elements: [
@@ -32,42 +33,22 @@ const formConfig: FormConfig = {
   },
 };
 
-let styles = '';
+SmartForm.setDefaultConfig({
+  api: { baseUrl: 'https://dummyjson.com' },
+  style: DEFAULT_STYLE,
+});
 
-(async () => {
-  try {
-    // Load Default Styles
-    const cssFileUrl = '/static/css/index.css';
-    styles = await loadCSS(cssFileUrl);
-    // Set Default Config
-    SmartForm.setDefaultConfig({
-      api: { baseUrl: 'https://dummyjson.com' },
-      styles,
-    });
-    // Create and Render Smart Form with Form Config
-    const smartForm = document.createElement('smart-form');
-    smartForm.setAttribute('config', JSON.stringify(formConfig));
-    document.body.appendChild(smartForm);
-  } catch (error) {
-    console.error(error);
-  }
-})();
+function handleFormSubmitResponse(event: any) {
+  console.log('Form Submitted Successfully!!:', event.detail);
+}
 
 document.querySelector('#root')!.innerHTML = `
   <div class="form-container">
-    <image src="https://spn-sta.spinny.com/blog/20221004191046/Hyundai-Venue-2022.jpg?compress=true&quality=80&w=1200&dpr=2" width="440px" height="200px" style="margin: 0 auto; display: flex">
+    <smart-form id="form1" config='${JSON.stringify(formConfig)}'  onSubmit="handleFormSubmitResponse"></smart-form>
   </div>
 `;
 
-async function loadCSS(url: string): Promise<string> {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    return await response.text();
-  } catch (error) {
-    console.error('Failed to load CSS:', error);
-    return '';
-  }
+const smartForm = document.getElementById('form1') as SmartForm;
+if (smartForm) {
+  smartForm.onSubmit = handleFormSubmitResponse;
 }

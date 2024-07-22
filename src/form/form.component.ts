@@ -1,199 +1,198 @@
-import { CheckboxInput } from '@components/checkbox-input/checkbox.input';
-import { ColorInput } from '@components/color-input/color.input';
-import { DateInput } from '@components/date-input/date.input';
-import { DateTimeInput } from '@components/datetime-input/datetime.input';
-import { EmailInput } from '@components/email-input/email.input';
-import { FileInput } from '@components/file-input/file.input';
-import { HiddenInput } from '@components/hidden-input/hidden.input';
-import { FormInput } from '@components/input.base';
-import { MonthInput } from '@components/month-input/month.input';
-import { NumberInput } from '@components/number-input/number.input';
-import { PasswordInput } from '@components/password-input/password.input';
-import { RadioInput } from '@components/radio-input/radio.input';
-import { RangeInput } from '@components/range-input/range.input';
-import { SelectInput } from '@components/select-input/select.input';
-import { TelInput } from '@components/tel-input/tel.input';
-import { TextInput } from '@components/text-input/text.input';
-import { TextareaInput } from '@components/textarea-input/textarea.input';
-import { TimeInput } from '@components/time-input/time.input';
-import { UrlInput } from '@components/url-input/url.input';
-import { WeekInput } from '@components/week-input/week.input';
-import { FormConfig, FormDefaultConfig } from './form.type';
-import { RangeInputOptions } from '@components/range-input/range.type';
+import {
+  FormAttributes,
+  FormConfig,
+  FormDefaultConfig,
+  FormEvents,
+} from './form.type';
 import { ButtonInput } from '@components/button-input/button.input';
 import { InputOptions } from '@components/input.type';
 import { ButtonInputOptions } from '@components/button-input/button.type';
 import { ApiService } from '@services/api/api.service';
 import { ApiRequestOption } from '@services/api/api.type';
+import { FormUtils } from './form.utils';
 
 export class SmartForm extends HTMLElement {
   private _shadow: ShadowRoot;
-  private _formElement?: HTMLFormElement;
-  private _formConfig?: FormConfig;
-  private _formSubmitButtonElement?: ButtonInput;
   private _apiService: ApiService;
-  private _formDefaultConfig: FormDefaultConfig;
-  static formDefaultConfig: FormDefaultConfig;
+  private _defaultConfig: FormDefaultConfig;
+  private _formUtils: FormUtils;
+  private _formElement?: HTMLFormElement;
+  private _formButtonElement?: ButtonInput;
+  private _formConfig?: FormConfig;
+  private _styleElement?: HTMLStyleElement;
+  private _onSubmit?: Function;
+  static defaultConfig: FormDefaultConfig;
 
   constructor() {
     super();
     this._shadow = this.attachShadow({ mode: 'open' });
-    this._formDefaultConfig = SmartForm.formDefaultConfig;
-    this._apiService = new ApiService(this._formDefaultConfig.api);
+    this._defaultConfig = SmartForm.defaultConfig;
+    this._apiService = new ApiService(this._defaultConfig.api);
+    this._formUtils = new FormUtils(this);
   }
 
+  /**
+   * List of observed attributes for the component.
+   */
   static get observedAttributes() {
-    return ['config', 'styles'];
+    return [FormAttributes.CONFIG, FormAttributes.STYLE];
   }
 
+  /**
+   * Sets the default configuration for the form.
+   * @param config - The default form configuration.
+   */
   static setDefaultConfig(config: FormDefaultConfig) {
-    SmartForm.formDefaultConfig = {
-      ...SmartForm.formDefaultConfig,
+    SmartForm.defaultConfig = {
+      ...SmartForm.defaultConfig,
       ...config,
     };
   }
 
+  /**
+   * Callback for attribute changes.
+   * @param name - Name of the attribute.
+   * @param oldValue - Old value of the attribute.
+   * @param newValue - New value of the attribute.
+   */
   attributeChangedCallback(name: string, oldValue: any, newValue: any) {
-    if (name === 'config' && oldValue !== newValue) {
-      this._getAndSetConfig(newValue);
+    if (name === FormAttributes.CONFIG && oldValue !== newValue) {
+      this._formConfig = this._formUtils.getConfig(newValue);
       if (this._formConfig) {
         this._render(this._formConfig);
       }
     }
-    if (name === 'styles' && oldValue !== newValue) {
-      const styles = newValue || this._formDefaultConfig.styles || '';
-      this._setStyles(styles);
+    if (name === FormAttributes.STYLE && oldValue !== newValue) {
+      const style = newValue || this._defaultConfig.style || '';
+      this._setStyle(style);
     }
   }
 
+  /**
+   * Callback for when the component is added to the DOM.
+   */
   connectedCallback() {
-    this._getAndSetConfig();
+    this._formConfig = this._formUtils.getConfig();
     if (this._formConfig) {
       this._render(this._formConfig);
-      const styles =
-        this.getAttribute('styles') || this._formDefaultConfig.styles || '';
-      this._setStyles(styles);
+      this._setStyle();
+      this._initializeEventListeners();
     }
   }
 
-  private _getAndSetConfig(config?: string) {
-    const _config = config || this.getAttribute('config') || JSON.stringify({});
-    if (config) {
-      this._formConfig = JSON.parse(_config);
-    }
-  }
-
+  /**
+   * Renders the form based on the provided configuration.
+   * @param config - The form configuration.
+   */
   private _render(config: FormConfig) {
+    this._initializeFormElement();
+    this._initializeStyleElement();
+    this._renderInputs(config.elements);
+    this._renderButtons(config.actionButtons);
+    this._shadow.appendChild(this._formElement!);
+  }
+
+  /**
+   * Initializes the form element.
+   */
+  private _initializeFormElement() {
     this._formElement = document.createElement('form');
     this._shadow.innerHTML = '';
-    this._renderInput(config.elements);
-    this._renderButton(Object.values(config.actionButtons));
-    this._formElement.addEventListener('submit', event =>
-      this._handleSubmit(event)
-    );
-    this._shadow.appendChild(this._formElement);
   }
 
-  private _renderInput(config: InputOptions[]) {
-    config.forEach(inputConfig => {
-      const inputElement = this._createInput(inputConfig);
+  /**
+   * Initializes the style element.
+   */
+  private _initializeStyleElement() {
+    this._styleElement = document.createElement('style');
+  }
+
+  /**
+   * Renders input elements based on the provided configuration.
+   * @param elements - Array of input configurations.
+   */
+  private _renderInputs(elements: InputOptions[]) {
+    elements.forEach(inputConfig => {
+      const inputElement = this._formUtils.createInput(inputConfig);
       if (inputElement) {
         this._formElement?.appendChild(inputElement.render());
       }
     });
   }
 
-  private _renderButton(config: ButtonInputOptions[]) {
-    config.forEach(buttonConfig => {
-      const buttonElement = this._createButton(buttonConfig);
-      if (buttonElement) {
-        this._formElement?.appendChild(buttonElement.render());
+  /**
+   * Renders button elements based on the provided configuration.
+   * @param buttons - Object of button configurations.
+   */
+  private _renderButtons(buttons: { [key: string]: ButtonInputOptions }) {
+    Object.values(buttons).forEach(buttonConfig => {
+      this._formButtonElement = this._formUtils.createButton(buttonConfig);
+      if (this._formButtonElement) {
+        this._formElement?.appendChild(this._formButtonElement.render());
       }
     });
   }
 
-  private _createInput(config: InputOptions): FormInput | ButtonInput | null {
-    switch (config.type) {
-      case 'text':
-        return new TextInput(config);
-      case 'email':
-        return new EmailInput(config);
-      case 'select':
-        return new SelectInput(config);
-      case 'password':
-        return new PasswordInput(config);
-      case 'number':
-        return new NumberInput(config);
-      case 'checkbox':
-        return new CheckboxInput(config);
-      case 'color':
-        return new ColorInput(config);
-      case 'date':
-        return new DateInput(config);
-      case 'datetime-local':
-        return new DateTimeInput(config);
-      case 'file':
-        return new FileInput(config);
-      case 'hidden':
-        return new HiddenInput(config);
-      case 'month':
-        return new MonthInput(config);
-      case 'radio':
-        return new RadioInput(config);
-      case 'range':
-        return new RangeInput(config as RangeInputOptions);
-      case 'tel':
-        return new TelInput(config);
-      case 'textarea':
-        return new TextareaInput(config);
-      case 'time':
-        return new TimeInput(config);
-      case 'url':
-        return new UrlInput(config);
-      case 'week':
-        return new WeekInput(config);
-      default:
-        return null;
+  /**
+   * Sets styles to the shadow DOM.
+   * @param style - CSS styles as a string.
+   */
+  _setStyle(style?: string) {
+    if (this._styleElement) {
+      const _style =
+        this.getAttribute('style') || this._defaultConfig.style || '';
+      this._styleElement.textContent = style || _style;
+      this._shadow.appendChild(this._styleElement);
     }
   }
 
-  private _createButton(config: ButtonInputOptions): ButtonInput | null {
-    switch (config.buttonType) {
-      case 'submit':
-        this._formSubmitButtonElement = new ButtonInput(config);
-        return this._formSubmitButtonElement;
-      case 'reset':
-        return new ButtonInput(config);
-      default:
-        return null;
-    }
-  }
-
+  /**
+   * Handles form submission and sends data via the API service.
+   * @param event - The submit event.
+   */
   private async _handleSubmit(event: Event) {
     event.preventDefault();
-    const form = event.target as HTMLFormElement;
-    const formData = new FormData(form);
-    // Convert FormData to a plain object
-    const data: { [key: string]: any } = {};
-    formData.forEach((value, key) => {
-      data[key] = value;
-    });
-    // Handle API Calls
-    if (this._formConfig) {
-      const apiOptions: ApiRequestOption = {
-        ...this._formConfig.submitApi,
-        body: data,
-      };
-      this._formSubmitButtonElement?.showLoader(true);
-      await this._apiService.request(apiOptions);
-      this._formSubmitButtonElement?.showLoader(false);
+    try {
+      const form = event.target as HTMLFormElement;
+      const formData = this._formUtils.getFormData(form);
+      // Handle API Calls
+      if (this._formConfig) {
+        const apiOptions: ApiRequestOption = {
+          ...this._formConfig.submitApi,
+          body: formData,
+        };
+        this._formButtonElement?.showLoader(true);
+        const response = await this._apiService.request(apiOptions);
+        this._formButtonElement?.showLoader(false);
+        // Dispatch custom event with API response
+        this._formUtils.createEvent(FormEvents.ON_SUBMIT, response);
+        this._formElement?.reset();
+      }
+    } catch (error) {
+      this._formButtonElement?.showLoader(false);
+      this._formUtils.createEvent(FormEvents.ON_SUBMIT, error);
     }
   }
 
-  private _setStyles(styles: string) {
-    const style = document.createElement('style');
-    style.textContent = styles;
-    this._shadow.appendChild(style);
+  /**
+   * Initializes event listeners for the component.
+   */
+  private _initializeEventListeners() {
+    this._formElement?.addEventListener(FormEvents.SUBMIT, event =>
+      this._handleSubmit(event)
+    );
+
+    this.addEventListener(FormEvents.ON_SUBMIT, event => {
+      if (this._onSubmit) this._onSubmit(event);
+    });
+  }
+
+  /**
+   * Sets the onSubmit callback function.
+   * @param onSubmit - Callback function for form submission.
+   */
+  set onSubmit(onSubmit: Function) {
+    this._onSubmit = onSubmit;
   }
 }
 
