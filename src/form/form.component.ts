@@ -4,6 +4,7 @@ import {
   FormDefaultConfig,
   FormElement,
   FormEvents,
+  FormGroup,
 } from './form.type';
 import { ButtonInput } from '@components/button-input/button.input';
 import { InputOptions } from '@components/input.type';
@@ -112,39 +113,47 @@ export class SmartForm extends HTMLElement {
    * Renders input elements based on the provided configuration.
    * @param elements - Array of input configurations.
    */
-  // private _renderInputs(elements: FormElement[]) {
-  //   elements.forEach(inputConfig => {
-  //     const inputElement = this._formUtils.createInput(inputConfig);
-  //     if (inputElement) {
-  //       this._formElement?.appendChild(inputElement.render());
-  //     }
-  //   });
-  // }
   private _renderInputs(elements: FormElement[], parentElement?: HTMLElement) {
     elements.forEach(element => {
       if (this._formUtils.isInputOptions(element)) {
-        // This is an input element
-        const inputElement = this._formUtils.createInput(element);
-        if (inputElement) {
-          (parentElement || this._formElement)?.appendChild(
-            inputElement.render()
-          );
-        }
+        this._renderInput(element, parentElement);
       } else if (this._formUtils.isFormGroup(element)) {
-        // This is a group
-        const groupContainer = document.createElement('div');
-        groupContainer.className = 'form-group';
-
-        if (element.label) {
-          const groupLabel = document.createElement('label');
-          groupLabel.textContent = element.label;
-          groupContainer.appendChild(groupLabel);
-        }
-
-        (parentElement || this._formElement)?.appendChild(groupContainer);
-        this._renderInputs(element.elements, groupContainer);
+        this._renderFormGroup(element, parentElement);
       }
     });
+  }
+
+  /**
+   * Renders a single input element and appends it to the specified parent element.
+   *
+   * @param element - The input element configuration.
+   * @param parentElement - The parent element to append the rendered input to.
+   */
+  private _renderInput(element: InputOptions, parentElement?: HTMLElement) {
+    const inputElement = this._formUtils.createInput(element);
+    if (inputElement) {
+      (parentElement || this._formElement)?.appendChild(inputElement.render());
+    }
+  }
+
+  /**
+   * Renders a form group and its nested elements, then appends the group to the specified parent element.
+   *
+   * @param element - The form group configuration.
+   * @param parentElement - The parent element to append the rendered group to.
+   */
+  private _renderFormGroup(element: FormGroup, parentElement?: HTMLElement) {
+    const groupContainer = document.createElement('div');
+    groupContainer.className = 'form-group';
+
+    if (element.label) {
+      const groupLabel = document.createElement('label');
+      groupLabel.textContent = element.label;
+      groupContainer.appendChild(groupLabel);
+    }
+
+    (parentElement || this._formElement)?.appendChild(groupContainer);
+    this._renderInputs(element.elements, groupContainer);
   }
 
   /**
