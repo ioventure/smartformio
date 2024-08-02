@@ -23,7 +23,7 @@ import { TimeInput } from '@components/time-input/time.input';
 import { UrlInput } from '@components/url-input/url.input';
 import { WeekInput } from '@components/week-input/week.input';
 import { SmartForm } from './form.component';
-import { FormConfig } from './form.type';
+import { FormConfig, FormElement, FormGroup } from './form.type';
 import { ApiService } from '@services/api/api.service';
 
 /**
@@ -126,16 +126,53 @@ export class FormUtils {
    * @param form - HTMLFormElement from which to extract data.
    * @returns Plain object representing form data.
    */
-  getFormData(form: HTMLFormElement) {
+  getFormData(
+    form: HTMLFormElement,
+    config: FormConfig
+  ): { [key: string]: any } {
     const formData = new FormData(form);
-    const data: { [key: string]: any } = {};
-    formData.forEach((value, key) => {
-      // Ignore the File Data
-      if (!(value instanceof File)) {
-        data[key] = value;
+    // Process top-level elements
+    const topLevelElements = config.elements;
+    const resultData = this._processElements(topLevelElements, formData);
+    return resultData;
+  }
+
+  /**
+   * Processes an array of form elements to extract their values from a FormData object.
+   * This function supports nested form groups and handles file inputs.
+   *
+   * @param elements - An array of form elements, which may include both input elements and nested form groups.
+   * @param formData - A FormData object that contains the form data to be processed.
+   * @returns An object where each key corresponds to the form element's name, and the value is the extracted data.
+   *         For nested form groups, the result will be an object where the key is the group's name and the value
+   *         is another object representing the nested elements.
+   */
+  private _processElements(
+    elements: FormElement[],
+    formData: FormData
+  ): { [key: string]: any } {
+    const result: { [key: string]: any } = {};
+
+    elements.forEach(element => {
+      if ('elements' in element) {
+        // Handle FormGroup: recursively process the nested elements
+        const groupName = element.name;
+        result[groupName] = this._processElements(element.elements, formData);
+      } else {
+        // Handle InputOptions: retrieve the value from the FormData object
+        const inputName = element.name;
+        const value = formData.get(inputName);
+        if (value instanceof File) {
+          // Handle file inputs
+          result[inputName] = value;
+        } else {
+          // Handle normal inputs
+          result[inputName] = value;
+        }
       }
     });
-    return data;
+
+    return result;
   }
 
   /**
@@ -151,5 +188,13 @@ export class FormUtils {
       composed: true,
     });
     return this._smartForm.dispatchEvent(submitEvent);
+  }
+
+  isInputOptions(element: FormElement): element is InputOptions {
+    return 'type' in element;
+  }
+
+  isFormGroup(element: FormElement): element is FormGroup {
+    return 'elements' in element;
   }
 }

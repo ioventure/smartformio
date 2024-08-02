@@ -1,6 +1,6 @@
 export const DEFAULT_STYLE = `
     body {
-    margin: 0;
+        margin: 0;
     }
 
     .form-container {
@@ -17,8 +17,8 @@ export const DEFAULT_STYLE = `
         padding: 20px;
         border-radius: 10px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        max-width: 400px;
-        margin: auto auto;
+        max-width: 600px; /* Increased max-width for better group visibility */
+        margin: auto;
     }
 
     input[type='text'],
@@ -82,18 +82,26 @@ export const DEFAULT_STYLE = `
         color: #555;
     }
 
-    .forgot-password {
-        text-align: right;
+    .form-group {
+        border: 1px solid #dcdcdc;
+        border-radius: 5px;
+        padding: 15px;
         margin-bottom: 20px;
+        background-color: #f9f9f9;
     }
 
-    .forgot-password a {
+    .form-group .group-title {
+        font-size: 18px;
+        font-weight: bold;
         color: #7b1fa2;
-        text-decoration: none;
+        margin-bottom: 10px;
     }
 
-    .forgot-password a:hover {
-        text-decoration: underline;
+    .error-message {
+        color: red;
+        border-radius: 4px;
+        font-size: 14px;
+        margin: 0 0 20px 0;
     }
 
     button[type='submit'],
@@ -121,13 +129,6 @@ export const DEFAULT_STYLE = `
         border: 1px solid #d0d0d0;
     }
 
-    .error-message {
-        color: red;
-        border-radius: 4px;
-        font-size: 14px;
-        margin: 0 0 20px 0;
-    }
-
     .image {
         width: 440px;
         height: 200px;
@@ -144,4 +145,5 @@ export const DEFAULT_STYLE = `
         max-height: 200px;
         object-fit: cover;
     }
+
 `;

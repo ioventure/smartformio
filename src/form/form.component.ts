@@ -2,6 +2,7 @@ import {
   FormAttributes,
   FormConfig,
   FormDefaultConfig,
+  FormElement,
   FormEvents,
 } from './form.type';
 import { ButtonInput } from '@components/button-input/button.input';
@@ -111,11 +112,37 @@ export class SmartForm extends HTMLElement {
    * Renders input elements based on the provided configuration.
    * @param elements - Array of input configurations.
    */
-  private _renderInputs(elements: InputOptions[]) {
-    elements.forEach(inputConfig => {
-      const inputElement = this._formUtils.createInput(inputConfig);
-      if (inputElement) {
-        this._formElement?.appendChild(inputElement.render());
+  // private _renderInputs(elements: FormElement[]) {
+  //   elements.forEach(inputConfig => {
+  //     const inputElement = this._formUtils.createInput(inputConfig);
+  //     if (inputElement) {
+  //       this._formElement?.appendChild(inputElement.render());
+  //     }
+  //   });
+  // }
+  private _renderInputs(elements: FormElement[], parentElement?: HTMLElement) {
+    elements.forEach(element => {
+      if (this._formUtils.isInputOptions(element)) {
+        // This is an input element
+        const inputElement = this._formUtils.createInput(element);
+        if (inputElement) {
+          (parentElement || this._formElement)?.appendChild(
+            inputElement.render()
+          );
+        }
+      } else if (this._formUtils.isFormGroup(element)) {
+        // This is a group
+        const groupContainer = document.createElement('div');
+        groupContainer.className = 'form-group';
+
+        if (element.label) {
+          const groupLabel = document.createElement('label');
+          groupLabel.textContent = element.label;
+          groupContainer.appendChild(groupLabel);
+        }
+
+        (parentElement || this._formElement)?.appendChild(groupContainer);
+        this._renderInputs(element.elements, groupContainer);
       }
     });
   }
@@ -154,7 +181,8 @@ export class SmartForm extends HTMLElement {
     event.preventDefault();
     try {
       const form = event.target as HTMLFormElement;
-      const formData = this._formUtils.getFormData(form);
+      const formData = this._formUtils.getFormData(form, this._formConfig!);
+      console.log(formData);
       // Handle API Calls
       if (this._formConfig) {
         const apiOptions: ApiRequestOption = {
