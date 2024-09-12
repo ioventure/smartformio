@@ -1,0 +1,46 @@
+{
+  "name": "@ioventure/smartformio",
+  "version": "1.0.0",
+  "description": "SmartFormIO is a TypeScript library for creating platform-agnostic form web components. It allows users to design any type of form using simple JSON input, providing robust validation and error handling.",
+  "main": "dist/smartformio.umd.js",
+  "module": "dist/smartformio.es.js",
+  "types": "dist/types/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx,json,css,md}'",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ioventure/smartformio.git"
+  },
+  "keywords": [
+    "web-components",
+    "vite",
+    "typescript",
+    "smartform",
+    "custom-elements",
+    "open-source"
+  ],
+  "author": "@ioventure",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ioventure/smartformio/issues"
+  },
+  "homepage": "https://github.com/ioventure/smartformio#readme",
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "@typescript-eslint/eslint-plugin": "^8.5.0",
+    "@typescript-eslint/parser": "^8.5.0",
+    "prettier": "^3.3.3",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.4"
+  },
+  "engines": {
+    "node": ">=20.11.1"
+  }
+}
