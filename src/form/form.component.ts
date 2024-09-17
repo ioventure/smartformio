@@ -23,7 +23,13 @@ export class SmartForm extends HTMLElement {
   private _formConfig?: FormConfig;
   private _styleElement?: HTMLStyleElement;
   private _onSubmit?: Function;
-  static defaultConfig: FormDefaultConfig;
+  // static defaultConfig: FormDefaultConfig;
+  static defaultConfig: FormDefaultConfig = {
+    styles: '',
+    api: {
+      baseUrl: '',
+    },
+  };
 
   constructor() {
     super();
@@ -37,7 +43,7 @@ export class SmartForm extends HTMLElement {
    * List of observed attributes for the component.
    */
   static get observedAttributes() {
-    return [FormAttributes.CONFIG, FormAttributes.STYLE];
+    return [FormAttributes.CONFIG, FormAttributes.STYLES];
   }
 
   /**
@@ -64,8 +70,8 @@ export class SmartForm extends HTMLElement {
         this._render(this._formConfig);
       }
     }
-    if (name === FormAttributes.STYLE && oldValue !== newValue) {
-      const style = newValue || this._defaultConfig.style || '';
+    if (name === FormAttributes.STYLES && oldValue !== newValue) {
+      const style = newValue || this._defaultConfig.styles || '';
       this._setStyle(style);
     }
   }
@@ -76,8 +82,8 @@ export class SmartForm extends HTMLElement {
   connectedCallback() {
     this._formConfig = this._formUtils.getConfig();
     if (this._formConfig) {
-      this._render(this._formConfig);
-      this._setStyle();
+      // this._render(this._formConfig);
+      // this._setStyle();
       this._initializeEventListeners();
     }
   }
@@ -176,7 +182,7 @@ export class SmartForm extends HTMLElement {
   _setStyle(style?: string) {
     if (this._styleElement) {
       const _style =
-        this.getAttribute('style') || this._defaultConfig.style || '';
+        this.getAttribute('style') || this._defaultConfig.styles || '';
       this._styleElement.textContent = style || _style;
       this._shadow.appendChild(this._styleElement);
     }
@@ -234,3 +240,5 @@ export class SmartForm extends HTMLElement {
 }
 
 customElements.define('smart-form', SmartForm);
+
+(window as any).SmartForm = SmartForm;

@@ -21,12 +21,12 @@ export type FormElement = InputOptions | FormGroup;
 
 export interface FormDefaultConfig {
   api?: ApiOptions;
-  style?: string;
+  styles?: string;
 }
 
 export enum FormAttributes {
   CONFIG = 'config',
-  STYLE = 'style',
+  STYLES = 'styles',
 }
 
 export enum FormEvents {

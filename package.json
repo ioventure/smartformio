@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "description": "SmartFormIO is a TypeScript library for creating platform-agnostic form web components. It allows users to design any type of form using simple JSON input, providing robust validation and error handling.",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "rsbuild dev --open",
     "build": "rsbuild build",
@@ -15,9 +19,13 @@
     "url": "git+https://github.com/ioventure/smartformio.git"
   },
   "keywords": [
-    "example",
-    "open-source",
-    "project"
+    "form-builder",
+    "web-components",
+    "typescript",
+    "form-validation",
+    "json-forms",
+    "smart-form",
+    "platform-agnostic"
   ],
   "author": "ioventure",
   "license": "MIT",
@@ -27,7 +35,6 @@
   "homepage": "https://github.com/ioventure/smartformio#readme",
   "devDependencies": {
     "@rsbuild/core": "1.0.1-beta.3",
-    "@rsdoctor/rspack-plugin": "^0.3.8",
     "prettier": "^3.3.3",
     "typescript": "^5.5.2"
   },
