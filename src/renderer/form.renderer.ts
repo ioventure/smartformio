@@ -3,7 +3,6 @@ import {
   FormRendererOptions,
   FormSchema,
 } from "../interfaces/form.interface";
-import { loadDefaultStyles } from "./style.renderer";
 
 /**
  * Renders a single form field based on its schema.
@@ -45,7 +44,7 @@ export function renderField(field: FormFieldSchema): string {
 }
 
 /**
- * Renders the form markup (HTML) without any style block.
+ * Renders the form markup (HTML) without including any style block.
  */
 export function renderFormMarkup(schema: FormSchema): string {
   const fieldsHtml = schema.fields.map(renderField).join("");
@@ -63,25 +62,16 @@ export function renderFormMarkup(schema: FormSchema): string {
 /**
  * Asynchronously renders the complete form.
  *
- * If options.disableDefaultStyles is false (or not provided), the default styling is loaded from
- * an external CSS file and injected as a <style> block; otherwise, only the markup is returned.
+ * This function returns only the markup without injecting any default styles.
  *
  * @param schema - The form schema to render.
- * @param options - Renderer options (currently, disableDefaultStyles).
+ * @param options - Renderer options (currently unused).
  * @returns A promise that resolves to the complete HTML string.
  */
 export async function renderForm(
   schema: FormSchema,
   options?: FormRendererOptions
 ): Promise<string> {
-  let styles = "";
-  if (!options?.disableDefaultStyles) {
-    try {
-      const defaultStyles = await loadDefaultStyles();
-      styles = `<style>${defaultStyles}</style>`;
-    } catch (error) {
-      console.error("Error loading default styles:", error);
-    }
-  }
-  return styles + renderFormMarkup(schema);
+  // Simply return the markup; default styling must be provided externally.
+  return renderFormMarkup(schema);
 }
