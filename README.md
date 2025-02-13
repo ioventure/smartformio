@@ -15,6 +15,7 @@ SmartFormIO is an open-source, framework-agnostic dynamic form library built wit
   - **Global Theming:** Set default CSS variables for your entire application.
   - **Form Level Theming:** Override global styles for individual forms.
   - **Field Level Theming:** Customize individual form fields.
+  - You can supply theme data as an object or a full CSS string.
 
 - **Validation & Data Handling**  
   Built-in validation (with the ability to integrate third-party validators like Zod or Yup) and an event-driven architecture for handling form data.
@@ -30,68 +31,67 @@ Install SmartFormIO via npm:
 npm install @ioventure/smartformio
 ```
 
-## HTML Integration:
+## HTML Integration
+
+Include the SmartFormIO web component directly in your HTML:
 
 ```bash
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>SmartFormIO Demo</title>
-</head>
-<body>
-  <smart-form-io id="myForm" schema='{
-    "title": "User Registration",
-    "theme": {
-      "--smartformio-form-background": "#f0f8ff"
-    },
-    "fields": [
-      {
-        "type": "text",
-        "name": "username",
-        "label": "Username",
-        "required": true,
-        "theme": { "--smartformio-primary-color": "#ff6347" }
-      },
-      { "type": "email", "name": "email", "label": "Email", "required": true },
-      { "type": "password", "name": "password", "label": "Password", "required": true },
-      {
-        "type": "select",
-        "name": "country",
-        "label": "Country",
-        "options": ["USA", "Canada", "Other"]
-      }
-    ]
-  }'></smart-form-io>
+  <head>
+    <meta charset="UTF-8">
+    <title>SmartFormIO Demo</title>
+  </head>
+  <body>
+    <smart-form-io id="myForm" schema='{
+      "title": "User Registration",
+      "fields": [
+        {
+          "type": "text",
+          "name": "username",
+          "label": "Username",
+          "required": true,
+        },
+        { "type": "email", "name": "email", "label": "Email", "required": true },
+        { "type": "password", "name": "password", "label": "Password", "required": true },
+        {
+          "type": "select",
+          "name": "country",
+          "label": "Country",
+          "options": ["USA", "Canada", "Other"]
+        }
+      ]
+    }'></smart-form-io>
 
-  <script type="module" src="./dist/smartformio.js"></script>
-  <script>
-    document.getElementById('myForm').addEventListener('smartformio:submit', (e) => {
-      console.log('Form submitted with data:', e.detail);
-    });
-  </script>
-</body>
+    <script type="module" src="./dist/smartformio.js"></script>
+    <script>
+      document.getElementById('myForm').addEventListener('smartformio:submit', (e) => {
+        console.log('Form submitted with data:', e.detail);
+      });
+    </script>
+
+  </body>
 </html>
 ```
 
-## React Integration:
+## React Integration
+
+SmartFormIO ships with a React wrapper component so that you can easily use it in React applications. The wrapper handles setting the schema, managing attributes, and binding the smartformio:submit event.
+
+### Usage Example
 
 ```bash
-import React, { useEffect, useRef } from 'react';
-import '@ioventure/smartformio'; // Ensure the web component is imported
+import React, { useEffect, useRef } from "react";
+import { SmartFormReact } from "@ioventure/smartformio";
 
 const formSchema = {
   title: "User Registration",
-  theme: {
-    "--smartformio-form-background": "#f0f8ff"
-  },
   fields: [
     {
       type: "text",
       name: "username",
       label: "Username",
       required: true,
-      theme: { "--smartformio-primary-color": "#ff6347" }
     },
     { type: "email", name: "email", label: "Email", required: true },
     { type: "password", name: "password", label: "Password", required: true },
@@ -99,126 +99,84 @@ const formSchema = {
       type: "select",
       name: "country",
       label: "Country",
-      options: ["USA", "Canada", "Other"]
-    }
-  ]
+      options: ["USA", "Canada", "Other"],
+    },
+  ],
 };
 
 const App = () => {
-  const formRef = useRef(null);
-
-  useEffect(() => {
-    const formElement = formRef.current;
-    const handleSubmit = (e) => {
-      console.log('Form submitted with data:', e.detail);
-    };
-    formElement.addEventListener('smartformio:submit', handleSubmit);
-    return () => formElement.removeEventListener('smartformio:submit', handleSubmit);
-  }, []);
+  const handleSubmit = (data) => {
+    console.log("Form submitted with data:", data);
+  };
 
   return (
     <div>
-      <smart-form-io ref={formRef} schema={JSON.stringify(formSchema)}></smart-form-io>
+      <h1>SmartFormIO React Demo</h1>
+      <SmartFormReact schema={formSchema} onSubmit={handleSubmit} />
     </div>
   );
 };
 
 export default App;
+
 ```
 
-## Theming: Global Theming
+## Next.js Integration
+
+A dedicated Next.js wrapper (SmartFormNext) is also available for Next.js consumers. (See our documentation for further details.)
+
+## Theming
+
+SmartFormIO supports various theming approaches. Since the library no longer injects default styles, you can supply your own styles from your consuming app using global CSS. For example, to style the component using CSS parts:
+
+### Global Theming
 
 ```bash
-import { SmartFormIO } from '@ioventure/smartformio';
-
-SmartFormIO.globalTheme = {
-  '--smartformio-primary-color': '#007bff',
-  '--smartformio-font-family': 'Helvetica, sans-serif',
-  // Other global CSS variables...
-};
-```
-
-## Theming: Form Level Theming
-
-```bash
-{
-  "title": "Custom Themed Form",
-  "theme": {
-    "--smartformio-form-background": "#f0f8ff"
-  },
-  "fields": [ ... ]
+smart-form-io::part(container) {
+  background: #f0f8ff;
+  padding: 2em;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+}
+smart-form-io::part(title) {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 1em;
+}
+smart-form-io::part(field) {
+  margin-bottom: 1em;
+}
+smart-form-io::part(label) {
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 0.5em;
+}
+smart-form-io::part(input),
+smart-form-io::part(select) {
+  width: 100%;
+  padding: 0.6em;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+smart-form-io::part(button) {
+  background: #007bff;
+  color: #fff;
+  padding: 0.8em 1.2em;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+smart-form-io::part(button):hover {
+  background: #0056b3;
 }
 ```
 
-## Theming: Field Level Theming
-
-```bash
-{
-  "type": "text",
-  "name": "username",
-  "label": "Username",
-  "required": true,
-  "theme": { "--smartformio-primary-color": "#ff6347" }
-}
-```
-
-## Theming: Using a Theme Object
-
-```bash
-{
-  "title": "User Registration",
-  "theme": {
-    "--smartformio-form-background": "#f0f8ff"
-  },
-  "fields": [
-    {
-      "type": "text",
-      "name": "username",
-      "label": "Username",
-      "required": true,
-      "theme": { "--smartformio-primary-color": "#ff6347" }
-    },
-    { "type": "email", "name": "email", "label": "Email", "required": true },
-    { "type": "password", "name": "password", "label": "Password", "required": true },
-    {
-      "type": "select",
-      "name": "country",
-      "label": "Country",
-      "options": ["USA", "Canada", "Other"]
-    }
-  ]
-}
-```
-
-## Theming: Using a Full CSS String
-
-```bash
-{
-  "title": "User Registration",
-  "theme": "background: #f0f8ff; font-family: 'Helvetica, sans-serif';",
-  "fields": [
-    {
-      "type": "text",
-      "name": "username",
-      "label": "Username",
-      "required": true,
-      "theme": "border: 1px solid #ff6347; padding: 0.5em;"
-    },
-    { "type": "email", "name": "email", "label": "Email", "required": true },
-    { "type": "password", "name": "password", "label": "Password", "required": true },
-    {
-      "type": "select",
-      "name": "country",
-      "label": "Country",
-      "options": ["USA", "Canada", "Other"]
-    }
-  ]
-}
-```
+Include this stylesheet in your app (via a <link> in your HTML or import it in your React/Next.js app).
 
 ## Testing
 
-SmartFormIO uses Jest for unit and integration testing. Run your tests with:
+SmartFormIO uses Jest for unit and integration tests. To run tests, execute:
 
 ```bash
 npm run test
@@ -232,11 +190,11 @@ The library uses ESBuild for bundling. To build SmartFormIO, run:
 npm run build
 ```
 
-This generates bundles in multiple formats (ESM and UMD) in the dist/ directory.
+This generates bundles in multiple formats (ESM and UMD) in the dist/ directory, along with type declarations.
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository, create a feature branch, and open a pull request. Be sure to run the tests and follow the project's coding guidelines.
+Contributions are welcome! Please fork the repository, create a feature branch, and open a pull request. Make sure to run the tests and follow our coding guidelines.
 
 ## License
 
