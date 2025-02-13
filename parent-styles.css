@@ -1,99 +1,161 @@
-/* Container */
+/* Container styling */
 smart-form-io::part(container) {
   font-family: Arial, sans-serif;
-  background: #f9fafb;
-  padding: 1.5em;
-  border-radius: 8px;
-  max-width: 400px;
+  /* background: #f9fafb; */
+  padding: 2rem;
+  border-radius: 6px;
+  max-width: 300px;
   margin: 0 auto;
 }
 
-/* Title */
+/* Title styling */
 smart-form-io::part(title) {
   font-size: 1.5rem;
   color: #111827;
-  margin-bottom: 1em;
+  margin-bottom: 1rem;
 }
 
-/* Fields */
+/* Field wrapper */
 smart-form-io::part(field) {
-  margin-bottom: 1.2em;
+  margin-bottom: 1.2rem;
 }
 
-/* Label for all inputs */
+/* Label styling */
 smart-form-io::part(label) {
   display: block;
-  font-weight: bold;
-  color: #374151;
-  margin-bottom: 0.5em;
+  font-weight: 500;
+  color: #111827;
+  font-size: 14px;
+  margin-bottom: 0.5rem;
 }
 
-/* Checkbox Group */
-smart-form-io::part(checkbox-group) {
+/* 
+  Input wrapper to hold icons, add-ons, or dropdowns
+  next to the main input. 
+*/
+smart-form-io::part(input-wrapper) {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: 8px;
 }
 
-/* Checkbox Container */
-smart-form-io::part(checkbox-container) {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-/* Custom Checkbox Styling */
-smart-form-io::part(input-checkbox) {
-  width: 20px;
-  height: 20px;
-  appearance: none;
-  border: 2px solid #6366f1;
+/* 
+  Normal state for the text input:
+  - Subtle border
+  - Slight padding
+*/
+smart-form-io::part(input) {
+  height: 36px;
+  flex: 1;
+  font-size: 1rem;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
+  background-color: #fff;
+  color: #111827;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+/* For modern browsers */
+smart-form-io::part(input)::placeholder {
+  font-size: 0.875rem; /* ~14px */
+  font-weight: 400; /* normal weight */
+  color: #9ca3af; /* subtle gray */
+}
+
+/* For older WebKit browsers */
+smart-form-io::part(input):-webkit-input-placeholder {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #9ca3af;
+}
+
+/* For older IE/Edge */
+smart-form-io::part(input):-ms-input-placeholder {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #9ca3af;
+}
+
+/* Focus state: purple border and subtle focus ring */
+smart-form-io::part(input):focus {
+  outline: none;
+  border: 1px solid #6366f1;
+  box-shadow: 0 0 0 1px #6366f1;
+}
+
+/* Disabled state */
+smart-form-io::part(input):disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* Error state:
+   We assume your renderer sets part="input-error" when there's an error
+   (or you can conditionally add a class/attribute).
+*/
+smart-form-io::part(input-error) {
+  border: 1px solid #dc2626 !important;
+  box-shadow: 0 0 0 1px #dc2626;
+  color: #dc2626;
+}
+
+/* Help text below the input */
+smart-form-io::part(help-text) {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Error text below the input */
+smart-form-io::part(error-text) {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #dc2626;
+}
+
+/* Ensure the input wrapper can contain absolutely positioned elements */
+smart-form-io::part(input-wrapper) {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Position the leading icon inside the input border */
+smart-form-io::part(leading-icon) {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #9ca3af;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
-  position: relative;
 }
 
-smart-form-io::part(input-checkbox):checked {
-  background: #6366f1;
-  border-color: #6366f1;
+smart-form-io::part(input-leading-icon) {
+  padding-left: 28px;
 }
 
-smart-form-io::part(input-checkbox):checked::after {
-  content: "✔";
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
+/* Trailing icon is absolutely positioned inside the wrapper */
+smart-form-io::part(trailing-icon) {
   position: absolute;
-  left: 4px;
-  top: 2px;
+  right: 0.75rem; /* Distance from the right edge */
+  top: 50%; /* Vertically center */
+  transform: translateY(-50%);
+  pointer-events: none; /* Let clicks pass to the input */
+  color: #9ca3af; /* Example subtle gray */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Checkbox Label */
-smart-form-io::part(checkbox-label) {
-  font-weight: 600;
-  font-size: 16px;
-  color: #111827;
-}
-
-/* Checkbox Description */
-smart-form-io::part(checkbox-description) {
-  font-size: 14px;
-  color: #6b7280;
-  margin-top: 2px;
-}
-
-/* Inputs */
-smart-form-io::part(input),
-smart-form-io::part(select) {
-  width: 100%;
-  padding: 0.6em;
-  border: 1px solid #007bff;
-  border-radius: 4px;
-  box-sizing: border-box;
+/* Only inputs that also have 'input-trailing-icon' get extra right padding */
+smart-form-io::part(input-trailing-icon) {
+  padding-right: 28px;
 }
 
 /* Submit Button */
@@ -103,7 +165,7 @@ smart-form-io::part(button) {
   color: #fff;
   padding: 0.8em 1.2em;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
 }
 

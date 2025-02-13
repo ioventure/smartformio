@@ -12,14 +12,15 @@ export function renderAttr(
 
 /**
  * Renders a label for a field.
- * If no label is provided, it falls back to the placeholder.
+ * Uses the field's label if provided; if not, falls back to its placeholder.
+ * Optionally assigns an id and CSS class.
  */
 export function renderFieldLabel(
   field: FormFieldSchema,
   forId?: string,
   className?: string
 ): string {
-  const effectiveLabel = field.label || field.placeholder;
+  const effectiveLabel = field.label;
   if (!effectiveLabel) return "";
   return `<label part="label" ${forId ? `for="${forId}"` : ""} ${
     className ? `class="${className}"` : ""

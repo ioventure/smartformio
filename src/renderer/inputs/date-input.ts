@@ -1,12 +1,13 @@
-import { FormFieldSchema } from "../../interfaces/form.interface";
+import { DateField } from "../../interfaces/form.interface";
 import { renderAttr, renderFieldLabel } from "../helper";
 
 /**
  * Renders a date input field.
  */
-export function renderDateInput(field: FormFieldSchema): string {
+export function renderDateInput(field: DateField): string {
   const placeholder = renderAttr("placeholder", field.placeholder);
   const labelHtml = renderFieldLabel(field, field.name);
+  const requiredAttr = field.required ? "required" : "";
   return `
     <div class="field" part="field">
       ${labelHtml}
@@ -14,7 +15,7 @@ export function renderDateInput(field: FormFieldSchema): string {
         type="date" 
         id="${field.name}" 
         name="${field.name}" 
-        ${field.required ? "required" : ""} 
+        ${requiredAttr}
         ${placeholder}
         ${renderAttr("min", field.min)}
         ${renderAttr("max", field.max)}

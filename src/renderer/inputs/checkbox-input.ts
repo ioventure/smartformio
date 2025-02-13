@@ -1,45 +1,49 @@
-import { FormFieldSchema } from "../../interfaces/form.interface";
+import { CheckboxField } from "../../interfaces/form.interface";
 
 /**
  * Renders a checkbox field.
  */
-export function renderCheckbox(field: FormFieldSchema): string {
+export function renderCheckbox(field: CheckboxField): string {
   if (field.options && Array.isArray(field.options)) {
-    // For a group of checkboxes, display each option with an optional per-option description.
+    // For a group of checkboxes with individual labels and optional descriptions.
     return `
       <div part="checkbox-group">
-        ${(field.options || [])
-          .map(
-            (option, index) => `
+        ${field.options
+          .map((option, index) => {
+            const descriptionHtml =
+              field.descriptions && field.descriptions[index]
+                ? `<p part="checkbox-description">${field.descriptions[index]}</p>`
+                : "";
+            return `
             <label part="checkbox-container">
               <input 
                 type="checkbox" 
                 id="${field.name}-${index}" 
                 name="${field.name}" 
                 value="${option}" 
-                ${field.required ? "required" : ""} 
+                ${field.required ? "required" : ""}
                 part="input-checkbox"
               />
               <div>
                 <span part="checkbox-label">${option}</span>
-                ${
-                  field.descriptions && field.descriptions[index]
-                    ? `<p part="checkbox-description">${field.descriptions[index]}</p>`
-                    : ""
-                }
+                ${descriptionHtml}
               </div>
-            </label>`
-          )
+            </label>
+          `;
+          })
           .join("")}
       </div>
     `;
   } else {
-    // For a single checkbox, use inline label with a class based on labelPosition.
+    // For a single checkbox.
     const effectiveLabel = field.label || field.placeholder || "";
     const labelClass =
       field.labelPosition === "right"
         ? "inline-label right"
         : "inline-label left";
+    const descriptionHtml = field.descriptions
+      ? `<p part="checkbox-description">${field.descriptions}</p>`
+      : "";
     return `
       <div part="checkbox-group">
         <label for="${
@@ -49,16 +53,12 @@ export function renderCheckbox(field: FormFieldSchema): string {
             type="checkbox" 
             id="${field.name}" 
             name="${field.name}" 
-            ${field.required ? "required" : ""} 
+            ${field.required ? "required" : ""}
             part="input-checkbox"
           />
           <div>
             <span part="checkbox-label">${effectiveLabel}</span>
-            ${
-              field.descriptions
-                ? `<p part="checkbox-description">${field.descriptions}</p>`
-                : ""
-            }
+            ${descriptionHtml}
           </div>
         </label>
       </div>
