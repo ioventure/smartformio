@@ -6,7 +6,8 @@
   "module": "dist/smartformio.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "src/global.d.ts"
   ],
   "scripts": {
     "build": "npx tsc && node build.js",
@@ -28,11 +29,18 @@
   "publishConfig": {
     "access": "public"
   },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
   "devDependencies": {
     "@types/jest": "^29.5.14",
+    "@types/react": "^19.0.8",
     "esbuild": "^0.25.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"

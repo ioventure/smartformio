@@ -3,12 +3,12 @@ import { FormSchema } from "../interfaces/form.interface";
 import { renderForm } from "../renderer/form.renderer";
 
 /**
- * SmartFormIO is a framework-agnostic web component for rendering dynamic forms.
+ * SmartForm is a framework-agnostic web component for rendering dynamic forms.
  *
  * It accepts a JSON schema via the "schema" attribute. The component observes this
  * attribute so that any changes are automatically parsed and re-rendered.
  */
-export class SmartFormIO extends HTMLElement {
+export class SmartForm extends HTMLElement {
   private shadow: ShadowRoot;
   private schema: FormSchema | null = null;
 
@@ -68,4 +68,4 @@ export class SmartFormIO extends HTMLElement {
   }
 }
 
-customElements.define("smart-form-io", SmartFormIO);
+customElements.define("smart-form-io", SmartForm);
