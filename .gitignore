@@ -1,0 +1,27 @@
+# Node modules
+node_modules/
+
+# Build output
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage output (if using a testing/coverage tool)
+coverage/
+
+# OS-specific files
+.DS_Store
+
+# Environment files
+.env
+
+# Editor/IDE settings
+.vscode/
+.idea/
+
+# Optional: cache directories
+.cache/

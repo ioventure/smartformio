@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SmartFormIO Demo</title>
+    <!-- Include the parent application's stylesheet -->
+    <link rel="stylesheet" href="parent-styles.css" />
+  </head>
+  <body>
+    <!-- Pass the form schema as an attribute; you can omit the "theme" property if the parent stylesheet is enough -->
+    <smart-form-io
+      id="myForm"
+      schema='{
+    "title": "User Registration",
+    "fields": [
+      { "type": "text", "name": "username", "label": "Username", "required": true },
+      { "type": "email", "name": "email", "label": "Email", "required": true },
+      { "type": "password", "name": "password", "label": "Password", "required": true },
+      { "type": "select", "name": "country", "label": "Country", "options": ["USA", "Canada", "Other"] }
+    ]
+  }'
+    ></smart-form-io>
+
+    <!-- Include the component bundle -->
+    <script type="module" src="./dist/smartformio.js"></script>
+    <script>
+      document
+        .getElementById("myForm")
+        .addEventListener("smartformio:submit", (e) => {
+          console.log("Form submitted with data:", e.detail);
+        });
+    </script>
+  </body>
+</html>
