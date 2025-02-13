@@ -1,37 +1,92 @@
-/* parent-styles.css */
-
-/* Target the container of the form */
+/* Container */
 smart-form-io::part(container) {
   font-family: Arial, sans-serif;
-  background: #f0f8ff;
-  padding: 2em;
-  border: 2px solid #ccc;
+  background: #f9fafb;
+  padding: 1.5em;
   border-radius: 8px;
-  width: 20%;
+  max-width: 400px;
   margin: 0 auto;
 }
 
-/* Style the title */
+/* Title */
 smart-form-io::part(title) {
   font-size: 1.5rem;
-  color: #333;
+  color: #111827;
   margin-bottom: 1em;
 }
 
-/* Style form fields */
+/* Fields */
 smart-form-io::part(field) {
   margin-bottom: 1.2em;
 }
 
-/* Style labels */
+/* Label for all inputs */
 smart-form-io::part(label) {
   display: block;
   font-weight: bold;
-  color: #555;
+  color: #374151;
   margin-bottom: 0.5em;
 }
 
-/* Style inputs and selects */
+/* Checkbox Group */
+smart-form-io::part(checkbox-group) {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Checkbox Container */
+smart-form-io::part(checkbox-container) {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* Custom Checkbox Styling */
+smart-form-io::part(input-checkbox) {
+  width: 20px;
+  height: 20px;
+  appearance: none;
+  border: 2px solid #6366f1;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  position: relative;
+}
+
+smart-form-io::part(input-checkbox):checked {
+  background: #6366f1;
+  border-color: #6366f1;
+}
+
+smart-form-io::part(input-checkbox):checked::after {
+  content: "✔";
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  position: absolute;
+  left: 4px;
+  top: 2px;
+}
+
+/* Checkbox Label */
+smart-form-io::part(checkbox-label) {
+  font-weight: 600;
+  font-size: 16px;
+  color: #111827;
+}
+
+/* Checkbox Description */
+smart-form-io::part(checkbox-description) {
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* Inputs */
 smart-form-io::part(input),
 smart-form-io::part(select) {
   width: 100%;
@@ -41,7 +96,7 @@ smart-form-io::part(select) {
   box-sizing: border-box;
 }
 
-/* Style the submit button */
+/* Submit Button */
 smart-form-io::part(button) {
   width: 100%;
   background: #007bff;

@@ -53,7 +53,7 @@ export class SmartForm extends HTMLElement {
 
     const disableDefaultStyles = this.hasAttribute("disable-default-styles");
 
-    const markup = await renderForm(this.schema, { disableDefaultStyles });
+    const markup = await renderForm(this.schema);
     this.shadow.innerHTML = markup;
 
     setupFormEvents(this.shadow, (data: Record<string, any>) => {

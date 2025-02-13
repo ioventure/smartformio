@@ -7,28 +7,62 @@
     <link rel="stylesheet" href="parent-styles.css" />
   </head>
   <body>
-    <!-- Pass the form schema as an attribute; you can omit the "theme" property if the parent stylesheet is enough -->
-    <smart-form-io
-      id="myForm"
-      schema='{
-    "title": "User Registration",
-    "fields": [
-      { "type": "text", "name": "username", "label": "Username", "required": true },
-      { "type": "email", "name": "email", "label": "Email", "required": true },
-      { "type": "password", "name": "password", "label": "Password", "required": true },
-      { "type": "select", "name": "country", "label": "Country", "options": ["USA", "Canada", "Other"] }
-    ]
-  }'
-    ></smart-form-io>
+    <!-- Define the form schema as a script variable -->
+    <script>
+      const formSchema = {
+        title: "User Preferences",
+        fields: [
+          {
+            type: "text",
+            name: "username",
+            label: "Username",
+            required: true,
+            placeholder: "Enter your username",
+          },
+          {
+            type: "email",
+            name: "email",
+            label: "Email",
+            required: true,
+            placeholder: "Enter your email address",
+          },
+          {
+            type: "password",
+            name: "password",
+            label: "Password",
+            required: true,
+            placeholder: "Enter your password",
+          },
+          {
+            type: "checkbox",
+            name: "notifications",
+            label: "Notification Preferences",
+            options: ["New comments", "New candidates", "Offers"],
+            descriptions: [
+              "so you always know what's happening.",
+              "who apply for any open postings.",
+              "when they are accepted or rejected by candidates.",
+            ],
+            required: false,
+          },
+        ],
+      };
+    </script>
+
+    <!-- SmartFormIO component -->
+    <smart-form-io id="myForm"></smart-form-io>
 
     <!-- Include the component bundle -->
     <script type="module" src="./dist/smartformio.js"></script>
     <script>
-      document
-        .getElementById("myForm")
-        .addEventListener("smartformio:submit", (e) => {
+      document.addEventListener("DOMContentLoaded", () => {
+        const formElement = document.getElementById("myForm");
+        formElement.setAttribute("schema", JSON.stringify(formSchema));
+
+        formElement.addEventListener("smartformio:submit", (e) => {
           console.log("Form submitted with data:", e.detail);
         });
+      });
     </script>
   </body>
 </html>
