@@ -10,12 +10,12 @@ SmartFormIO is an open-source, framework-agnostic dynamic form library built wit
 - **Dynamic Form Rendering**  
   Render forms via a JSON schema with support for multiple field types (text, email, password, number, select, etc.) and conditional fields.
 
-- **Customizable Theming**
+- **Customizable Theming via External Stylesheets**  
+  SmartFormIO no longer injects internal styles—styling is entirely controlled by the consuming application.  
+  Use global stylesheets and CSS parts to style the component:
 
-  - **Global Theming:** Set default CSS variables for your entire application.
-  - **Form Level Theming:** Override global styles for individual forms.
-  - **Field Level Theming:** Customize individual form fields.
-  - You can supply theme data as an object or a full CSS string.
+  - **Global Theming:** Define default styles that apply to all instances.
+  - **Form Level & Field Level Theming:** Customize individual forms or specific fields by targeting the exposed CSS parts.
 
 - **Validation & Data Handling**  
   Built-in validation (with the ability to integrate third-party validators like Zod or Yup) and an event-driven architecture for handling form data.
