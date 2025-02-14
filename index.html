@@ -3,66 +3,70 @@
   <head>
     <meta charset="UTF-8" />
     <title>SmartFormIO Demo</title>
-    <!-- Include the parent application's stylesheet -->
     <link rel="stylesheet" href="parent-styles.css" />
   </head>
   <body>
-    <!-- Define the form schema as a script variable -->
     <script>
       const formSchema = {
-        // title: "User Preferences",
+        title: "Validation Demo Form",
+        validateOnChange: true,
         fields: [
           {
-            type: "text",
-            name: "withLabel",
-            label: "With Label",
-            required: true,
-            placeholder: "With Label",
-          },
-          {
-            type: "text",
-            name: "withLabelAndHelpText",
-            label: "With Label and Help Text",
-            required: true,
-            placeholder: "With Label and Help Text",
-            helpText: "This is a help text",
-          },
-          {
-            type: "text",
-            name: "errorText",
-            required: true,
-            placeholder: "Error Text",
-            validationMessage: "This is a validation error message",
-          },
-          {
-            type: "text",
-            name: "disabledText",
-            required: true,
-            disabled: true,
-            placeholder: "Disabled Text",
-          },
-          {
             type: "email",
-            name: "leadingIcon",
+            name: "email",
+            label: "Email",
             required: true,
-            placeholder: "Leading Icon",
-            leadingIcon: "@",
+            validationMessage: "Please enter a valid email address",
+            pattern: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+            helpText: "Enter your email address",
+          },
+          {
+            type: "number",
+            name: "age",
+            label: "Age",
+            required: true,
+            min: 18,
+            max: 100,
+            validationMessage: "Age must be between 18 and 100",
+            helpText: "You must be between 18 and 100 years old",
+          },
+          {
+            type: "number",
+            name: "score",
+            label: "Score",
+            required: true,
+            min: 0,
+            max: 10,
+            validationMessage: "Score must be between 0 and 10",
+            helpText: "Enter a score from 0 to 10",
           },
           {
             type: "text",
-            name: "trailingIcon",
+            name: "phone",
+            label: "Phone Number",
             required: true,
-            placeholder: "Trailing Icon",
-            trailingIcon: "$",
+            pattern: "^\\d{10}$",
+            validationMessage: "Please enter a valid 10-digit phone number",
+            helpText:
+              "Enter your 10-digit phone number without spaces or dashes",
+          },
+          {
+            type: "password",
+            name: "password",
+            label: "Password",
+            required: true,
+            minLength: 8,
+            pattern: "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$",
+            validationMessage:
+              "Password must be at least 8 characters with letters and numbers",
+            helpText: "Use at least 8 characters with both letters and numbers",
           },
         ],
       };
     </script>
 
-    <!-- SmartFormIO component -->
     <smart-form-io id="myForm"></smart-form-io>
 
-    <!-- Include the component bundle -->
     <script type="module" src="./dist/smartformio.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {

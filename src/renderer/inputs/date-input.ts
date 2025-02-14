@@ -2,26 +2,60 @@ import { DateField } from "../../interfaces/form.interface";
 import { renderAttr, renderFieldLabel } from "../helper";
 
 /**
- * Renders a date input field.
+ * Builds common attributes for date input.
+ */
+function buildCommonAttributes(field: DateField): string {
+  const attrs = [
+    renderAttr("placeholder", field.placeholder),
+    field.required ? "required" : "",
+    field.disabled ? "disabled" : "",
+    field.className ? `class="${field.className}"` : "",
+  ];
+
+  // Add date-specific validation attributes
+  if (field.min) attrs.push(renderAttr("min", field.min));
+  if (field.max) attrs.push(renderAttr("max", field.max));
+  if (field.format) attrs.push(`data-format="${field.format}"`);
+
+  return attrs.filter(Boolean).join(" ");
+}
+
+/**
+ * Renders help and error text elements.
+ */
+function renderHelpAndError(field: DateField): string {
+  return `
+    ${
+      field.helpText
+        ? `<div part="help-text" data-help="${field.name}" style="display: block;">${field.helpText}</div>`
+        : ""
+    }
+    <div part="error-text" data-error="${
+      field.name
+    }" style="display: none;"></div>
+  `;
+}
+
+/**
+ * Renders a date input field with validation support.
  */
 export function renderDateInput(field: DateField): string {
-  const placeholder = renderAttr("placeholder", field.placeholder);
-  const labelHtml = renderFieldLabel(field, field.name);
-  const requiredAttr = field.required ? "required" : "";
+  const attributes = buildCommonAttributes(field);
+
   return `
     <div class="field" part="field">
-      ${labelHtml}
-      <input 
-        type="date" 
-        id="${field.name}" 
-        name="${field.name}" 
-        ${requiredAttr}
-        ${placeholder}
-        ${renderAttr("min", field.min)}
-        ${renderAttr("max", field.max)}
-        ${field.format ? `data-format="${field.format}" ` : ""}
-        part="input"
-      />
+      ${renderFieldLabel(field, field.name)}
+      <div class="input-wrapper" part="input-wrapper">
+        <input 
+          type="date" 
+          id="${field.name}" 
+          name="${field.name}" 
+          ${attributes}
+          part="input"
+          exportparts="input, input-invalid"
+        />
+      </div>
+      ${renderHelpAndError(field)}
     </div>
   `;
 }

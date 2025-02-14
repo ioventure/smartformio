@@ -4,124 +4,147 @@ import { renderAttr, renderFieldLabel } from "../helper";
 /**
  * Builds common attributes for text-like inputs.
  */
-function buildCommonAttributes(field: TextField) {
-  return {
-    placeholder: renderAttr("placeholder", field.placeholder),
-    required: field.required ? "required" : "",
-    disabled: field.disabled ? "disabled" : "",
-    pattern: field.pattern ? `pattern="${field.pattern}" ` : "",
-    validationMessage: field.validationMessage
-      ? `title="${field.validationMessage}" `
-      : "",
-    defaultValue:
-      field.defaultValue !== undefined && field.type !== "textarea"
-        ? renderAttr("value", field.defaultValue as string | number)
-        : "",
-    classAttr: field.className ? `class="${field.className}" ` : "",
-  };
+function buildCommonAttributes(field: TextField): string {
+  const attrs = [
+    renderAttr("placeholder", field.placeholder),
+    field.required ? "required" : "",
+    field.disabled ? "disabled" : "",
+    field.className ? `class="${field.className}"` : "",
+  ];
+
+  // Add type-specific validation attributes
+  if (field.type === "number") {
+    attrs.push('step="any"');
+    if (field.min !== undefined) attrs.push(renderAttr("min", field.min));
+    if (field.max !== undefined) attrs.push(renderAttr("max", field.max));
+  } else {
+    if (field.pattern) attrs.push(renderAttr("pattern", field.pattern));
+    if (field.minLength) attrs.push(renderAttr("minlength", field.minLength));
+    if (field.maxLength) attrs.push(renderAttr("maxlength", field.maxLength));
+  }
+
+  return attrs.filter(Boolean).join(" ");
 }
 
 /**
  * Builds HTML for leading and trailing icons.
  */
 function buildIconHtml(field: TextField): {
-  leadingIcon: string;
-  trailingIcon: string;
+  leading: string;
+  trailing: string;
 } {
   return {
-    leadingIcon: field.leadingIcon
+    leading: field.leadingIcon
       ? `<span part="leading-icon">${field.leadingIcon}</span>`
       : "",
-    trailingIcon: field.trailingIcon
+    trailing: field.trailingIcon
       ? `<span part="trailing-icon">${field.trailingIcon}</span>`
       : "",
   };
 }
 
 /**
- * Renders a text-like input field (including textarea) with advanced features.
- * External styling is applied via `part` attributes.
+ * Determines the input parts based on icon presence.
  */
-export function renderTextInput(field: TextField): string {
-  const {
-    placeholder,
-    required,
-    disabled,
-    pattern,
-    validationMessage,
-    defaultValue,
-    classAttr,
-  } = buildCommonAttributes(field);
-  const { leadingIcon, trailingIcon } = buildIconHtml(field);
+function getInputParts(field: TextField, isTextarea: boolean = false): string {
+  const parts = ["input"];
 
-  // If hiddenLabel is true, add a "sr-only" class to the label.
-  const labelClass = field.hiddenLabel ? "sr-only" : "";
-  const labelHtml = renderFieldLabel(field, field.name, labelClass);
-
-  // Help text and validation (error) message
-  const helpTextHtml = field.helpText
-    ? `<p part="help-text">${field.helpText}</p>`
-    : "";
-  // Use validationMessage for both the title attribute and inline error display.
-  const errorTextHtml = field.validationMessage
-    ? `<p part="error-text">${field.validationMessage}</p>`
-    : "";
-
-  // Determine the input part name based on icon presence.
-  let inputPart = "input";
-  if (field.leadingIcon) inputPart += " input-leading-icon";
-  if (field.trailingIcon) inputPart += " input-trailing-icon";
-
-  // Render a textarea if the field type is "textarea".
-  if (field.type === "textarea") {
-    const initialValue = field.defaultValue ?? "";
-    return `
-      <div class="field" part="field">
-        ${labelHtml}
-        <div class="input-wrapper" part="input-wrapper">
-          ${leadingIcon}
-          <textarea 
-            id="${field.name}" 
-            name="${field.name}" 
-            ${required}
-            ${disabled}
-            ${placeholder}
-            ${classAttr}
-            ${pattern}
-            ${validationMessage}
-            part="${inputPart}"
-          >${initialValue}</textarea>
-          ${trailingIcon}
-        </div>
-        ${helpTextHtml}
-        ${errorTextHtml}
-      </div>
-    `;
+  if (isTextarea) {
+    parts.push("input-textarea");
   }
 
-  // Render a standard input for other types.
+  if (field.leadingIcon) {
+    parts.push("input-leading-icon");
+  }
+
+  if (field.trailingIcon) {
+    parts.push("input-trailing-icon");
+  }
+
+  return parts.join(" ");
+}
+
+/**
+ * Renders help and error text elements.
+ */
+function renderHelpAndError(field: TextField): string {
+  return `
+    ${
+      field.helpText
+        ? `<div part="help-text" data-help="${field.name}" style="display: block;">${field.helpText}</div>`
+        : ""
+    }
+    <div part="error-text" data-error="${
+      field.name
+    }" style="display: none;"></div>
+  `;
+}
+
+/**
+ * Renders a textarea input with validation support.
+ */
+function renderTextarea(
+  field: TextField,
+  attributes: string,
+  icons: { leading: string; trailing: string }
+): string {
+  const parts = getInputParts(field, true);
   return `
     <div class="field" part="field">
-      ${labelHtml}
+      ${renderFieldLabel(field, field.name, field.hiddenLabel ? "sr-only" : "")}
       <div class="input-wrapper" part="input-wrapper">
-        ${leadingIcon}
+        ${icons.leading}
+        <textarea 
+          id="${field.name}" 
+          name="${field.name}" 
+          ${attributes}
+          part="${parts}"
+          exportparts="${parts}, input-invalid"
+        ></textarea>
+        ${icons.trailing}
+      </div>
+      ${renderHelpAndError(field)}
+    </div>
+  `;
+}
+
+/**
+ * Renders a standard text input with validation support.
+ */
+function renderTextInputField(
+  field: TextField,
+  attributes: string,
+  icons: { leading: string; trailing: string }
+): string {
+  const parts = getInputParts(field);
+  return `
+    <div class="field" part="field">
+      ${renderFieldLabel(field, field.name, field.hiddenLabel ? "sr-only" : "")}
+      <div class="input-wrapper" part="input-wrapper">
+        ${icons.leading}
         <input 
           type="${field.type}" 
           id="${field.name}" 
           name="${field.name}" 
-          ${required}
-          ${disabled}
-          ${placeholder}
-          ${defaultValue}
-          ${pattern}
-          ${validationMessage}
-          ${classAttr}
-          part="${inputPart}"
+          ${attributes}
+          part="${parts}"
+          exportparts="${parts}, input-invalid"
         />
-        ${trailingIcon}
+        ${icons.trailing}
       </div>
-      ${helpTextHtml}
-      ${errorTextHtml}
+      ${renderHelpAndError(field)}
     </div>
   `;
+}
+
+/**
+ * Main function to render a text-like input field with validation.
+ */
+export function renderTextInput(field: TextField): string {
+  const attributes = buildCommonAttributes(field);
+  const icons = buildIconHtml(field);
+
+  return field.type === "textarea"
+    ? renderTextarea(field, attributes, icons)
+    : renderTextInputField(field, attributes, icons);
 }

@@ -3,48 +3,77 @@
 import React, { useEffect, useMemo, useRef, forwardRef } from "react";
 import "../../web-components/smartform"; // Import and register the core web component
 
-// Create a helper component that renders the custom element.
-// This avoids using the literal <smart-form-io> tag in JSX.
+// Create a Next.js component that renders the custom element using React.createElement.
+// Using forwardRef allows us to pass a ref to the underlying custom element.
 const SmartFormElement = forwardRef<
   HTMLElement,
   React.HTMLAttributes<HTMLElement>
 >((props, ref) => {
-  // We assert the tag name as any to bypass JSX type checking.
-  return React.createElement("smart-form-io" as any, { ...props, ref });
+  return React.createElement("smart-form-io", { ...props, ref });
 });
 SmartFormElement.displayName = "SmartFormElement";
 
-export interface SmartFormNextProps {
+export interface SmartFormIOProps {
+  /** The form schema that defines the structure and validation rules */
   schema: Record<string, any>;
+  /** Option to disable default styles */
   disableDefaultStyles?: boolean;
+  /** Callback function called when form is submitted */
   onSubmit?: (data: any) => void;
 }
 
 /**
  * SmartFormNext is a Next.js wrapper for the SmartFormIO web component.
- * It sets the "schema" attribute, handles the "disable-default-styles" flag,
- * and attaches an event listener for "smartformio:submit".
+ * It's specifically designed to work with Next.js's client components.
+ *
+ * @component
+ * @example
+ * ```tsx
+ * 'use client';
+ *
+ * import { SmartFormNext } from '@ioventure/smartformio';
+ *
+ * const MyForm = () => {
+ *   const schema = {
+ *     fields: [
+ *       { type: "text", name: "username", required: true }
+ *     ]
+ *   };
+ *
+ *   return (
+ *     <SmartFormNext
+ *       schema={schema}
+ *       onSubmit={(data) => console.log(data)}
+ *     />
+ *   );
+ * };
+ * ```
  */
-const SmartFormNext: React.FC<SmartFormNextProps> = ({
+export const SmartFormNext: React.FC<SmartFormIOProps> = ({
   schema,
   disableDefaultStyles = false,
   onSubmit,
 }) => {
   const formRef = useRef<HTMLElement>(null);
+
+  // Memoize the schema JSON string to avoid unnecessary recalculations.
   const schemaString = useMemo(() => JSON.stringify(schema), [schema]);
 
   useEffect(() => {
     const currentElement = formRef.current;
     if (!currentElement) return;
 
+    // Set the schema attribute.
     currentElement.setAttribute("schema", schemaString);
 
+    // Set or remove the disable-default-styles attribute.
     if (disableDefaultStyles) {
       currentElement.setAttribute("disable-default-styles", "");
     } else {
       currentElement.removeAttribute("disable-default-styles");
     }
 
+    // Event handler for form submission.
     const handleSubmit = (event: Event) => {
       if (typeof onSubmit === "function" && event instanceof CustomEvent) {
         onSubmit(event.detail);
@@ -52,6 +81,8 @@ const SmartFormNext: React.FC<SmartFormNextProps> = ({
     };
 
     currentElement.addEventListener("smartformio:submit", handleSubmit);
+
+    // Cleanup the event listener.
     return () => {
       currentElement.removeEventListener("smartformio:submit", handleSubmit);
     };
@@ -59,5 +90,3 @@ const SmartFormNext: React.FC<SmartFormNextProps> = ({
 
   return <SmartFormElement ref={formRef} />;
 };
-
-export default SmartFormNext;

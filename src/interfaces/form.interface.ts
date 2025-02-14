@@ -1,81 +1,108 @@
 /**
- * Base properties common to all fields.
+ * Base properties common to all form fields.
+ * These properties are inherited by all specific field types.
  */
-interface BaseField {
+export interface BaseField {
+  /** Unique identifier for the field */
   name: string;
+  /** Label text to display above the field */
   label?: string;
+  /** Placeholder text for the input */
   placeholder?: string;
+  /** Whether the field is required */
   required?: boolean;
+  /** Default value for the field */
   defaultValue?: string | number | boolean;
+  /** Whether the field is readonly */
   readonly?: boolean;
+  /** Whether the field is disabled */
   disabled?: boolean;
+  /** Additional CSS classes to apply */
   className?: string;
+  /** Help text to display below the field */
+  helpText?: string;
+  /** Custom validation message */
+  validationMessage?: string;
 }
 
 /**
- * Fields that accept text-based input.
+ * Properties for text-based input fields.
+ * Includes text, email, password, number, and textarea types.
  */
 export interface TextField extends BaseField {
   type: "text" | "email" | "password" | "number" | "textarea";
+  /** Regular expression pattern for validation */
   pattern?: string;
-  /** Hides the label visually while keeping it accessible. */
+  /** Hide the label visually but keep it for screen readers */
   hiddenLabel?: boolean;
-  /** Help text displayed below the input. */
-  helpText?: string;
-  /** Error message shown when validation fails. */
-  validationMessage?: string;
-  /** Leading icon HTML snippet or icon class. */
+  /** Icon to display at the start of the input */
   leadingIcon?: string;
-  /** Trailing icon HTML snippet or icon class. */
+  /** Icon to display at the end of the input */
   trailingIcon?: string;
+  /** Minimum length for text input */
+  minLength?: number;
+  /** Maximum length for text input */
+  maxLength?: number;
+  /** Minimum value for number input */
+  min?: number;
+  /** Maximum value for number input */
+  max?: number;
 }
+
 /**
- * Fields for select dropdowns.
+ * Properties for select dropdowns.
  */
 export interface SelectField extends BaseField {
   type: "select";
+  /** Array of options to display in the dropdown */
   options: string[];
 }
 
 /**
- * Fields for date inputs.
+ * Properties for date inputs.
  */
 export interface DateField extends BaseField {
   type: "date";
+  /** Date format string */
   format?: string;
+  /** Minimum allowed date */
   min?: string | number;
+  /** Maximum allowed date */
   max?: string | number;
 }
 
 /**
- * Fields for file inputs.
+ * Properties for file inputs.
  */
 export interface FileField extends BaseField {
   type: "file";
 }
 
 /**
- * Fields for radio button groups.
+ * Properties for radio button groups.
  */
 export interface RadioField extends BaseField {
   type: "radio";
+  /** Array of radio button options */
   options: string[];
 }
 
 /**
- * Fields for checkboxes.
- * For a group of checkboxes, `options` (and optionally `descriptions`) must be provided.
- * For a single checkbox, omit `options` and use `labelPosition` to control label placement.
+ * Properties for checkbox inputs.
+ * Supports both single checkbox and checkbox groups.
  */
 export interface CheckboxField extends BaseField {
   type: "checkbox";
+  /** Array of checkbox options for groups */
   options?: string[];
+  /** Array of descriptions for each option */
   descriptions?: string[];
+  /** Position of the label relative to the checkbox */
   labelPosition?: "left" | "right";
 }
 
 /**
- * The complete form field schema as a union of all possible field types.
+ * Union type of all possible field types.
  */
 export type FormFieldSchema =
   | TextField
@@ -86,13 +113,26 @@ export type FormFieldSchema =
   | CheckboxField;
 
 /**
- * Type definition for the entire form schema.
+ * Configuration for the entire form.
  */
 export interface FormSchema {
+  /** Form title */
   title?: string;
+  /** Form description */
   description?: string;
+  /** Array of form fields */
   fields: FormFieldSchema[];
+  /** Enable real-time validation on input */
   validateOnChange?: boolean;
+  /** Show the submit button */
   showSubmitButton?: boolean;
+  /** Custom text for the submit button */
   submitButtonText?: string;
+}
+
+/**
+ * Form submission event detail type.
+ */
+export interface FormSubmitEvent extends CustomEvent {
+  detail: Record<string, any>;
 }

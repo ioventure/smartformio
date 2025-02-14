@@ -12,19 +12,39 @@ const SmartFormElement = forwardRef<
 SmartFormElement.displayName = "SmartFormElement";
 
 export interface SmartFormIOProps {
+  /** The form schema that defines the structure and validation rules */
   schema: Record<string, any>;
+  /** Option to disable default styles */
   disableDefaultStyles?: boolean;
+  /** Callback function called when form is submitted */
   onSubmit?: (data: any) => void;
 }
 
 /**
  * SmartFormReact is a React wrapper for the SmartFormIO web component.
- * It handles:
- * - Serializing the schema and setting it as an attribute.
- * - Managing the "disable-default-styles" attribute.
- * - Attaching an event listener for the "smartformio:submit" event.
+ *
+ * @component
+ * @example
+ * ```tsx
+ * import { SmartFormReact } from '@ioventure/smartformio';
+ *
+ * const MyForm = () => {
+ *   const schema = {
+ *     fields: [
+ *       { type: "text", name: "username", required: true }
+ *     ]
+ *   };
+ *
+ *   return (
+ *     <SmartFormReact
+ *       schema={schema}
+ *       onSubmit={(data) => console.log(data)}
+ *     />
+ *   );
+ * };
+ * ```
  */
-const SmartFormReact: React.FC<SmartFormIOProps> = ({
+export const SmartFormReact: React.FC<SmartFormIOProps> = ({
   schema,
   disableDefaultStyles = false,
   onSubmit,
@@ -65,5 +85,3 @@ const SmartFormReact: React.FC<SmartFormIOProps> = ({
 
   return <SmartFormElement ref={formRef} />;
 };
-
-export default SmartFormReact;
