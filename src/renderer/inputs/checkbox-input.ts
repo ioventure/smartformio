@@ -1,108 +1,76 @@
 import { CheckboxField } from "../../interfaces/form.interface";
-import { renderFieldLabel } from "../helper";
+import { renderFieldWrapper } from "../helper";
 
 /**
- * Builds common attributes for checkbox input.
+ * Renders a checkbox input or group with validation support.
  */
-function buildCommonAttributes(field: CheckboxField): string {
-  const attrs = [
+export function renderCheckbox(field: CheckboxField): string {
+  const commonAttrs = [
     field.required ? "required" : "",
     field.disabled ? "disabled" : "",
     field.className ? `class="${field.className}"` : "",
-  ];
+    // ARIA attributes
+    field.required ? 'aria-required="true"' : 'aria-required="false"',
+    field.disabled ? 'aria-disabled="true"' : "",
+    field.helpText ? `aria-describedby="help-${field.name}"` : "",
+    `aria-labelledby="label-${field.name}"`,
+    'aria-invalid="false"',
+    // Validation
+    field.validationMessage
+      ? `validationMessage="${field.validationMessage}"`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
-  return attrs.filter(Boolean).join(" ");
-}
-
-/**
- * Renders help and error text elements.
- */
-function renderHelpAndError(field: CheckboxField): string {
-  return `
-    ${
-      field.helpText
-        ? `<div part="help-text" data-help="${field.name}" style="display: block;">${field.helpText}</div>`
-        : ""
-    }
-    <div part="error-text" data-error="${
-      field.name
-    }" style="display: none;"></div>
-  `;
-}
-
-/**
- * Renders a checkbox group or single checkbox with validation support.
- */
-export function renderCheckbox(field: CheckboxField): string {
-  const attributes = buildCommonAttributes(field);
-
-  if (field.options && Array.isArray(field.options)) {
-    // Render checkbox group
-    return `
-      <div class="field" part="field">
-        ${renderFieldLabel(field, field.name)}
-        <div class="input-wrapper" part="input-wrapper">
-          <div part="checkbox-group">
-            ${field.options
-              .map((option, index) => {
-                const descriptionHtml =
-                  field.descriptions && field.descriptions[index]
-                    ? `<p part="checkbox-description">${field.descriptions[index]}</p>`
-                    : "";
-                return `
-                  <label part="checkbox-container">
-                    <input 
-                      type="checkbox" 
-                      id="${field.name}-${index}" 
-                      name="${field.name}" 
-                      value="${option}" 
-                      ${attributes}
-                      part="input"
-                      exportparts="input, input-invalid"
-                    />
-                    <div>
-                      <span part="checkbox-label">${option}</span>
-                      ${descriptionHtml}
-                    </div>
-                  </label>
-                `;
-              })
-              .join("")}
-          </div>
+  // Single checkbox
+  if (!field.options) {
+    const checkboxHtml = `
+      <label for="${field.name}" part="checkbox-container" class="${field.labelPosition || "left"}">
+        <input 
+          type="checkbox" 
+          id="${field.name}" 
+          name="${field.name}" 
+          ${commonAttrs}
+          part="input"
+          exportparts="input, input-invalid"
+        />
+        <div>
+          <span part="checkbox-label"${field.hiddenLabel ? ' class="sr-only"' : ""}>${field.label}</span>
         </div>
-        ${renderHelpAndError(field)}
-      </div>
+      </label>
     `;
-  } else {
-    // Render single checkbox
-    const effectiveLabel = field.label || field.placeholder || "";
-    const labelClass = field.labelPosition === "right" ? "right" : "left";
-    const descriptionHtml = field.descriptions
-      ? `<p part="checkbox-description">${field.descriptions}</p>`
-      : "";
-
-    return `
-      <div class="field" part="field">
-        <div class="input-wrapper" part="input-wrapper">
-          <label for="${
-            field.name
-          }" part="checkbox-container" class="${labelClass}">
-            <input 
-              type="checkbox" 
-              id="${field.name}" 
-              name="${field.name}" 
-              ${attributes}
-              part="input"
-              exportparts="input, input-invalid"
-            />
-            <div>
-              <span part="checkbox-label">${effectiveLabel}</span>
-              ${descriptionHtml}
-            </div>
-          </label>
-        </div>
-        ${renderHelpAndError(field)}
-      </div>
-    `;
+    return renderFieldWrapper({ ...field, label: "" }, checkboxHtml);
   }
+
+  // Checkbox group
+  const options = field.options
+    .map((option, index) => {
+      const description = field.descriptions?.[index];
+      return `
+      <label part="checkbox-container" class="${field.labelPosition || "left"}">
+        <input 
+          type="checkbox" 
+          name="${field.name}" 
+          value="${option}"
+          ${commonAttrs}
+          part="input"
+          exportparts="input, input-invalid"
+        />
+        <div>
+          <span part="checkbox-label">${option}</span>
+          ${description ? `<span part="checkbox-description">${description}</span>` : ""}
+        </div>
+      </label>
+    `;
+    })
+    .join("");
+
+  const checkboxGroupHtml = `
+    <div part="checkbox-group">
+      ${options}
+    </div>
+  `;
+
+  return renderFieldWrapper(field, checkboxGroupHtml);
 }

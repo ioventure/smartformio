@@ -1,59 +1,47 @@
 import { SelectField } from "../../interfaces/form.interface";
-import { renderFieldLabel } from "../helper";
+import { renderFieldWrapper } from "../helper";
 
 /**
- * Builds common attributes for select input.
+ * Renders a select dropdown with validation support.
  */
-function buildCommonAttributes(field: SelectField): string {
+export function renderSelect(field: SelectField): string {
   const attrs = [
     field.required ? "required" : "",
     field.disabled ? "disabled" : "",
     field.className ? `class="${field.className}"` : "",
-  ];
+    // ARIA attributes
+    field.required ? 'aria-required="true"' : 'aria-required="false"',
+    field.disabled ? 'aria-disabled="true"' : "",
+    field.helpText ? `aria-describedby="help-${field.name}"` : "",
+    `aria-labelledby="label-${field.name}"`,
+    'aria-invalid="false"',
+    // Validation
+    field.validationMessage
+      ? `validationMessage="${field.validationMessage}"`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
-  return attrs.filter(Boolean).join(" ");
-}
+  const options = field.options
+    .map((option) => {
+      const isSelected = option === field.defaultValue;
+      return `<option value="${option}"${isSelected ? " selected" : ""}>${option}</option>`;
+    })
+    .join("");
 
-/**
- * Renders help and error text elements.
- */
-function renderHelpAndError(field: SelectField): string {
-  return `
-    ${
-      field.helpText
-        ? `<div part="help-text" data-help="${field.name}" style="display: block;">${field.helpText}</div>`
-        : ""
-    }
-    <div part="error-text" data-error="${
-      field.name
-    }" style="display: none;"></div>
+  const selectHtml = `
+    <select 
+      id="${field.name}" 
+      name="${field.name}" 
+      ${attrs}
+      part="input"
+      exportparts="input, input-invalid"
+    >
+      <option value="">${field.placeholder || "Select an option"}</option>
+      ${options}
+    </select>
   `;
-}
 
-/**
- * Renders a select dropdown field with validation support.
- */
-export function renderSelect(field: SelectField): string {
-  const attributes = buildCommonAttributes(field);
-
-  return `
-    <div class="field" part="field">
-      ${renderFieldLabel(field, field.name)}
-      <div class="input-wrapper" part="input-wrapper">
-        <select 
-          id="${field.name}" 
-          name="${field.name}" 
-          ${attributes}
-          part="input"
-          exportparts="input, input-invalid"
-        >
-          <option value="">Select an option</option>
-          ${field.options
-            .map((option) => `<option value="${option}">${option}</option>`)
-            .join("")}
-        </select>
-      </div>
-      ${renderHelpAndError(field)}
-    </div>
-  `;
+  return renderFieldWrapper(field, selectHtml);
 }

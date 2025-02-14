@@ -1,6 +1,5 @@
 /**
  * Base properties common to all form fields.
- * These properties are inherited by all specific field types.
  */
 export interface BaseField {
   /** Unique identifier for the field */
@@ -23,18 +22,17 @@ export interface BaseField {
   helpText?: string;
   /** Custom validation message */
   validationMessage?: string;
+  /** Hide the label visually but keep it for screen readers */
+  hiddenLabel?: boolean;
 }
 
 /**
  * Properties for text-based input fields.
- * Includes text, email, password, number, and textarea types.
  */
 export interface TextField extends BaseField {
   type: "text" | "email" | "password" | "number" | "textarea";
   /** Regular expression pattern for validation */
   pattern?: string;
-  /** Hide the label visually but keep it for screen readers */
-  hiddenLabel?: boolean;
   /** Icon to display at the start of the input */
   leadingIcon?: string;
   /** Icon to display at the end of the input */
@@ -76,6 +74,10 @@ export interface DateField extends BaseField {
  */
 export interface FileField extends BaseField {
   type: "file";
+  /** Accepted file types */
+  accept?: string;
+  /** Allow multiple file selection */
+  multiple?: boolean;
 }
 
 /**
@@ -89,7 +91,6 @@ export interface RadioField extends BaseField {
 
 /**
  * Properties for checkbox inputs.
- * Supports both single checkbox and checkbox groups.
  */
 export interface CheckboxField extends BaseField {
   type: "checkbox";

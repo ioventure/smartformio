@@ -1,66 +1,53 @@
 import { RadioField } from "../../interfaces/form.interface";
-import { renderFieldLabel } from "../helper";
-
-/**
- * Builds common attributes for radio input.
- */
-function buildCommonAttributes(field: RadioField): string {
-  const attrs = [
-    field.required ? "required" : "",
-    field.disabled ? "disabled" : "",
-    field.className ? `class="${field.className}"` : "",
-  ];
-
-  return attrs.filter(Boolean).join(" ");
-}
-
-/**
- * Renders help and error text elements.
- */
-function renderHelpAndError(field: RadioField): string {
-  return `
-    ${
-      field.helpText
-        ? `<div part="help-text" data-help="${field.name}" style="display: block;">${field.helpText}</div>`
-        : ""
-    }
-    <div part="error-text" data-error="${
-      field.name
-    }" style="display: none;"></div>
-  `;
-}
+import { renderFieldWrapper } from "../helper";
 
 /**
  * Renders a radio button group with validation support.
  */
 export function renderRadio(field: RadioField): string {
-  const attributes = buildCommonAttributes(field);
+  const commonAttrs = [
+    field.required ? "required" : "",
+    field.disabled ? "disabled" : "",
+    field.className ? `class="${field.className}"` : "",
+    // ARIA attributes
+    field.required ? 'aria-required="true"' : 'aria-required="false"',
+    field.disabled ? 'aria-disabled="true"' : "",
+    field.helpText ? `aria-describedby="help-${field.name}"` : "",
+    `aria-labelledby="label-${field.name}"`,
+    'aria-invalid="false"',
+    // Validation
+    field.validationMessage
+      ? `validationMessage="${field.validationMessage}"`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
-  return `
-    <div class="field" part="field">
-      ${renderFieldLabel(field, field.name)}
-      <div class="input-wrapper" part="input-wrapper">
-        <div part="radio-group">
-          ${field.options
-            .map(
-              (option) => `
-                <label part="radio-label">
-                  <input 
-                    type="radio" 
-                    name="${field.name}" 
-                    value="${option}" 
-                    ${attributes}
-                    part="input"
-                    exportparts="input, input-invalid"
-                  />
-                  <span>${option}</span>
-                </label>
-              `
-            )
-            .join("")}
-        </div>
-      </div>
-      ${renderHelpAndError(field)}
+  const options = field.options
+    .map((option) => {
+      const isChecked = option === field.defaultValue;
+      return `
+      <label part="radio-label">
+        <input 
+          type="radio" 
+          name="${field.name}" 
+          value="${option}"
+          ${isChecked ? "checked" : ""}
+          ${commonAttrs}
+          part="input"
+          exportparts="input, input-invalid"
+        />
+        <span>${option}</span>
+      </label>
+    `;
+    })
+    .join("");
+
+  const radioGroupHtml = `
+    <div part="radio-group">
+      ${options}
     </div>
   `;
+
+  return renderFieldWrapper(field, radioGroupHtml);
 }

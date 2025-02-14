@@ -1,25 +1,30 @@
-import type { Config } from '@jest/types';
+import type { Config } from "@jest/types";
 
 const config: Config.InitialOptions = {
-  preset: 'ts-jest',
-  testEnvironment: 'jsdom',
-  roots: ['<rootDir>/src'],
+  preset: "ts-jest",
+  testEnvironment: "jsdom",
+  roots: ["<rootDir>/src"],
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',
+    "^.+\\.tsx?$": [
+      "ts-jest",
+      {
+        tsconfig: "tsconfig.json",
+        isolatedModules: true,
+      },
+    ],
   },
-  testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
+    // Handle CSS imports
+    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+    // Mock Next.js modules
+    "^next/navigation$": "<rootDir>/src/tests/__mocks__/next/navigation.ts",
   },
-  setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
+  setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
+  testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   collectCoverage: true,
-  collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/setupTests.ts',
-    '!src/**/index.ts',
-  ],
+  coverageDirectory: "coverage",
+  coverageReporters: ["text", "lcov", "clover"],
   coverageThreshold: {
     global: {
       branches: 80,
@@ -28,17 +33,8 @@ const config: Config.InitialOptions = {
       statements: 80,
     },
   },
-  coverageReporters: ['text', 'lcov', 'clover'],
-  verbose: true,
-  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.json',
-      diagnostics: {
-        warnOnly: true,
-      },
-    },
-  },
+  testPathIgnorePatterns: ["/node_modules/"],
+  moduleDirectories: ["node_modules", "src"],
 };
 
 export default config;

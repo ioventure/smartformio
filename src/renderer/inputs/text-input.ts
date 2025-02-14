@@ -10,6 +10,15 @@ function buildCommonAttributes(field: TextField): string {
     field.required ? "required" : "",
     field.disabled ? "disabled" : "",
     field.className ? `class="${field.className}"` : "",
+    // Add ARIA attributes
+    field.required ? 'aria-required="true"' : 'aria-required="false"',
+    'aria-invalid="false"',
+    field.helpText ? `aria-describedby="help-${field.name}"` : "",
+    `aria-labelledby="label-${field.name}"`,
+    // Add validation message
+    field.validationMessage
+      ? `validationMessage="${field.validationMessage}"`
+      : "",
   ];
 
   // Add type-specific validation attributes
@@ -69,14 +78,8 @@ function getInputParts(field: TextField, isTextarea: boolean = false): string {
  */
 function renderHelpAndError(field: TextField): string {
   return `
-    ${
-      field.helpText
-        ? `<div part="help-text" data-help="${field.name}" style="display: block;">${field.helpText}</div>`
-        : ""
-    }
-    <div part="error-text" data-error="${
-      field.name
-    }" style="display: none;"></div>
+    ${field.helpText ? `<div part="help-text" id="help-${field.name}" data-help="${field.name}" style="display: block;">${field.helpText}</div>` : ""}
+    <div part="error-text" id="error-${field.name}" data-error="${field.name}" style="display: none;"></div>
   `;
 }
 

@@ -1,4 +1,4 @@
-import { FormFieldSchema, FormSchema } from "../interfaces/form.interface";
+import { FormSchema, FormFieldSchema } from "../interfaces/form.interface";
 import { renderTextInput } from "./inputs/text-input";
 import { renderDateInput } from "./inputs/date-input";
 import { renderFileInput } from "./inputs/file-input";
@@ -6,13 +6,17 @@ import { renderSelect } from "./inputs/select-input";
 import { renderRadio } from "./inputs/radio-input";
 import { renderCheckbox } from "./inputs/checkbox-input";
 
+// Error handler that can be overridden in tests
+export const errorHandler = {
+  handleError: (error: Error, context: string) => {
+    if (process.env.NODE_ENV !== "test") {
+      console.error(`Error ${context}:`, error);
+    }
+  },
+};
+
 /**
  * Renders a form field based on its type.
- * Maps each field type to its corresponding renderer.
- *
- * @param field - The field configuration
- * @returns HTML string for the rendered field
- * @throws Error if field type is not supported
  */
 function renderField(field: FormFieldSchema): string {
   try {
@@ -37,7 +41,7 @@ function renderField(field: FormFieldSchema): string {
         throw new Error(`Unsupported field type: ${(field as any).type}`);
     }
   } catch (error) {
-    console.error(`Error rendering field ${field.name}:`, error);
+    errorHandler.handleError(error as Error, "rendering field");
     return `
       <div class="field error" part="field">
         <p part="error-text">Error rendering field: ${field.name}</p>
@@ -48,25 +52,28 @@ function renderField(field: FormFieldSchema): string {
 
 /**
  * Renders the form markup (HTML) without including any style block.
- *
- * @param schema - The form schema containing all field definitions
- * @returns HTML string for the complete form
  */
 export function renderFormMarkup(schema: FormSchema): string {
   try {
+    if (!schema || !schema.fields) {
+      throw new Error("Invalid schema provided");
+    }
+
     const fieldsHtml = schema.fields
       .map((field: FormFieldSchema) => renderField(field))
       .join("");
 
     return `
       <div class="smartformio-container" part="container">
-        ${schema.title ? `<h2 part="title">${schema.title}</h2>` : ""}
-        ${
-          schema.description
-            ? `<p part="description">${schema.description}</p>`
-            : ""
-        }
-        <form id="smartform" part="form">
+        ${schema.title ? `<h2 part="title" id="form-title">${schema.title}</h2>` : ""}
+        ${schema.description ? `<p part="description" id="form-desc">${schema.description}</p>` : ""}
+        <form 
+          id="smartform" 
+          part="form"
+          ${schema.title ? 'aria-labelledby="form-title"' : ""}
+          ${schema.description ? 'aria-describedby="form-desc"' : ""}
+          novalidate
+        >
           ${fieldsHtml}
           ${
             schema.showSubmitButton !== false
@@ -81,7 +88,7 @@ export function renderFormMarkup(schema: FormSchema): string {
       </div>
     `;
   } catch (error) {
-    console.error("Error rendering form:", error);
+    errorHandler.handleError(error as Error, "rendering form");
     return `
       <div class="smartformio-container error" part="container">
         <p part="error-text">Error rendering form. Please check the schema.</p>
@@ -93,15 +100,12 @@ export function renderFormMarkup(schema: FormSchema): string {
 /**
  * Renders the complete form.
  * Since styling is controlled externally, this function only returns the markup.
- *
- * @param schema - The form schema to render
- * @returns Promise that resolves to the complete HTML string
  */
 export async function renderForm(schema: FormSchema): Promise<string> {
   try {
     return renderFormMarkup(schema);
   } catch (error) {
-    console.error("Error in renderForm:", error);
+    errorHandler.handleError(error as Error, "in renderForm");
     return `
       <div class="smartformio-container error" part="container">
         <p part="error-text">An error occurred while rendering the form.</p>

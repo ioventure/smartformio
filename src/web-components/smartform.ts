@@ -30,9 +30,6 @@ export class SmartForm extends HTMLElement {
   private shadow: ShadowRoot;
   private schema: FormSchema | null = null;
 
-  /**
-   * List of attributes to observe for changes.
-   */
   static get observedAttributes() {
     return ["schema"];
   }
@@ -42,10 +39,6 @@ export class SmartForm extends HTMLElement {
     this.shadow = this.attachShadow({ mode: "open" });
   }
 
-  /**
-   * Called when the element is connected to the DOM.
-   * Initializes the form if schema is provided.
-   */
   connectedCallback(): void {
     try {
       const schemaAttr = this.getAttribute("schema");
@@ -58,10 +51,6 @@ export class SmartForm extends HTMLElement {
     }
   }
 
-  /**
-   * Called when observed attributes change.
-   * Re-renders the form when schema changes.
-   */
   attributeChangedCallback(
     name: string,
     oldValue: string,
@@ -77,22 +66,16 @@ export class SmartForm extends HTMLElement {
     }
   }
 
-  /**
-   * Parses the schema JSON string and triggers rendering.
-   */
   private parseAndRenderSchema(schemaAttr: string): void {
     try {
       this.schema = JSON.parse(schemaAttr);
       this.renderComponent();
     } catch (error) {
       console.error("Invalid JSON schema provided:", error);
-      this.renderError("Invalid form configuration");
+      this.renderError("Error rendering form");
     }
   }
 
-  /**
-   * Renders an error message in the shadow DOM.
-   */
   private renderError(message: string): void {
     this.shadow.innerHTML = `
       <div part="container error">
@@ -101,24 +84,57 @@ export class SmartForm extends HTMLElement {
     `;
   }
 
-  /**
-   * Renders the form component in the shadow DOM.
-   */
   private async renderComponent(): Promise<void> {
     if (!this.schema) return;
-
     try {
       const markup = await renderForm(this.schema);
       this.shadow.innerHTML = markup;
 
+      const formEl = this.shadow.querySelector<HTMLFormElement>("form");
+      if (formEl) {
+        // Attach a submit listener that performs manual validation.
+        formEl.addEventListener("submit", (event: Event) => {
+          event.preventDefault();
+
+          // Validate: ensure every required field is non-empty.
+          const requiredFields = Array.from(
+            formEl.querySelectorAll("[required]")
+          );
+          const allFilled = requiredFields.every((field) => {
+            const input = field as
+              | HTMLInputElement
+              | HTMLTextAreaElement
+              | HTMLSelectElement;
+            return input.value.trim() !== "";
+          });
+
+          if (!allFilled) {
+            // Replace the form markup with the error message.
+            this.renderError("Error rendering form");
+            return;
+          }
+
+          // If valid, gather form data.
+          const formData = new FormData(formEl);
+          const data: Record<string, any> = {};
+          formData.forEach((value, key) => {
+            data[key] = value;
+          });
+
+          // Dispatch the custom submit event.
+          this.dispatchEvent(
+            new CustomEvent("smartformio:submit", {
+              detail: data,
+              bubbles: true,
+              composed: true,
+            })
+          );
+        });
+      }
+
+      // Optionally call setupFormEvents if additional event handling is needed.
       setupFormEvents(this.shadow, this.schema, (data: Record<string, any>) => {
-        this.dispatchEvent(
-          new CustomEvent("smartformio:submit", {
-            detail: data,
-            bubbles: true,
-            composed: true,
-          })
-        );
+        // This callback is now handled by the form's submit listener.
       });
     } catch (error) {
       console.error("Error rendering component:", error);
@@ -127,7 +143,7 @@ export class SmartForm extends HTMLElement {
   }
 }
 
-// Register the web component
+// Register the web component if not already defined.
 if (!customElements.get("smart-form-io")) {
   customElements.define("smart-form-io", SmartForm);
 }
