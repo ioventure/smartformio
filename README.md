@@ -203,3 +203,7 @@ interface SmartFormIOProps {
 ## License
 
 MIT © [IOVenture](https://github.com/ioventure)
+
+## Contributing
+
+We welcome contributions! Please see our [contributing guidelines](CONTRIBUTING.md) for more information on how to get involved.
