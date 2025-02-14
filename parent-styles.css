@@ -1,26 +1,27 @@
-/* Container styling */
+/* ==========================
+   General Container Styling
+   ========================== */
 smart-form-io::part(container) {
   font-family: Arial, sans-serif;
-  /* background: #f9fafb; */
   padding: 2rem;
   border-radius: 6px;
   max-width: 300px;
   margin: 0 auto;
 }
 
-/* Title styling */
+/* Title Styling */
 smart-form-io::part(title) {
   font-size: 1.5rem;
   color: #111827;
   margin-bottom: 1rem;
 }
 
-/* Field wrapper */
+/* Field Wrapper */
 smart-form-io::part(field) {
-  margin-bottom: 1.2rem;
+  margin-bottom: 1rem;
 }
 
-/* Label styling */
+/* Label Styling */
 smart-form-io::part(label) {
   display: block;
   font-weight: 500;
@@ -29,21 +30,16 @@ smart-form-io::part(label) {
   margin-bottom: 0.5rem;
 }
 
-/* 
-  Input wrapper to hold icons, add-ons, or dropdowns
-  next to the main input. 
-*/
+/* ==========================
+     Input Field Styling
+     ========================== */
 smart-form-io::part(input-wrapper) {
   display: flex;
   align-items: center;
-  gap: 8px;
+  position: relative;
 }
 
-/* 
-  Normal state for the text input:
-  - Subtle border
-  - Slight padding
-*/
+/* Default Input Styling */
 smart-form-io::part(input) {
   height: 36px;
   flex: 1;
@@ -52,78 +48,44 @@ smart-form-io::part(input) {
   border: 1px solid #d1d5db;
   border-radius: 6px;
   background-color: #fff;
-  color: #111827;
+  color: #333;
   transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
 }
 
-/* For modern browsers */
+/* Placeholder Styling */
 smart-form-io::part(input)::placeholder {
-  font-size: 0.875rem; /* ~14px */
-  font-weight: 400; /* normal weight */
-  color: #9ca3af; /* subtle gray */
-}
-
-/* For older WebKit browsers */
-smart-form-io::part(input):-webkit-input-placeholder {
   font-size: 0.875rem;
   font-weight: 400;
   color: #9ca3af;
 }
 
-/* For older IE/Edge */
-smart-form-io::part(input):-ms-input-placeholder {
-  font-size: 0.875rem;
-  font-weight: 400;
-  color: #9ca3af;
-}
-
-/* Focus state: purple border and subtle focus ring */
+/* Focus State */
 smart-form-io::part(input):focus {
   outline: none;
   border: 1px solid #6366f1;
   box-shadow: 0 0 0 1px #6366f1;
 }
 
-/* Disabled state */
+/* Disabled State */
 smart-form-io::part(input):disabled {
   background-color: #f3f4f6;
   cursor: not-allowed;
   opacity: 0.8;
 }
 
-/* Error state:
-   We assume your renderer sets part="input-error" when there's an error
-   (or you can conditionally add a class/attribute).
-*/
+/* Error State */
 smart-form-io::part(input-error) {
   border: 1px solid #dc2626 !important;
   box-shadow: 0 0 0 1px #dc2626;
   color: #dc2626;
 }
 
-/* Help text below the input */
-smart-form-io::part(help-text) {
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  color: #6b7280;
-}
+/* ==========================
+     Icons (Leading & Trailing)
+     ========================== */
 
-/* Error text below the input */
-smart-form-io::part(error-text) {
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  color: #dc2626;
-}
-
-/* Ensure the input wrapper can contain absolutely positioned elements */
-smart-form-io::part(input-wrapper) {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-/* Position the leading icon inside the input border */
+/* Leading Icon */
 smart-form-io::part(leading-icon) {
   position: absolute;
   left: 0.75rem;
@@ -134,31 +96,52 @@ smart-form-io::part(leading-icon) {
   display: flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
 }
 
+/* Ensure input does not overlap leading icon */
 smart-form-io::part(input-leading-icon) {
-  padding-left: 28px;
+  padding-left: calc(0.75rem + 1.2em);
 }
 
-/* Trailing icon is absolutely positioned inside the wrapper */
+/* Trailing Icon */
 smart-form-io::part(trailing-icon) {
   position: absolute;
-  right: 0.75rem; /* Distance from the right edge */
-  top: 50%; /* Vertically center */
+  right: 0.75rem;
+  top: 50%;
   transform: translateY(-50%);
-  pointer-events: none; /* Let clicks pass to the input */
-  color: #9ca3af; /* Example subtle gray */
+  pointer-events: none;
+  color: #9ca3af;
   display: flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
+  padding-left: 8px;
 }
 
-/* Only inputs that also have 'input-trailing-icon' get extra right padding */
+/* Ensure input does not overlap trailing icon */
 smart-form-io::part(input-trailing-icon) {
-  padding-right: 28px;
+  padding-right: calc(0.75rem + 1em);
 }
 
-/* Submit Button */
+/* ==========================
+     Helper Text Styling
+     ========================== */
+smart-form-io::part(help-text) {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+smart-form-io::part(error-text) {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #dc2626;
+}
+
+/* ==========================
+     Button Styling
+     ========================== */
 smart-form-io::part(button) {
   width: 100%;
   background: #007bff;
