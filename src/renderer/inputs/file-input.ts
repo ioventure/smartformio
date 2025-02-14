@@ -5,6 +5,12 @@ import { renderFieldLabel } from "../helper";
  * Renders a file input field with validation support.
  */
 export function renderFileInput(field: FileField): string {
+  if (!field) {
+    return `<div class="field error" part="field">
+              <p part="error-text">Field configuration is missing.</p>
+            </div>`;
+  }
+
   const attrs = [
     field.required ? "required" : "",
     field.disabled ? "disabled" : "",

@@ -35,7 +35,7 @@ export function setupFormEvents(
       errorElement.style.setProperty("display", "block", "important");
 
       // Add invalid state to input
-      input.part.add("input-invalid");
+      input.classList.add("input-invalid");
       input.style.setProperty("border-color", "#dc3545", "important");
 
       // Hide help text
@@ -50,7 +50,7 @@ export function setupFormEvents(
       errorElement.style.setProperty("display", "none", "important");
 
       // Remove invalid state from input
-      input.part.remove("input-invalid");
+      input.classList.remove("input-invalid");
       input.style.removeProperty("border-color");
 
       // Show help text
@@ -120,7 +120,7 @@ export function setupFormEvents(
           errorElement.style.setProperty("display", "block", "important");
 
           // Add invalid state to input
-          input?.part.add("input-invalid");
+          input?.classList.add("input-invalid");
           input?.style.setProperty("border-color", "#dc3545", "important");
 
           // Hide help text
@@ -135,7 +135,7 @@ export function setupFormEvents(
           errorElement.style.setProperty("display", "none", "important");
 
           // Remove invalid state from input
-          input?.part.remove("input-invalid");
+          input?.classList.remove("input-invalid");
           input?.style.removeProperty("border-color");
 
           // Show help text

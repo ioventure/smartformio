@@ -19,6 +19,12 @@ export const errorHandler = {
  * Renders a form field based on its type.
  */
 function renderField(field: FormFieldSchema): string {
+  if (!field) {
+    return `<div class="field error" part="field">
+              <p part="error-text">Field configuration is missing.</p>
+            </div>`;
+  }
+
   try {
     switch (field.type) {
       case "text":
@@ -44,7 +50,7 @@ function renderField(field: FormFieldSchema): string {
     errorHandler.handleError(error as Error, "rendering field");
     return `
       <div class="field error" part="field">
-        <p part="error-text">Error rendering field: ${field.name}</p>
+        <p part="error-text">Error rendering field: ${field.name || "unknown"}</p>
       </div>
     `;
   }

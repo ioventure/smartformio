@@ -5,6 +5,10 @@ import { renderAttr, renderFieldLabel } from "../helper";
  * Builds common attributes for date input.
  */
 function buildCommonAttributes(field: DateField): string {
+  if (!field) {
+    return "";
+  }
+
   const attrs = [
     renderAttr("placeholder", field.placeholder),
     field.required ? "required" : "",
@@ -30,9 +34,7 @@ function renderHelpAndError(field: DateField): string {
         ? `<div part="help-text" data-help="${field.name}" style="display: block;">${field.helpText}</div>`
         : ""
     }
-    <div part="error-text" data-error="${
-      field.name
-    }" style="display: none;"></div>
+    <div part="error-text" data-error="${field.name}" style="display: none;"></div>
   `;
 }
 
@@ -40,6 +42,12 @@ function renderHelpAndError(field: DateField): string {
  * Renders a date input field with validation support.
  */
 export function renderDateInput(field: DateField): string {
+  if (!field) {
+    return `<div class="field error" part="field">
+              <p part="error-text">Field configuration is missing.</p>
+            </div>`;
+  }
+
   const attributes = buildCommonAttributes(field);
 
   return `

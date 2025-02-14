@@ -5,6 +5,10 @@ import { renderAttr, renderFieldLabel } from "../helper";
  * Builds common attributes for text-like inputs.
  */
 function buildCommonAttributes(field: TextField): string {
+  if (!field) {
+    return "";
+  }
+
   const attrs = [
     renderAttr("placeholder", field.placeholder),
     field.required ? "required" : "",
@@ -144,6 +148,12 @@ function renderTextInputField(
  * Main function to render a text-like input field with validation.
  */
 export function renderTextInput(field: TextField): string {
+  if (!field) {
+    return `<div class="field error" part="field">
+              <p part="error-text">Field configuration is missing.</p>
+            </div>`;
+  }
+
   const attributes = buildCommonAttributes(field);
   const icons = buildIconHtml(field);
 

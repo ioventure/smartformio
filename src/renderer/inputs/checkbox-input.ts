@@ -5,6 +5,12 @@ import { renderFieldWrapper } from "../helper";
  * Renders a checkbox input or group with validation support.
  */
 export function renderCheckbox(field: CheckboxField): string {
+  if (!field) {
+    return `<div class="field error" part="field">
+              <p part="error-text">Field configuration is missing.</p>
+            </div>`;
+  }
+
   const commonAttrs = [
     field.required ? "required" : "",
     field.disabled ? "disabled" : "",
@@ -36,7 +42,7 @@ export function renderCheckbox(field: CheckboxField): string {
           exportparts="input, input-invalid"
         />
         <div>
-          <span part="checkbox-label"${field.hiddenLabel ? ' class="sr-only"' : ""}>${field.label}</span>
+          <span part="checkbox-label"${field.hiddenLabel ? ' class="sr-only"' : ""}>${field.label || "Checkbox"}</span>
         </div>
       </label>
     `;
@@ -44,6 +50,12 @@ export function renderCheckbox(field: CheckboxField): string {
   }
 
   // Checkbox group
+  if (!Array.isArray(field.options)) {
+    return `<div class="field error" part="field">
+              <p part="error-text">Checkbox options must be an array.</p>
+            </div>`;
+  }
+
   const options = field.options
     .map((option, index) => {
       const description = field.descriptions?.[index];

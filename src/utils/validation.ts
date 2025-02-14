@@ -33,6 +33,10 @@ const DEFAULT_PATTERNS = {
  * @returns Validation result with status and optional error message
  */
 function validateTextField(field: TextField, value: string): ValidationResult {
+  if (!field) {
+    return { isValid: false, message: "Field configuration is missing." };
+  }
+
   try {
     // Skip validation if field is empty and not required
     if (!value && !field.required) {
@@ -96,6 +100,10 @@ function validateTextField(field: TextField, value: string): ValidationResult {
  * @returns Validation result with status and optional error message
  */
 function validateDateField(field: DateField, value: string): ValidationResult {
+  if (!field) {
+    return { isValid: false, message: "Field configuration is missing." };
+  }
+
   try {
     if (!value) return { isValid: true };
 
@@ -128,6 +136,10 @@ export function validateField(
   field: FormFieldSchema,
   value: any
 ): ValidationResult {
+  if (!field) {
+    return { isValid: false, message: "Field configuration is missing." };
+  }
+
   try {
     // Required field validation
     if (field.required && (!value || value.toString().trim() === "")) {
