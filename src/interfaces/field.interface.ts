@@ -1,33 +1,11 @@
 /**
- * Base properties common to all form fields.
+ * @file Field-specific interfaces for different input types
  */
-export interface BaseField {
-  /** Unique identifier for the field */
-  name: string;
-  /** Label text to display above the field */
-  label?: string;
-  /** Placeholder text for the input */
-  placeholder?: string;
-  /** Whether the field is required */
-  required?: boolean;
-  /** Default value for the field */
-  defaultValue?: string | number | boolean;
-  /** Whether the field is readonly */
-  readonly?: boolean;
-  /** Whether the field is disabled */
-  disabled?: boolean;
-  /** Additional CSS classes to apply */
-  className?: string;
-  /** Help text to display below the field */
-  helpText?: string;
-  /** Custom validation message */
-  validationMessage?: string;
-  /** Hide the label visually but keep it for screen readers */
-  hiddenLabel?: boolean;
-}
+
+import { BaseField } from "./core.interface";
 
 /**
- * Properties for text-based input fields.
+ * Properties for text-based input fields
  */
 export interface TextField extends BaseField {
   type: "text" | "email" | "password" | "number" | "textarea";
@@ -48,7 +26,7 @@ export interface TextField extends BaseField {
 }
 
 /**
- * Properties for select dropdowns.
+ * Properties for select dropdowns
  */
 export interface SelectField extends BaseField {
   type: "select";
@@ -57,7 +35,7 @@ export interface SelectField extends BaseField {
 }
 
 /**
- * Properties for date inputs.
+ * Properties for date inputs
  */
 export interface DateField extends BaseField {
   type: "date";
@@ -70,7 +48,7 @@ export interface DateField extends BaseField {
 }
 
 /**
- * Properties for file inputs.
+ * Properties for file inputs
  */
 export interface FileField extends BaseField {
   type: "file";
@@ -81,7 +59,7 @@ export interface FileField extends BaseField {
 }
 
 /**
- * Properties for radio button groups.
+ * Properties for radio button groups
  */
 export interface RadioField extends BaseField {
   type: "radio";
@@ -90,7 +68,7 @@ export interface RadioField extends BaseField {
 }
 
 /**
- * Properties for checkbox inputs.
+ * Properties for checkbox inputs
  */
 export interface CheckboxField extends BaseField {
   type: "checkbox";
@@ -103,7 +81,7 @@ export interface CheckboxField extends BaseField {
 }
 
 /**
- * Union type of all possible field types.
+ * Union type of all possible field types
  */
 export type FormFieldSchema =
   | TextField
@@ -114,26 +92,6 @@ export type FormFieldSchema =
   | CheckboxField;
 
 /**
- * Configuration for the entire form.
+ * Type for field renderer functions
  */
-export interface FormSchema {
-  /** Form title */
-  title?: string;
-  /** Form description */
-  description?: string;
-  /** Array of form fields */
-  fields: FormFieldSchema[];
-  /** Enable real-time validation on input */
-  validateOnChange?: boolean;
-  /** Show the submit button */
-  showSubmitButton?: boolean;
-  /** Custom text for the submit button */
-  submitButtonText?: string;
-}
-
-/**
- * Form submission event detail type.
- */
-export interface FormSubmitEvent extends CustomEvent {
-  detail: Record<string, any>;
-}
+export type FieldRenderer = (field: FormFieldSchema) => string;

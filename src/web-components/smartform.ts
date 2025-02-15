@@ -1,6 +1,6 @@
-import { setupFormEvents } from "../events/form.event";
-import { FormSchema } from "../interfaces/form.interface";
-import { renderForm } from "../renderer/form.renderer";
+import { FormSchema } from "@interfaces/core.interface";
+import { setupFormEvents } from "@events/form.event";
+import { renderForm } from "@renderer/form.renderer";
 
 /**
  * SmartForm is a framework-agnostic web component for rendering dynamic forms.
@@ -90,52 +90,20 @@ export class SmartForm extends HTMLElement {
       const markup = await renderForm(this.schema);
       this.shadow.innerHTML = markup;
 
-      const formEl = this.shadow.querySelector<HTMLFormElement>("form");
-      if (formEl) {
-        // Attach a submit listener that performs manual validation.
-        formEl.addEventListener("submit", (event: Event) => {
-          event.preventDefault();
-
-          // Validate: ensure every required field is non-empty.
-          const requiredFields = Array.from(
-            formEl.querySelectorAll("[required]")
-          );
-          const allFilled = requiredFields.every((field) => {
-            const input = field as
-              | HTMLInputElement
-              | HTMLTextAreaElement
-              | HTMLSelectElement;
-            return input.value.trim() !== "";
-          });
-
-          if (!allFilled) {
-            // Replace the form markup with the error message.
-            this.renderError("Error rendering form");
-            return;
-          }
-
-          // If valid, gather form data.
-          const formData = new FormData(formEl);
-          const data: Record<string, any> = {};
-          formData.forEach((value, key) => {
-            data[key] = value;
-          });
-
-          // Dispatch the custom submit event.
+      // Setup form validation and submission handling
+      setupFormEvents(
+        this.shadow,
+        this.schema,
+        (formData: Record<string, any>) => {
           this.dispatchEvent(
             new CustomEvent("smartformio:submit", {
-              detail: data,
+              detail: formData,
               bubbles: true,
               composed: true,
             })
           );
-        });
-      }
-
-      // Optionally call setupFormEvents if additional event handling is needed.
-      setupFormEvents(this.shadow, this.schema, (data: Record<string, any>) => {
-        // This callback is now handled by the form's submit listener.
-      });
+        }
+      );
     } catch (error) {
       console.error("Error rendering component:", error);
       this.renderError("Failed to render form");

@@ -1,6 +1,5 @@
-/**
- * @file Next.js wrapper exports for SmartFormIO
- */
+export { SmartFormNext as default } from "@wrappers/next/smartform.next.wrapper";
+export type { SmartFormIOProps } from "@wrappers/next/smartform.next.wrapper";
 
-export { SmartFormNext as default } from './wrappers/Next/smartform.next.wrapper';
-export type { SmartFormIOProps } from './wrappers/Next/smartform.next.wrapper';
+// Register the web component
+import "@web-components/smartform";

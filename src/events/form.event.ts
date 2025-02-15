@@ -1,5 +1,5 @@
-import { FormSchema } from "../interfaces/form.interface";
-import { validateField, validateForm } from "../utils/validation";
+import { FormSchema } from "@interfaces/core.interface";
+import { validateField, validateForm } from "@utils/validation";
 
 /**
  * Sets up form validation and submission events on the provided Shadow DOM.

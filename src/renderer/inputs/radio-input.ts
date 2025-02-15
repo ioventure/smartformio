@@ -1,65 +1,32 @@
-import { RadioField } from "../../interfaces/form.interface";
-import { renderFieldWrapper } from "../helper";
+import { RadioField } from "@interfaces/field.interface";
+import { renderAttr, renderFieldWrapper } from "@renderer/helper";
 
 /**
- * Renders a radio button group with validation support.
+ * Renders a radio button group based on the provided schema
  */
 export function renderRadio(field: RadioField): string {
-  if (!field) {
-    return `<div class="field error" part="field">
-              <p part="error-text">Field configuration is missing.</p>
-            </div>`;
-  }
-
-  const commonAttrs = [
-    field.required ? "required" : "",
-    field.disabled ? "disabled" : "",
-    field.className ? `class="${field.className}"` : "",
-    // ARIA attributes
-    field.required ? 'aria-required="true"' : 'aria-required="false"',
-    field.disabled ? 'aria-disabled="true"' : "",
-    field.helpText ? `aria-describedby="help-${field.name}"` : "",
-    `aria-labelledby="label-${field.name}"`,
-    'aria-invalid="false"',
-    // Validation
-    field.validationMessage
-      ? `validationMessage="${field.validationMessage}"`
-      : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  if (!Array.isArray(field.options)) {
-    return `<div class="field error" part="field">
-              <p part="error-text">Radio options must be an array.</p>
-            </div>`;
-  }
-
-  const options = field.options
-    .map((option) => {
-      const isChecked = option === field.defaultValue;
-      return `
-      <label part="radio-label">
-        <input 
-          type="radio" 
-          name="${field.name}" 
-          value="${option}"
-          ${isChecked ? "checked" : ""}
-          ${commonAttrs}
-          part="input"
-          exportparts="input, input-invalid"
-        />
-        <span>${option}</span>
-      </label>
-    `;
-    })
-    .join("");
-
-  const radioGroupHtml = `
+  const input = `
     <div part="radio-group">
-      ${options}
+      ${field.options
+        .map(
+          (option, index) => `
+        <div part="radio-container">
+          <input type="radio" part="input" ${renderAttr({
+            name: field.name,
+            value: option,
+            id: `${field.name}-${index}`,
+            required: field.required,
+            disabled: field.disabled,
+            class: field.className,
+            "data-testid": `input-${field.name}-${index}`,
+          })} />
+          <label part="radio-label" for="${field.name}-${index}">${option}</label>
+        </div>
+      `
+        )
+        .join("")}
     </div>
   `;
 
-  return renderFieldWrapper(field, radioGroupHtml);
+  return renderFieldWrapper(field, input);
 }

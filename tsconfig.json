@@ -30,7 +30,15 @@
     /* Module Resolution */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@events/*": ["src/events/*"],
+      "@interfaces/*": ["src/interfaces/*"],
+      "@renderer/*": ["src/renderer/*"],
+      "@utils/*": ["src/utils/*"],
+      "@web-components/*": ["src/web-components/*"],
+      "@wrappers/*": ["src/wrappers/*"],
+      "@renderer/inputs/*": ["src/renderer/inputs/*"],
+      "@wrappers/next/*": ["src/wrappers/Next/*"],
+      "@wrappers/react/*": ["src/wrappers/React/*"]
     },
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -46,18 +54,7 @@
     "emitDecoratorMetadata": true,
     "useDefineForClassFields": true
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.d.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts"
-  ],
-  "references": [
-    { "path": "./tsconfig.node.json" }
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -1,22 +1,28 @@
-import { BaseField } from "../interfaces/form.interface";
+import { BaseField } from "@interfaces/core.interface";
+
+type AttributeMap = Record<
+  string,
+  string | number | boolean | null | undefined
+>;
 
 /**
- * Renders an HTML attribute with its value.
- * @param name The attribute name
- * @param value The attribute value
- * @returns The rendered attribute string or empty string if value is falsy
+ * Renders HTML attributes from an attribute map.
+ * @param attrs Object containing attribute names and values
+ * @returns The rendered attributes string
  */
-export function renderAttr(
-  name: string,
-  value: string | number | boolean | null | undefined
-): string {
-  if (typeof value === "boolean") {
-    return value ? name : "";
-  }
-  if (value === null || value === undefined || value === "") {
-    return "";
-  }
-  return `${name}="${value}"`;
+export function renderAttr(attrs: AttributeMap): string {
+  return Object.entries(attrs)
+    .map(([name, value]) => {
+      if (typeof value === "boolean") {
+        return value ? name : "";
+      }
+      if (value === null || value === undefined || value === "") {
+        return "";
+      }
+      return `${name}="${value}"`;
+    })
+    .filter(Boolean)
+    .join(" ");
 }
 
 /**
@@ -95,9 +101,7 @@ export function renderFieldWrapper(
   return `
     <div class="field" part="field">
       ${renderFieldLabel(field, field.name, field.hiddenLabel ? "sr-only" : "")}
-      <div class="input-wrapper" part="input-wrapper">
-        ${inputHtml}
-      </div>
+      ${inputHtml}
       ${renderHelpText(field)}
       ${renderErrorText(field)}
     </div>

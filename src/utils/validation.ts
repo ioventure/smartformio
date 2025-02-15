@@ -1,9 +1,9 @@
+import { FormSchema } from "@interfaces/core.interface";
 import {
-  FormSchema,
+  DateField,
   FormFieldSchema,
   TextField,
-  DateField,
-} from "../interfaces/form.interface";
+} from "@interfaces/field.interface";
 
 /**
  * Result of a validation check.
