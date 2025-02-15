@@ -42,6 +42,13 @@ smart-form-io::part(title) {
   margin-bottom: var(--smartform-spacing);
 }
 
+/* Description */
+smart-form-io::part(description) {
+  font-size: 1rem;
+  color: var(--smartform-help-color);
+  margin-bottom: var(--smartform-spacing);
+}
+
 /* Fields */
 smart-form-io::part(field) {
   margin-bottom: var(--smartform-spacing);
@@ -79,6 +86,7 @@ smart-form-io::part(input) {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+  background-color: #fff;
 }
 
 /* Invalid Input State */
@@ -112,6 +120,21 @@ smart-form-io::part(input-textarea) {
   resize: vertical;
 }
 
+/* Select Input */
+smart-form-io::part(input-select) {
+  cursor: pointer;
+  padding-right: 2em;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23343a40' d='M4.646 6.146a.5.5 0 0 1 .708 0L8 8.793l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6em center;
+  background-size: 16px;
+}
+
+/* Date Input */
+smart-form-io::part(input-date) {
+  cursor: pointer;
+}
+
 /* Icons */
 smart-form-io::part(leading-icon),
 smart-form-io::part(trailing-icon) {
@@ -121,14 +144,17 @@ smart-form-io::part(trailing-icon) {
   transform: translateY(-50%);
   color: var(--smartform-help-color);
   pointer-events: none;
+  font-size: 1.2em;
+  line-height: 1;
+  z-index: 1;
 }
 
 smart-form-io::part(leading-icon) {
-  left: 0.8em;
+  left: 0.6em;
 }
 
 smart-form-io::part(trailing-icon) {
-  right: 0.8em;
+  right: 0.6em;
 }
 
 /* Message Container */

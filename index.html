@@ -2,15 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>SmartFormIO Text Inputs Demo</title>
+    <title>SmartFormIO Input Types Demo</title>
     <link rel="stylesheet" href="/parent-styles.css" />
   </head>
   <body>
     <script>
       const formSchema = {
-        title: "SmartFormIO Text Inputs Demo",
+        title: "SmartFormIO Input Types Demo",
         description:
-          "This form demonstrates all text input types and their features",
+          "This form demonstrates all input types and their features",
         validateOnChange: true,
         fields: [
           {
@@ -76,6 +76,38 @@
             placeholder: "Write a short bio...",
             leadingIcon: "📝",
             trailingIcon: "❓",
+          },
+          {
+            type: "select",
+            name: "country",
+            label: "Country",
+            required: true,
+            options: [
+              "Select a country",
+              "United States",
+              "United Kingdom",
+              "Canada",
+              "Australia",
+              "Germany",
+              "France",
+              "Japan",
+              "India",
+            ],
+            validationMessage: "Please select your country",
+            helpText: "Select your country of residence",
+            leadingIcon: "🌍",
+          },
+          {
+            type: "date",
+            name: "birthdate",
+            label: "Birth Date",
+            required: true,
+            min: "1920-01-01",
+            max: "2005-12-31",
+            validationMessage:
+              "Please enter a valid date between 1920 and 2005",
+            helpText: "Enter your date of birth",
+            leadingIcon: "📅",
           },
         ],
       };

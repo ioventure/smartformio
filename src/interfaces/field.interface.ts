@@ -32,6 +32,8 @@ export interface SelectField extends BaseField {
   type: "select";
   /** Array of options to display in the dropdown */
   options: string[];
+  /** Icon to display at the start of the input */
+  leadingIcon?: string;
 }
 
 /**
@@ -45,6 +47,8 @@ export interface DateField extends BaseField {
   min?: string | number;
   /** Maximum allowed date */
   max?: string | number;
+  /** Icon to display at the start of the input */
+  leadingIcon?: string;
 }
 
 /**
@@ -56,6 +60,10 @@ export interface FileField extends BaseField {
   accept?: string;
   /** Allow multiple file selection */
   multiple?: boolean;
+  /** Icon to display at the start of the input */
+  leadingIcon?: string;
+  /** Icon to display at the end of the input */
+  trailingIcon?: string;
 }
 
 /**
