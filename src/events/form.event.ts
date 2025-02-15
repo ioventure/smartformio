@@ -32,38 +32,35 @@ export function setupFormEvents(
     const showError = (message: string) => {
       // Show error message
       errorElement.textContent = message;
-      errorElement.style.setProperty("display", "block", "important");
+      errorElement.setAttribute("part", "error-text error-text-visible");
 
       // Add invalid state to input
-      input.classList.add("input-invalid");
-      input.style.setProperty("border-color", "#dc3545", "important");
+      input.setAttribute("part", "input input-invalid");
+      input.setAttribute("aria-invalid", "true");
 
       // Hide help text
       if (helpElement) {
-        helpElement.style.setProperty("display", "none", "important");
+        helpElement.setAttribute("part", "help-text help-text-hidden");
       }
     };
 
     const hideError = () => {
       // Hide error message
       errorElement.textContent = "";
-      errorElement.style.setProperty("display", "none", "important");
+      errorElement.setAttribute("part", "error-text");
 
       // Remove invalid state from input
-      input.classList.remove("input-invalid");
-      input.style.removeProperty("border-color");
+      input.setAttribute("part", "input");
+      input.setAttribute("aria-invalid", "false");
 
       // Show help text
       if (helpElement) {
-        helpElement.style.setProperty("display", "block", "important");
+        helpElement.setAttribute("part", "help-text");
       }
     };
 
-    // Initialize help text display
-    if (helpElement) {
-      helpElement.style.setProperty("display", "block", "important");
-    }
-    errorElement.style.setProperty("display", "none", "important");
+    // Initialize states
+    hideError();
 
     const validateAndShowError = () => {
       const result = validateField(field, input.value);
@@ -80,7 +77,6 @@ export function setupFormEvents(
     // Add validation on input if validateOnChange is true
     if (schema.validateOnChange) {
       input.addEventListener("input", () => {
-        // For real-time validation, wait a short moment to let the input value update
         setTimeout(validateAndShowError, 0);
       });
     }
@@ -117,30 +113,34 @@ export function setupFormEvents(
         if (errorElement) {
           // Show error message
           errorElement.textContent = result.message;
-          errorElement.style.setProperty("display", "block", "important");
+          errorElement.setAttribute("part", "error-text error-text-visible");
 
           // Add invalid state to input
-          input?.classList.add("input-invalid");
-          input?.style.setProperty("border-color", "#dc3545", "important");
+          if (input) {
+            input.setAttribute("part", "input input-invalid");
+            input.setAttribute("aria-invalid", "true");
+          }
 
           // Hide help text
           if (helpElement) {
-            helpElement.style.setProperty("display", "none", "important");
+            helpElement.setAttribute("part", "help-text help-text-hidden");
           }
         }
       } else {
         if (errorElement) {
           // Hide error message
           errorElement.textContent = "";
-          errorElement.style.setProperty("display", "none", "important");
+          errorElement.setAttribute("part", "error-text");
 
           // Remove invalid state from input
-          input?.classList.remove("input-invalid");
-          input?.style.removeProperty("border-color");
+          if (input) {
+            input.setAttribute("part", "input");
+            input.setAttribute("aria-invalid", "false");
+          }
 
           // Show help text
           if (helpElement) {
-            helpElement.style.setProperty("display", "block", "important");
+            helpElement.setAttribute("part", "help-text");
           }
         }
       }

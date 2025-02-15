@@ -1,179 +1,254 @@
+/* Theme variables with fallbacks */
+:root {
+  /* Colors */
+  --smartform-primary-color: #007bff;
+  --smartform-error-color: #dc3545;
+  --smartform-success-color: #28a745;
+  --smartform-help-color: #6c757d;
+  --smartform-border-color: #ced4da;
+  --smartform-text-color: #212529;
+  --smartform-bg-color: #f8f9fa;
+
+  /* Typography */
+  --smartform-font-family:
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial,
+    sans-serif;
+
+  /* Spacing and Layout */
+  --smartform-border-radius: 4px;
+  --smartform-spacing: 1rem;
+
+  /* Transitions */
+  --smartform-transition-duration: 0.2s;
+  --smartform-transition-timing: ease-in-out;
+}
+
 /* Container */
 smart-form-io::part(container) {
-  font-family: Arial, sans-serif;
-  background: #f9fafb;
-  padding: 1.5em;
-  border-radius: 8px;
+  font-family: var(--smartform-font-family);
+  background: var(--smartform-bg-color);
+  padding: var(--smartform-spacing);
+  border-radius: var(--smartform-border-radius);
   max-width: 400px;
   margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Title */
 smart-form-io::part(title) {
   font-size: 1.5rem;
-  color: #111827;
-  margin-bottom: 1em;
+  color: var(--smartform-text-color);
+  margin-bottom: var(--smartform-spacing);
 }
 
 /* Fields */
 smart-form-io::part(field) {
-  margin-bottom: 0.75em;
+  margin-bottom: var(--smartform-spacing);
 }
 
-/* Label for all inputs */
+/* Label */
 smart-form-io::part(label) {
   display: block;
   font-weight: 500;
-  color: #374151;
-  margin-bottom: 0.25em;
+  color: var(--smartform-text-color);
+  margin-bottom: calc(var(--smartform-spacing) * 0.25);
 }
 
 /* Input Wrapper */
 smart-form-io::part(input-wrapper) {
   position: relative;
-  margin-bottom: 0.25em;
+  margin-bottom: calc(var(--smartform-spacing) * 0.25);
 }
 
 /* Base Input Styles */
-smart-form-io::part(input),
-smart-form-io::part(select) {
+smart-form-io::part(input) {
   width: 100%;
   padding: 0.6em;
-  border: 1px solid #007bff;
-  border-radius: 4px;
+  border: 1px solid var(--smartform-border-color);
+  border-radius: var(--smartform-border-radius);
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
   box-sizing: border-box;
   font-size: 1rem;
-  transition: all 0.2s ease-in-out;
+  font-family: inherit;
+  -webkit-transition: all var(--smartform-transition-duration)
+    var(--smartform-transition-timing);
+  transition: all var(--smartform-transition-duration)
+    var(--smartform-transition-timing);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
-/* Input with leading icon */
+/* Invalid Input State */
+smart-form-io::part(input-invalid) {
+  border-color: var(--smartform-error-color) !important;
+}
+
+/* Remove default styles for specific input types */
+smart-form-io::part(input[type="number"])::-webkit-inner-spin-button,
+smart-form-io::part(input[type="number"])::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+smart-form-io::part(input[type="number"]) {
+  -moz-appearance: textfield;
+}
+
+/* Input with icons */
 smart-form-io::part(input-leading-icon) {
   padding-left: 2.5em;
 }
 
-/* Input with trailing icon */
 smart-form-io::part(input-trailing-icon) {
   padding-right: 2.5em;
 }
 
-/* Textarea specific styles */
+/* Textarea */
 smart-form-io::part(input-textarea) {
   min-height: 100px;
   resize: vertical;
 }
 
-/* Icon styles */
-smart-form-io::part(leading-icon) {
+/* Icons */
+smart-form-io::part(leading-icon),
+smart-form-io::part(trailing-icon) {
   position: absolute;
-  left: 0.8em;
   top: 50%;
+  -webkit-transform: translateY(-50%);
   transform: translateY(-50%);
-  color: #6c757d;
+  color: var(--smartform-help-color);
+  pointer-events: none;
+}
+
+smart-form-io::part(leading-icon) {
+  left: 0.8em;
 }
 
 smart-form-io::part(trailing-icon) {
-  position: absolute;
   right: 0.8em;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6c757d;
+}
+
+/* Message Container */
+smart-form-io::part(message-container) {
+  position: relative;
+  min-height: 1.2em;
+  margin-top: calc(var(--smartform-spacing) * 0.25);
 }
 
 /* Error Text */
 smart-form-io::part(error-text) {
-  color: #dc3545;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  color: var(--smartform-error-color);
   font-size: 0.75rem;
-  margin-top: 0.25em;
-  min-height: 1.2em;
-  transition: all 0.2s ease-in-out;
+  opacity: 0;
+  visibility: hidden;
+  -webkit-transition:
+    opacity var(--smartform-transition-duration)
+      var(--smartform-transition-timing),
+    visibility var(--smartform-transition-duration)
+      var(--smartform-transition-timing);
+  transition:
+    opacity var(--smartform-transition-duration)
+      var(--smartform-transition-timing),
+    visibility var(--smartform-transition-duration)
+      var(--smartform-transition-timing);
+}
+
+smart-form-io::part(error-text-visible) {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Help Text */
 smart-form-io::part(help-text) {
-  color: #6c757d;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  color: var(--smartform-help-color);
   font-size: 0.75rem;
-  margin-top: 0.25em;
-  min-height: 1.2em;
-  transition: all 0.2s ease-in-out;
+  opacity: 1;
+  visibility: visible;
+  -webkit-transition:
+    opacity var(--smartform-transition-duration)
+      var(--smartform-transition-timing),
+    visibility var(--smartform-transition-duration)
+      var(--smartform-transition-timing);
+  transition:
+    opacity var(--smartform-transition-duration)
+      var(--smartform-transition-timing),
+    visibility var(--smartform-transition-duration)
+      var(--smartform-transition-timing);
 }
 
-/* Invalid Input State */
-smart-form-io::part(input-invalid) {
-  border-color: #dc3545 !important;
-  transition: border-color 0.2s ease-in-out;
+smart-form-io::part(help-text-hidden) {
+  opacity: 0;
+  visibility: hidden;
 }
 
 /* Submit Button */
 smart-form-io::part(button) {
   width: 100%;
-  background: #007bff;
-  color: #fff;
+  background: var(--smartform-primary-color);
+  color: white;
   padding: 0.8em 1.2em;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--smartform-border-radius);
   cursor: pointer;
-  margin-top: 1em;
-  transition: background-color 0.2s ease-in-out;
+  margin-top: var(--smartform-spacing);
+  font-size: 1rem;
+  font-family: inherit;
+  -webkit-transition: background-color var(--smartform-transition-duration)
+    var(--smartform-transition-timing);
+  transition: background-color var(--smartform-transition-duration)
+    var(--smartform-transition-timing);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 smart-form-io::part(button):hover {
-  background: #0056b3;
+  background-color: #0056b3;
 }
 
-/* Checkbox styles */
-smart-form-io::part(checkbox-group) {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em;
-}
-
-smart-form-io::part(checkbox-container) {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5em;
-}
-
-smart-form-io::part(input-checkbox) {
-  width: 1.25em;
-  height: 1.25em;
-  margin: 0;
-  transition: border-color 0.2s ease-in-out;
-}
-
-smart-form-io::part(checkbox-label) {
-  font-size: 1rem;
-  color: #374151;
-}
-
-smart-form-io::part(checkbox-description) {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin-top: 0.25em;
-}
-
-/* Radio styles */
-smart-form-io::part(radio-group) {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em;
-}
-
-smart-form-io::part(radio-label) {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  cursor: pointer;
-}
-
-/* Focus styles */
-smart-form-io::part(input):focus,
-smart-form-io::part(select):focus {
+/* Focus States */
+smart-form-io::part(input):focus {
   outline: none;
-  border-color: #0056b3;
-  box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.25);
+  border-color: var(--smartform-primary-color);
+  -webkit-box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
 
 smart-form-io::part(input-invalid):focus {
-  border-color: #dc3545 !important;
-  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25) !important;
+  border-color: var(--smartform-error-color) !important;
+  -webkit-box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
+}
+
+/* High Contrast Mode */
+@media (forced-colors: active) {
+  smart-form-io::part(input) {
+    border: 1px solid ButtonText;
+  }
+
+  smart-form-io::part(input-invalid) {
+    border: 2px solid LinkText;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  smart-form-io::part(input),
+  smart-form-io::part(button),
+  smart-form-io::part(error-text),
+  smart-form-io::part(help-text) {
+    -webkit-transition: none;
+    transition: none;
+  }
 }

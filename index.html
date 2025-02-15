@@ -1,54 +1,41 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <title>SmartFormIO Demo</title>
-    <link rel="stylesheet" href="parent-styles.css" />
+    <link rel="stylesheet" href="/parent-styles.css" />
   </head>
   <body>
     <script>
       const formSchema = {
-        title: "Validation Demo Form",
+        title: "SmartFormIO Input Types Demo",
+        description:
+          "This form demonstrates all available input types and their features",
         validateOnChange: true,
         fields: [
+          // Text Input Types
+          {
+            type: "text",
+            name: "username",
+            label: "Username",
+            required: true,
+            minLength: 3,
+            maxLength: 20,
+            pattern: "^[a-zA-Z0-9_]+$",
+            validationMessage:
+              "Username must be 3-20 characters long and can only contain letters, numbers, and underscores",
+            helpText: "Choose a unique username",
+            placeholder: "johndoe123",
+          },
           {
             type: "email",
             name: "email",
-            label: "Email",
+            label: "Email Address",
             required: true,
             validationMessage: "Please enter a valid email address",
             pattern: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
-            helpText: "Enter your email address",
-          },
-          {
-            type: "number",
-            name: "age",
-            label: "Age",
-            required: true,
-            min: 18,
-            max: 100,
-            validationMessage: "Age must be between 18 and 100",
-            helpText: "You must be between 18 and 100 years old",
-          },
-          {
-            type: "number",
-            name: "score",
-            label: "Score",
-            required: true,
-            min: 0,
-            max: 10,
-            validationMessage: "Score must be between 0 and 10",
-            helpText: "Enter a score from 0 to 10",
-          },
-          {
-            type: "text",
-            name: "phone",
-            label: "Phone Number",
-            required: true,
-            pattern: "^\\d{10}$",
-            validationMessage: "Please enter a valid 10-digit phone number",
-            helpText:
-              "Enter your 10-digit phone number without spaces or dashes",
+            helpText: "We'll never share your email",
+            placeholder: "john@example.com",
           },
           {
             type: "password",
@@ -61,13 +48,33 @@
               "Password must be at least 8 characters with letters and numbers",
             helpText: "Use at least 8 characters with both letters and numbers",
           },
+          {
+            type: "number",
+            name: "age",
+            label: "Age",
+            required: true,
+            min: 18,
+            max: 100,
+            validationMessage: "Age must be between 18 and 100",
+            helpText: "Enter your age",
+            placeholder: "25",
+          },
+          {
+            type: "textarea",
+            name: "bio",
+            label: "Biography",
+            maxLength: 500,
+            validationMessage: "Biography cannot exceed 500 characters",
+            helpText: "Tell us about yourself",
+            placeholder: "Write a short bio...",
+          },
         ],
       };
     </script>
 
     <smart-form-io id="myForm"></smart-form-io>
 
-    <script type="module" src="./dist/smartformio.js"></script>
+    <script type="module" src="/dist/smartformio.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const formElement = document.getElementById("myForm");

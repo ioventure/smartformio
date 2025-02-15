@@ -40,51 +40,65 @@ function escapeHtml(str: string): string {
  * Renders a field label with proper attributes and escaping.
  * @param field The field configuration
  * @param id The input ID to link the label to
- * @param className Optional CSS class name
+ * @param isHidden Whether the label should be visually hidden
  * @returns The rendered label HTML or empty string if no label
  */
 export function renderFieldLabel(
   field: BaseField,
   id: string,
-  className?: string
+  isHidden?: boolean
 ): string {
   if (!field.label?.trim()) {
     return "";
   }
 
-  const classAttr = className ? ` class="${className}"` : "";
+  const labelId = `label-${field.name}`;
+  const labelParts = ["label"];
+  if (isHidden) {
+    labelParts.push("label-hidden");
+  }
+
   const escapedLabel = escapeHtml(field.label);
 
   return `
-    <label for="${id}" part="label"${classAttr}>${escapedLabel}</label>
+    <label 
+      id="${labelId}" 
+      for="${id}" 
+      part="${labelParts.join(" ")}"
+    >${escapedLabel}</label>
   `;
 }
 
 /**
- * Renders a help text element.
+ * Renders help and error text elements within a message container.
  * @param field The field configuration
- * @returns The rendered help text HTML or empty string if no help text
+ * @returns The rendered message container HTML
  */
-export function renderHelpText(field: BaseField): string {
-  if (!field.helpText) {
-    return "";
-  }
+export function renderMessageContainer(field: BaseField): string {
+  const helpId = `help-${field.name}`;
+  const errorId = `error-${field.name}`;
 
   return `
-    <div part="help-text" data-help="${field.name}" style="display: block;">
-      ${escapeHtml(field.helpText)}
+    <div part="message-container">
+      ${
+        field.helpText
+          ? `
+        <div 
+          id="${helpId}" 
+          part="help-text" 
+          data-help="${field.name}"
+        >${escapeHtml(field.helpText)}</div>
+      `
+          : ""
+      }
+      <div 
+        id="${errorId}" 
+        part="error-text" 
+        data-error="${field.name}"
+        role="alert" 
+        aria-live="polite"
+      ></div>
     </div>
-  `;
-}
-
-/**
- * Renders an error text element.
- * @param field The field configuration
- * @returns The rendered error text HTML
- */
-export function renderErrorText(field: BaseField): string {
-  return `
-    <div part="error-text" data-error="${field.name}" style="display: none;"></div>
   `;
 }
 
@@ -98,12 +112,39 @@ export function renderFieldWrapper(
   field: BaseField,
   inputHtml: string
 ): string {
+  const fieldId = `field-${field.name}`;
+  const labelId = `label-${field.name}`;
+  const helpId = `help-${field.name}`;
+  const errorId = `error-${field.name}`;
+
+  // Build field parts
+  const fieldParts = ["field"];
+  if (field.required) {
+    fieldParts.push("field-required");
+  }
+  if (field.disabled) {
+    fieldParts.push("field-disabled");
+  }
+
+  const describedBy = [field.helpText && helpId, errorId]
+    .filter(Boolean)
+    .join(" ");
+
   return `
-    <div class="field" part="field">
-      ${renderFieldLabel(field, field.name, field.hiddenLabel ? "sr-only" : "")}
-      ${inputHtml}
-      ${renderHelpText(field)}
-      ${renderErrorText(field)}
+    <div 
+      id="${fieldId}" 
+      part="${fieldParts.join(" ")}" 
+      role="group" 
+      aria-labelledby="${labelId}"
+    >
+      ${renderFieldLabel(field, field.name, field.hiddenLabel)}
+      <div part="input-container">
+        ${inputHtml.replace(
+          'aria-describedby="',
+          `aria-describedby="${describedBy}" `
+        )}
+      </div>
+      ${renderMessageContainer(field)}
     </div>
   `;
 }
