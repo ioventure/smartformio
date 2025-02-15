@@ -15,7 +15,6 @@ export function renderCheckbox(field: CheckboxField): string {
             part="checkbox-input" 
             ${renderAttr({
               name: field.name,
-              value: "true",
               required: field.required,
               disabled: field.disabled,
               "data-testid": `input-${field.name}`,
@@ -25,7 +24,7 @@ export function renderCheckbox(field: CheckboxField): string {
                 ? `description-${field.name}`
                 : undefined,
               "aria-invalid": "false",
-              "data-boolean": "true",
+              checked: field.defaultValue ? "true" : undefined, // Use defaultValue for pre-filling
             })} 
           />
           <div part="checkbox-content">
@@ -68,6 +67,9 @@ export function renderCheckbox(field: CheckboxField): string {
           const label = typeof option === "string" ? option : option.label;
           const description =
             typeof option === "string" ? undefined : option.description;
+          const isChecked =
+            Array.isArray(field.defaultValue) &&
+            field.defaultValue.includes(value);
 
           return `
           <label part="checkbox-container">
@@ -77,6 +79,7 @@ export function renderCheckbox(field: CheckboxField): string {
               ${renderAttr({
                 name: `${field.name}[]`,
                 value: value,
+                required: field.required,
                 disabled: field.disabled,
                 "data-testid": `input-${field.name}-${index}`,
                 "data-group": field.name,
@@ -85,6 +88,7 @@ export function renderCheckbox(field: CheckboxField): string {
                   ? `description-${field.name}-${index}`
                   : undefined,
                 "aria-invalid": "false",
+                checked: isChecked ? "true" : undefined, // Use defaultValue for pre-filling
               })} 
             />
             <div part="checkbox-content">
