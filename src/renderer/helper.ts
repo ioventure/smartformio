@@ -1,9 +1,6 @@
 import { BaseField } from "@interfaces/core.interface";
 
-type AttributeMap = Record<
-  string,
-  string | number | boolean | null | undefined
->;
+type AttributeMap = Record<string, string | number | boolean | null | undefined>;
 
 /**
  * Renders HTML attributes from an attribute map.
@@ -77,20 +74,16 @@ export function renderFieldLabel(
 export function renderMessageContainer(field: BaseField): string {
   const helpId = `help-${field.name}`;
   const errorId = `error-${field.name}`;
-
+  
   return `
     <div part="message-container">
-      ${
-        field.helpText
-          ? `
+      ${field.helpText ? `
         <div 
           id="${helpId}" 
           part="help-text" 
           data-help="${field.name}"
         >${escapeHtml(field.helpText)}</div>
-      `
-          : ""
-      }
+      ` : ''}
       <div 
         id="${errorId}" 
         part="error-text" 
@@ -126,9 +119,10 @@ export function renderFieldWrapper(
     fieldParts.push("field-disabled");
   }
 
-  const describedBy = [field.helpText && helpId, errorId]
-    .filter(Boolean)
-    .join(" ");
+  const describedBy = [
+    field.helpText && helpId,
+    errorId
+  ].filter(Boolean).join(" ");
 
   return `
     <div 

@@ -2,9 +2,6 @@
  * @file Core interfaces and types for SmartFormIO
  */
 
-import { FormFieldSchema } from "./field.interface";
-import { ValidationHandler } from "./validation.interface";
-
 /**
  * Configuration options for SmartFormIO
  */
@@ -64,3 +61,7 @@ export interface FormSchema {
   /** Custom text for the submit button */
   submitButtonText?: string;
 }
+
+// Import this here to avoid circular dependency
+import { FormFieldSchema } from "./field.interface";
+import { ValidationHandler } from "./validation.interface";

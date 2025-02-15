@@ -91,19 +91,15 @@ export class SmartForm extends HTMLElement {
       this.shadow.innerHTML = markup;
 
       // Setup form validation and submission handling
-      setupFormEvents(
-        this.shadow,
-        this.schema,
-        (formData: Record<string, any>) => {
-          this.dispatchEvent(
-            new CustomEvent("smartformio:submit", {
-              detail: formData,
-              bubbles: true,
-              composed: true,
-            })
-          );
-        }
-      );
+      setupFormEvents(this.shadow, this.schema, (formData: Record<string, any>) => {
+        this.dispatchEvent(
+          new CustomEvent("smartformio:submit", {
+            detail: formData,
+            bubbles: true,
+            composed: true,
+          })
+        );
+      });
     } catch (error) {
       console.error("Error rendering component:", error);
       this.renderError("Failed to render form");

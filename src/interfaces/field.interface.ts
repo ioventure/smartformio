@@ -28,10 +28,15 @@ export interface TextField extends BaseField {
 /**
  * Properties for select dropdowns
  */
+export interface SelectOption {
+  value: string;
+  label: string;
+}
+
 export interface SelectField extends BaseField {
   type: "select";
   /** Array of options to display in the dropdown */
-  options: string[];
+  options: (SelectOption | string)[];
   /** Icon to display at the start of the input */
   leadingIcon?: string;
 }
@@ -62,30 +67,45 @@ export interface FileField extends BaseField {
   multiple?: boolean;
   /** Icon to display at the start of the input */
   leadingIcon?: string;
-  /** Icon to display at the end of the input */
-  trailingIcon?: string;
 }
 
 /**
  * Properties for radio button groups
  */
+export interface RadioOption {
+  value: string;
+  label: string;
+}
+
 export interface RadioField extends BaseField {
   type: "radio";
   /** Array of radio button options */
-  options: string[];
+  options: (RadioOption | string)[];
+  /** Display layout for radio options: 'vertical' | 'horizontal' */
+  display?: "vertical" | "horizontal";
 }
 
 /**
  * Properties for checkbox inputs
  */
+export interface CheckboxOption {
+  value: string;
+  label: string;
+  description?: string;
+}
+
 export interface CheckboxField extends BaseField {
   type: "checkbox";
   /** Array of checkbox options for groups */
-  options?: string[];
-  /** Array of descriptions for each option */
-  descriptions?: string[];
-  /** Position of the label relative to the checkbox */
-  labelPosition?: "left" | "right";
+  options?: (CheckboxOption | string)[];
+  /** Description for single checkbox */
+  description?: string;
+  /** Display layout for checkbox options: 'vertical' | 'horizontal' */
+  display?: "vertical" | "horizontal";
+  /** Minimum number of options that must be selected */
+  minSelect?: number;
+  /** Maximum number of options that can be selected */
+  maxSelect?: number;
 }
 
 /**

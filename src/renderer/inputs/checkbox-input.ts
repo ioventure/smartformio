@@ -1,63 +1,100 @@
-import { CheckboxField } from "@interfaces/field.interface";
+import { CheckboxField, CheckboxOption } from "@interfaces/field.interface";
 import { renderAttr, renderFieldWrapper } from "@renderer/helper";
 
 /**
  * Renders a checkbox input or group based on the provided schema
  */
 export function renderCheckbox(field: CheckboxField): string {
-  // If options are provided, render a checkbox group
-  if (field.options && field.options.length > 0) {
+  // Handle single checkbox
+  if (!field.options) {
     const input = `
-      <div part="checkbox-group">
-        ${field.options
-          .map(
-            (option, index) => `
-          <div part="checkbox-container">
-            <input type="checkbox" part="input" ${renderAttr({
-              name: `${field.name}[]`,
-              value: option,
-              id: `${field.name}-${index}`,
+      <div part="checkbox-wrapper">
+        <label part="checkbox-container">
+          <input 
+            type="checkbox" 
+            part="checkbox-input" 
+            ${renderAttr({
+              name: field.name,
+              value: "true",
               required: field.required,
               disabled: field.disabled,
-              class: field.className,
-              "data-testid": `input-${field.name}-${index}`,
-            })} />
-            <label part="checkbox-label" for="${field.name}-${index}">
-              ${option}
-              ${
-                field.descriptions?.[index]
-                  ? `<span part="checkbox-description">${field.descriptions[index]}</span>`
-                  : ""
-              }
-            </label>
+              "data-testid": `input-${field.name}`,
+              "aria-label": field.label,
+              "aria-required": field.required ? "true" : undefined,
+              "aria-describedby": field.description
+                ? `description-${field.name}`
+                : undefined,
+              "aria-invalid": "false",
+              "data-boolean": "true",
+            })} 
+          />
+          <div part="checkbox-content">
+            <span part="checkbox-label">${field.label}</span>
+            ${field.description ? `<span part="checkbox-description" id="description-${field.name}">${field.description}</span>` : ""}
           </div>
-        `
-          )
-          .join("")}
+        </label>
       </div>
     `;
     return renderFieldWrapper(field, input);
   }
 
-  // Otherwise, render a single checkbox
+  // Handle checkbox group
+  const groupParts = ["checkbox-group"];
+  if (field.display) {
+    groupParts.push(`checkbox-group-${field.display}`);
+  } else {
+    groupParts.push("checkbox-group-vertical"); // default to vertical
+  }
+
   const input = `
-    <div part="checkbox-container">
-      <input type="checkbox" part="input" ${renderAttr({
-        name: field.name,
-        id: field.name,
-        required: field.required,
-        disabled: field.disabled,
-        class: field.className,
-        "data-testid": `input-${field.name}`,
-      })} />
-      <label part="checkbox-label" for="${field.name}">
-        ${field.label || ""}
-        ${
-          field.descriptions?.[0]
-            ? `<span part="checkbox-description">${field.descriptions[0]}</span>`
-            : ""
-        }
-      </label>
+    <div part="${groupParts.join(" ")}" role="group" aria-label="${field.label}">
+      ${
+        field.required
+          ? `
+        <input 
+          type="hidden" 
+          name="${field.name}-required" 
+          data-required-group="${field.name}" 
+          required
+          ${field.minSelect ? `data-min-select="${field.minSelect}"` : ""}
+          ${field.maxSelect ? `data-max-select="${field.maxSelect}"` : ""}
+        />
+      `
+          : ""
+      }
+      ${field.options
+        .map((option, index) => {
+          const value = typeof option === "string" ? option : option.value;
+          const label = typeof option === "string" ? option : option.label;
+          const description =
+            typeof option === "string" ? undefined : option.description;
+
+          return `
+          <label part="checkbox-container">
+            <input 
+              type="checkbox" 
+              part="checkbox-input" 
+              ${renderAttr({
+                name: `${field.name}[]`,
+                value: value,
+                disabled: field.disabled,
+                "data-testid": `input-${field.name}-${index}`,
+                "data-group": field.name,
+                "aria-label": label,
+                "aria-describedby": description
+                  ? `description-${field.name}-${index}`
+                  : undefined,
+                "aria-invalid": "false",
+              })} 
+            />
+            <div part="checkbox-content">
+              <span part="checkbox-label">${label}</span>
+              ${description ? `<span part="checkbox-description" id="description-${field.name}-${index}">${description}</span>` : ""}
+            </div>
+          </label>
+        `;
+        })
+        .join("")}
     </div>
   `;
 

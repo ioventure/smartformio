@@ -79,8 +79,6 @@ smart-form-io::part(input) {
   box-sizing: border-box;
   font-size: 1rem;
   font-family: inherit;
-  -webkit-transition: all var(--smartform-transition-duration)
-    var(--smartform-transition-timing);
   transition: all var(--smartform-transition-duration)
     var(--smartform-transition-timing);
   -webkit-appearance: none;
@@ -89,58 +87,221 @@ smart-form-io::part(input) {
   background-color: #fff;
 }
 
-/* Invalid Input State */
-smart-form-io::part(input-invalid) {
-  border-color: var(--smartform-error-color) !important;
-}
-
-/* Remove default styles for specific input types */
-smart-form-io::part(input[type="number"])::-webkit-inner-spin-button,
-smart-form-io::part(input[type="number"])::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-smart-form-io::part(input[type="number"]) {
-  -moz-appearance: textfield;
-}
-
-/* Input with icons */
-smart-form-io::part(input-leading-icon) {
-  padding-left: 2.5em;
-}
-
-smart-form-io::part(input-trailing-icon) {
-  padding-right: 2.5em;
-}
-
-/* Textarea */
-smart-form-io::part(input-textarea) {
-  min-height: 100px;
-  resize: vertical;
-}
-
 /* Select Input */
 smart-form-io::part(input-select) {
   cursor: pointer;
-  padding-right: 2em;
+  padding: 0.6em;
+  padding-right: 2.5em;
+  width: 100%;
+  border: 1px solid var(--smartform-border-color);
+  border-radius: var(--smartform-border-radius);
+  background-color: #fff;
   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23343a40' d='M4.646 6.146a.5.5 0 0 1 .708 0L8 8.793l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.6em center;
   background-size: 16px;
+  appearance: none;
+  -webkit-appearance: none;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all var(--smartform-transition-duration)
+    var(--smartform-transition-timing);
 }
 
-/* Date Input */
-smart-form-io::part(input-date) {
+smart-form-io::part(input-select):focus {
+  outline: none;
+  border-color: var(--smartform-primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+smart-form-io::part(input-select)[aria-invalid="true"] {
+  border-color: var(--smartform-error-color);
+}
+
+/* Checkbox Input */
+smart-form-io::part(checkbox-group) {
+  display: flex;
+  gap: 0.8rem;
+}
+
+smart-form-io::part(checkbox-group-vertical) {
+  flex-direction: column;
+}
+
+smart-form-io::part(checkbox-group-horizontal) {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+smart-form-io::part(checkbox-container) {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
   cursor: pointer;
+  padding: 0.3rem;
+  border-radius: var(--smartform-border-radius);
+  transition: background-color var(--smartform-transition-duration)
+    var(--smartform-transition-timing);
+}
+
+smart-form-io::part(checkbox-container):hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+smart-form-io::part(checkbox-input) {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  margin-top: 0.2em;
+  width: 1.2em;
+  height: 1.2em;
+  border: 2px solid var(--smartform-border-color);
+  border-radius: 0.25em;
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+  transition: all var(--smartform-transition-duration)
+    var(--smartform-transition-timing);
+  flex-shrink: 0;
+}
+
+smart-form-io::part(checkbox-input)::before {
+  content: "";
+  width: 0.65em;
+  height: 0.65em;
+  transform: scale(0);
+  transition: transform var(--smartform-transition-duration)
+    var(--smartform-transition-timing);
+  box-shadow: inset 1em 1em var(--smartform-primary-color);
+  transform-origin: center;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+smart-form-io::part(checkbox-input):checked {
+  border-color: var(--smartform-primary-color);
+  background-color: var(--smartform-primary-color);
+}
+
+smart-form-io::part(checkbox-input):checked::before {
+  transform: scale(1);
+  box-shadow: inset 1em 1em white;
+}
+
+smart-form-io::part(checkbox-input):focus {
+  outline: none;
+  border-color: var(--smartform-primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+smart-form-io::part(checkbox-content) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+smart-form-io::part(checkbox-label) {
+  color: var(--smartform-text-color);
+  font-size: 1rem;
+  cursor: pointer;
+  margin: 0;
+  font-weight: normal;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+smart-form-io::part(checkbox-description) {
+  display: block;
+  color: var(--smartform-help-color);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Radio Input */
+smart-form-io::part(radio-group) {
+  display: flex;
+  gap: 0.8rem;
+}
+
+smart-form-io::part(radio-group-vertical) {
+  flex-direction: column;
+}
+
+smart-form-io::part(radio-group-horizontal) {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+smart-form-io::part(radio-container) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: var(--smartform-border-radius);
+  transition: background-color var(--smartform-transition-duration)
+    var(--smartform-transition-timing);
+}
+
+smart-form-io::part(radio-container):hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+smart-form-io::part(radio-input) {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  width: 1.2em;
+  height: 1.2em;
+  border: 2px solid var(--smartform-border-color);
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  display: grid;
+  place-content: center;
+  transition: all var(--smartform-transition-duration)
+    var(--smartform-transition-timing);
+}
+
+smart-form-io::part(radio-input)::before {
+  content: "";
+  width: 0.65em;
+  height: 0.65em;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: transform var(--smartform-transition-duration)
+    var(--smartform-transition-timing);
+  box-shadow: inset 1em 1em var(--smartform-primary-color);
+}
+
+smart-form-io::part(radio-input):checked {
+  border-color: var(--smartform-primary-color);
+}
+
+smart-form-io::part(radio-input):checked::before {
+  transform: scale(1);
+}
+
+smart-form-io::part(radio-input):focus {
+  outline: none;
+  border-color: var(--smartform-primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+smart-form-io::part(radio-label) {
+  color: var(--smartform-text-color);
+  font-size: 1rem;
+  cursor: pointer;
+  margin: 0;
+  font-weight: normal;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Icons */
-smart-form-io::part(leading-icon),
-smart-form-io::part(trailing-icon) {
+smart-form-io::part(leading-icon) {
   position: absolute;
   top: 50%;
-  -webkit-transform: translateY(-50%);
+  left: 0.6em;
   transform: translateY(-50%);
   color: var(--smartform-help-color);
   pointer-events: none;
@@ -149,12 +310,9 @@ smart-form-io::part(trailing-icon) {
   z-index: 1;
 }
 
-smart-form-io::part(leading-icon) {
-  left: 0.6em;
-}
-
-smart-form-io::part(trailing-icon) {
-  right: 0.6em;
+/* Input with icons */
+smart-form-io::part(input-leading-icon) {
+  padding-left: 2.5em;
 }
 
 /* Message Container */
@@ -174,11 +332,6 @@ smart-form-io::part(error-text) {
   font-size: 0.75rem;
   opacity: 0;
   visibility: hidden;
-  -webkit-transition:
-    opacity var(--smartform-transition-duration)
-      var(--smartform-transition-timing),
-    visibility var(--smartform-transition-duration)
-      var(--smartform-transition-timing);
   transition:
     opacity var(--smartform-transition-duration)
       var(--smartform-transition-timing),
@@ -201,11 +354,6 @@ smart-form-io::part(help-text) {
   font-size: 0.75rem;
   opacity: 1;
   visibility: visible;
-  -webkit-transition:
-    opacity var(--smartform-transition-duration)
-      var(--smartform-transition-timing),
-    visibility var(--smartform-transition-duration)
-      var(--smartform-transition-timing);
   transition:
     opacity var(--smartform-transition-duration)
       var(--smartform-transition-timing),
@@ -230,8 +378,6 @@ smart-form-io::part(button) {
   margin-top: var(--smartform-spacing);
   font-size: 1rem;
   font-family: inherit;
-  -webkit-transition: background-color var(--smartform-transition-duration)
-    var(--smartform-transition-timing);
   transition: background-color var(--smartform-transition-duration)
     var(--smartform-transition-timing);
   -webkit-appearance: none;
@@ -247,13 +393,11 @@ smart-form-io::part(button):hover {
 smart-form-io::part(input):focus {
   outline: none;
   border-color: var(--smartform-primary-color);
-  -webkit-box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
 
 smart-form-io::part(input-invalid):focus {
   border-color: var(--smartform-error-color) !important;
-  -webkit-box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
   box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
 }
 
@@ -274,7 +418,6 @@ smart-form-io::part(input-invalid):focus {
   smart-form-io::part(button),
   smart-form-io::part(error-text),
   smart-form-io::part(help-text) {
-    -webkit-transition: none;
     transition: none;
   }
 }

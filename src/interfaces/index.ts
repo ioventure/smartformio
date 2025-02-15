@@ -2,11 +2,7 @@
  * @file Main export file for all SmartFormIO interfaces and types
  */
 
-export type {
-  SmartFormConfig,
-  BaseField,
-  FormSchema,
-} from "@interfaces/core.interface";
+export type { SmartFormConfig, BaseField, FormSchema } from "@interfaces/core.interface";
 export type {
   TextField,
   SelectField,

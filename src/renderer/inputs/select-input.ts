@@ -1,21 +1,21 @@
-import { SelectField } from "@interfaces/field.interface";
+import { SelectField, SelectOption } from "@interfaces/field.interface";
 import { renderAttr, renderFieldWrapper } from "@renderer/helper";
 
 /**
  * Renders a select dropdown field based on the provided schema
  */
 export function renderSelect(field: SelectField): string {
-  // Build select parts
-  const selectParts = ["input", "input-select"];
+  // Build input parts
+  const inputParts = ["input", "input-select"];
   if (field.leadingIcon) {
-    selectParts.push("input-leading-icon");
+    inputParts.push("input-leading-icon");
   }
 
   const input = `
     <div part="input-wrapper">
       ${field.leadingIcon ? `<span part="leading-icon">${field.leadingIcon}</span>` : ""}
       <select 
-        part="${selectParts.join(" ")}" 
+        part="${inputParts.join(" ")}" 
         ${renderAttr({
           name: field.name,
           required: field.required,
@@ -24,16 +24,14 @@ export function renderSelect(field: SelectField): string {
           "aria-label": field.label,
           "aria-required": field.required ? "true" : undefined,
           "aria-describedby": `help-${field.name} error-${field.name}`,
-          "aria-invalid": "false",
+          "aria-invalid": "false"
         })}
       >
-        ${field.options
-          .map(
-            (option) => `
-          <option value="${option}">${option}</option>
-        `
-          )
-          .join("")}
+        ${field.options.map(option => {
+          const value = typeof option === 'string' ? option : option.value;
+          const label = typeof option === 'string' ? option : option.label;
+          return `<option value="${value}">${label}</option>`;
+        }).join("")}
       </select>
     </div>
   `;
