@@ -2,18 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>SmartFormIO Demo</title>
+    <title>SmartFormIO Text Inputs Demo</title>
     <link rel="stylesheet" href="/parent-styles.css" />
   </head>
   <body>
     <script>
       const formSchema = {
-        title: "SmartFormIO Input Types Demo",
+        title: "SmartFormIO Text Inputs Demo",
         description:
-          "This form demonstrates all available input types and their features",
+          "This form demonstrates all text input types and their features",
         validateOnChange: true,
         fields: [
-          // Text Input Types
           {
             type: "text",
             name: "username",
@@ -23,9 +22,11 @@
             maxLength: 20,
             pattern: "^[a-zA-Z0-9_]+$",
             validationMessage:
-              "Username must be 3-20 characters long and can only contain letters, numbers, and underscores",
+              "Username must be 3-20 characters, using only letters, numbers, and underscore",
             helpText: "Choose a unique username",
             placeholder: "johndoe123",
+            leadingIcon: "👤",
+            trailingIcon: "❓",
           },
           {
             type: "email",
@@ -36,6 +37,8 @@
             pattern: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
             helpText: "We'll never share your email",
             placeholder: "john@example.com",
+            leadingIcon: "📧",
+            trailingIcon: "❓",
           },
           {
             type: "password",
@@ -47,6 +50,8 @@
             validationMessage:
               "Password must be at least 8 characters with letters and numbers",
             helpText: "Use at least 8 characters with both letters and numbers",
+            leadingIcon: "🔒",
+            trailingIcon: "❓",
           },
           {
             type: "number",
@@ -58,6 +63,8 @@
             validationMessage: "Age must be between 18 and 100",
             helpText: "Enter your age",
             placeholder: "25",
+            leadingIcon: "🎂",
+            trailingIcon: "❓",
           },
           {
             type: "textarea",
@@ -67,6 +74,8 @@
             validationMessage: "Biography cannot exceed 500 characters",
             helpText: "Tell us about yourself",
             placeholder: "Write a short bio...",
+            leadingIcon: "📝",
+            trailingIcon: "❓",
           },
         ],
       };

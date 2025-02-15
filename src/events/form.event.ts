@@ -35,7 +35,8 @@ export function setupFormEvents(
       errorElement.setAttribute("part", "error-text error-text-visible");
 
       // Add invalid state to input
-      input.setAttribute("part", "input input-invalid");
+      const inputParts = input.getAttribute("part")?.split(" ") || [];
+      input.setAttribute("part", [...inputParts, "input-invalid"].join(" "));
       input.setAttribute("aria-invalid", "true");
 
       // Hide help text
@@ -50,7 +51,12 @@ export function setupFormEvents(
       errorElement.setAttribute("part", "error-text");
 
       // Remove invalid state from input
-      input.setAttribute("part", "input");
+      const inputParts =
+        input
+          .getAttribute("part")
+          ?.split(" ")
+          .filter((p) => p !== "input-invalid") || [];
+      input.setAttribute("part", inputParts.join(" "));
       input.setAttribute("aria-invalid", "false");
 
       // Show help text
@@ -117,7 +123,11 @@ export function setupFormEvents(
 
           // Add invalid state to input
           if (input) {
-            input.setAttribute("part", "input input-invalid");
+            const inputParts = input.getAttribute("part")?.split(" ") || [];
+            input.setAttribute(
+              "part",
+              [...inputParts, "input-invalid"].join(" ")
+            );
             input.setAttribute("aria-invalid", "true");
           }
 
@@ -134,7 +144,12 @@ export function setupFormEvents(
 
           // Remove invalid state from input
           if (input) {
-            input.setAttribute("part", "input");
+            const inputParts =
+              input
+                .getAttribute("part")
+                ?.split(" ")
+                .filter((p) => p !== "input-invalid") || [];
+            input.setAttribute("part", inputParts.join(" "));
             input.setAttribute("aria-invalid", "false");
           }
 
