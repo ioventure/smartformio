@@ -21,6 +21,14 @@
   /* Transitions */
   --smartform-transition-duration: 0.2s;
   --smartform-transition-timing: ease-in-out;
+
+  /* Input Styles */
+  --smartform-input-padding: 0.6em;
+  --smartform-input-font-size: 1rem;
+  --smartform-input-bg-color: #fff;
+  --smartform-input-border: 1px solid var(--smartform-border-color);
+  --smartform-input-transition: all var(--smartform-transition-duration)
+    var(--smartform-transition-timing);
 }
 
 /* Container */
@@ -69,68 +77,29 @@ smart-form-io::part(input-wrapper) {
 }
 
 /* Base Input Styles */
-smart-form-io::part(input) {
+smart-form-io::part(input),
+smart-form-io::part(input-file),
+smart-form-io::part(input-select) {
   width: 100%;
-  padding: 0.6em;
-  border: 1px solid var(--smartform-border-color);
+  padding: var(--smartform-input-padding);
+  border: var(--smartform-input-border);
   border-radius: var(--smartform-border-radius);
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
-  font-size: 1rem;
+  font-size: var(--smartform-input-font-size);
   font-family: inherit;
-  transition: all var(--smartform-transition-duration)
-    var(--smartform-transition-timing);
-  -webkit-appearance: none;
-  -moz-appearance: none;
+  transition: var(--smartform-input-transition);
   appearance: none;
-  background-color: #fff;
+  background-color: var(--smartform-input-bg-color);
 }
 
 /* Date Input */
-smart-form-io::part(input-date) {
+smart-form-io::part(input-date),
+smart-form-io::part(input-file) {
   cursor: pointer;
 }
 
 /* File Input */
-smart-form-io::part(input-file) {
-  cursor: pointer;
-  padding: 0.6em;
-  font-size: 1rem;
-  border: 1px solid var(--smartform-border-color);
-  border-radius: var(--smartform-border-radius);
-  background-color: #fff;
-  color: var(--smartform-text-color);
-  transition: all var(--smartform-transition-duration)
-    var(--smartform-transition-timing);
-  width: 100%;
-}
-
-smart-form-io::part(input-file)::file-selector-button {
-  padding: 0.4em 0.8em;
-  margin-right: 0.8em;
-  border-radius: var(--smartform-border-radius);
-  border: 1px solid var(--smartform-primary-color);
-  background: #fff;
-  color: var(--smartform-primary-color);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: inherit;
-  transition: all var(--smartform-transition-duration)
-    var(--smartform-transition-timing);
-}
-
-smart-form-io::part(input-file)::file-selector-button:hover {
-  background: var(--smartform-primary-color);
-  color: #fff;
-}
-
-smart-form-io::part(input-file):focus {
-  outline: none;
-  border-color: var(--smartform-primary-color);
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
-}
-
+smart-form-io::part(input-file)::file-selector-button,
 smart-form-io::part(input-file)::-webkit-file-upload-button {
   padding: 0.4em 0.8em;
   margin-right: 0.8em;
@@ -141,34 +110,28 @@ smart-form-io::part(input-file)::-webkit-file-upload-button {
   cursor: pointer;
   font-family: inherit;
   font-size: inherit;
-  transition: all var(--smartform-transition-duration)
-    var(--smartform-transition-timing);
+  transition: var(--smartform-input-transition);
 }
 
+smart-form-io::part(input-file)::file-selector-button:hover,
 smart-form-io::part(input-file)::-webkit-file-upload-button:hover {
   background: var(--smartform-primary-color);
   color: #fff;
 }
 
+smart-form-io::part(input-file):focus {
+  outline: none;
+  border-color: var(--smartform-primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
 /* Select Input */
 smart-form-io::part(input-select) {
-  cursor: pointer;
-  padding: 0.6em;
   padding-right: 2.5em;
-  width: 100%;
-  border: 1px solid var(--smartform-border-color);
-  border-radius: var(--smartform-border-radius);
-  background-color: #fff;
   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23343a40' d='M4.646 6.146a.5.5 0 0 1 .708 0L8 8.793l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.6em center;
   background-size: 16px;
-  appearance: none;
-  -webkit-appearance: none;
-  font-size: 1rem;
-  font-family: inherit;
-  transition: all var(--smartform-transition-duration)
-    var(--smartform-transition-timing);
 }
 
 /* Checkbox Input */
@@ -203,7 +166,6 @@ smart-form-io::part(checkbox-container):hover {
 
 smart-form-io::part(checkbox-input) {
   appearance: none;
-  -webkit-appearance: none;
   margin: 0;
   margin-top: 0.2em;
   width: 1.2em;
@@ -213,8 +175,7 @@ smart-form-io::part(checkbox-input) {
   cursor: pointer;
   display: grid;
   place-content: center;
-  transition: all var(--smartform-transition-duration)
-    var(--smartform-transition-timing);
+  transition: var(--smartform-input-transition);
   flex-shrink: 0;
 }
 
@@ -277,20 +238,24 @@ smart-form-io::part(message-container) {
 }
 
 /* Error Text */
-smart-form-io::part(error-text) {
+smart-form-io::part(error-text),
+smart-form-io::part(help-text) {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  color: var(--smartform-error-color);
   font-size: 0.75rem;
-  opacity: 0;
-  visibility: hidden;
   transition:
     opacity var(--smartform-transition-duration)
       var(--smartform-transition-timing),
     visibility var(--smartform-transition-duration)
       var(--smartform-transition-timing);
+}
+
+smart-form-io::part(error-text) {
+  color: var(--smartform-error-color);
+  opacity: 0;
+  visibility: hidden;
 }
 
 smart-form-io::part(error-text-visible) {
@@ -298,21 +263,10 @@ smart-form-io::part(error-text-visible) {
   visibility: visible;
 }
 
-/* Help Text */
 smart-form-io::part(help-text) {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
   color: var(--smartform-help-color);
-  font-size: 0.75rem;
   opacity: 1;
   visibility: visible;
-  transition:
-    opacity var(--smartform-transition-duration)
-      var(--smartform-transition-timing),
-    visibility var(--smartform-transition-duration)
-      var(--smartform-transition-timing);
 }
 
 smart-form-io::part(help-text-hidden) {
@@ -332,10 +286,7 @@ smart-form-io::part(button) {
   margin-top: var(--smartform-spacing);
   font-size: 1rem;
   font-family: inherit;
-  transition: all var(--smartform-transition-duration)
-    var(--smartform-transition-timing);
-  -webkit-appearance: none;
-  -moz-appearance: none;
+  transition: var(--smartform-input-transition);
   appearance: none;
 }
 
@@ -350,24 +301,13 @@ smart-form-io::part(button):disabled {
 }
 
 /* Focus States */
-smart-form-io::part(input):focus {
+smart-form-io::part(input):focus,
+smart-form-io::part(input-invalid):focus {
   outline: none;
   border-color: var(--smartform-primary-color);
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
 
-smart-form-io::part(input-invalid) {
-  border-color: var(--smartform-error-color);
-}
-
-smart-form-io::part(input-invalid):focus {
-  border-color: var(--smartform-error-color);
-  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
-}
-
-/* Updated styles to be merged into parent-styles.css */
-
-/* Input Invalid State */
 smart-form-io::part(input-invalid) {
   border-color: var(--smartform-error-color);
 }
@@ -445,7 +385,6 @@ smart-form-io::part(radio-container):hover {
 
 smart-form-io::part(radio-input) {
   appearance: none;
-  -webkit-appearance: none;
   margin: 0;
   width: 1.5em;
   height: 1.5em;
@@ -454,8 +393,7 @@ smart-form-io::part(radio-input) {
   cursor: pointer;
   display: grid;
   place-content: center;
-  transition: all var(--smartform-transition-duration)
-    var(--smartform-transition-timing);
+  transition: var(--smartform-input-transition);
   flex-shrink: 0;
 }
 
