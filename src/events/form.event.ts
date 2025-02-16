@@ -23,6 +23,44 @@ export function setupFormEvents(
   // Prevent native validation
   form.setAttribute("novalidate", "true");
 
+  // Get submit button reference
+  const submitButton = form.querySelector(
+    'button[type="submit"]'
+  ) as HTMLButtonElement;
+
+  // Function to update submit button state
+  const updateSubmitButtonState = () => {
+    if (!submitButton) return;
+
+    const hasErrors = form.querySelectorAll('[aria-invalid="true"]').length > 0;
+    const hasEmptyRequired = schema.fields.some((field) => {
+      if (!field.required) return false;
+      const input = form.querySelector(
+        `[name="${field.name}"]`
+      ) as HTMLInputElement;
+      if (!input) return false;
+
+      if (field.type === "checkbox" && field.options) {
+        const checkedCount = form.querySelectorAll(
+          `[name="${field.name}[]"]:checked`
+        ).length;
+        return checkedCount < (field.minSelect || 1);
+      }
+
+      if (field.type === "checkbox" && !field.options) {
+        return field.required && !input.checked;
+      }
+
+      if (field.type === "radio") {
+        return !form.querySelector(`[name="${field.name}"]:checked`);
+      }
+
+      return !input.value;
+    });
+
+    submitButton.disabled = hasErrors || hasEmptyRequired;
+  };
+
   // Setup validation for each field
   schema.fields.forEach((field: FormFieldSchema) => {
     const inputs: NodeListOf<HTMLInputElement> = form.querySelectorAll(
@@ -56,6 +94,7 @@ export function setupFormEvents(
         input.setAttribute("part", inputParts.join(" "));
         input.setAttribute("aria-invalid", "true");
       });
+      updateSubmitButtonState();
     };
 
     const hideError = () => {
@@ -75,10 +114,12 @@ export function setupFormEvents(
         input.setAttribute("part", inputParts.join(" "));
         input.setAttribute("aria-invalid", "false");
       });
+      updateSubmitButtonState();
     };
 
     // Initialize states
     hideError();
+    updateSubmitButtonState();
 
     // ---------------------------------
     //  Handle checkbox group validation
@@ -397,7 +438,8 @@ export function setupFormEvents(
       }
     });
 
-    // Only submit if there are no validation errors.
+    // Update submit button state and submit if no errors
+    updateSubmitButtonState();
     if (!hasErrors) {
       onSubmit(data);
     }

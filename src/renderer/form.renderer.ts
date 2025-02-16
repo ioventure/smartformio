@@ -38,12 +38,14 @@ export async function renderForm(schema: FormSchema): Promise<string> {
 
   return `
     <form id="smartform" part="container">
-      ${schema.title ? `<h2 part="title">${schema.title}</h2>` : ''}
-      ${schema.description ? `<p part="description">${schema.description}</p>` : ''}
+      ${schema.title ? `<h2 part="title">${schema.title}</h2>` : ""}
+      ${schema.description ? `<p part="description">${schema.description}</p>` : ""}
       ${fields.join("\n")}
-      ${schema.showSubmitButton !== false ? 
-        `<button type="submit" part="button">${schema.submitButtonText || 'Submit'}</button>` 
-        : ''}
+      ${
+        schema.showSubmitButton !== false
+          ? `<button type="submit" part="button" disabled>${schema.submitButtonText || "Submit"}</button>`
+          : ""
+      }
     </form>
   `;
 }
