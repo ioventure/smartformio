@@ -26,7 +26,7 @@ export function collectFormData(
   const checkboxGroups = new Set<string>();
 
   // First pass: identify checkbox groups and initialize arrays
-  formData.forEach((value, key) => {
+  formData.forEach((_value, key) => {
     if (key.endsWith("[]")) {
       const groupName = key.slice(0, -2);
       checkboxGroups.add(groupName);

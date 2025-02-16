@@ -1,4 +1,4 @@
-import { RadioField, RadioOption } from "@interfaces/field.interface";
+import { RadioField } from "@interfaces/field.interface";
 import { renderAttr, renderFieldWrapper } from "@renderer/helper";
 
 /**

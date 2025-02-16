@@ -1,4 +1,4 @@
-import { CheckboxField, CheckboxOption } from "@interfaces/field.interface";
+import { CheckboxField } from "@interfaces/field.interface";
 import { renderAttr, renderFieldWrapper } from "@renderer/helper";
 
 /**

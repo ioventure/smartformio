@@ -1,4 +1,4 @@
-import { SelectField, SelectOption } from "@interfaces/field.interface";
+import { SelectField } from "@interfaces/field.interface";
 import { renderAttr, renderFieldWrapper } from "@renderer/helper";
 
 /**
