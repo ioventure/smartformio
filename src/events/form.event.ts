@@ -1,5 +1,10 @@
 import { FormSchema } from "@interfaces/core.interface";
+import { FormFieldSchema, FileField } from "@interfaces/field.interface";
 import { validateField, validateForm } from "@utils/validation";
+
+function isFileField(field: FormFieldSchema): field is FileField {
+  return field.type === "file";
+}
 
 /**
  * Sets up form validation and submission events on the provided Shadow DOM.
@@ -19,8 +24,8 @@ export function setupFormEvents(
   form.setAttribute("novalidate", "true");
 
   // Setup validation for each field
-  schema.fields.forEach((field) => {
-    const inputs = form.querySelectorAll(
+  schema.fields.forEach((field: FormFieldSchema) => {
+    const inputs: NodeListOf<HTMLInputElement> = form.querySelectorAll(
       `[name="${field.name}"], [name="${field.name}[]"]`
     );
     const errorElement = form.querySelector(
@@ -195,7 +200,7 @@ export function setupFormEvents(
       };
 
       inputs[0].addEventListener("blur", validateAndShowError);
-      if (schema.validateOnChange && field.type !== "file") {
+      if (schema.validateOnChange && !isFileField(field) && "value" in field) {
         inputs[0].addEventListener("input", () => {
           setTimeout(validateAndShowError, 0);
         });

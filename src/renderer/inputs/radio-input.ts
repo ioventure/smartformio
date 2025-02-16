@@ -16,9 +16,10 @@ export function renderRadio(field: RadioField): string {
     <div part="${groupParts.join(" ")}" role="radiogroup" aria-label="${field.label}">
       ${field.options
         .map((option, index) => {
-          const value = typeof option === 'string' ? option : option.value;
-          const label = typeof option === 'string' ? option : option.label;
-          
+          const value = typeof option === "string" ? option : option.value;
+          const label = typeof option === "string" ? option : option.label;
+          const checked = field.value === value ? "checked" : "";
+
           return `
             <label part="radio-container">
               <input 
@@ -30,7 +31,8 @@ export function renderRadio(field: RadioField): string {
                   required: field.required,
                   disabled: field.disabled,
                   "data-testid": `input-${field.name}-${index}`,
-                  "aria-label": label
+                  "aria-label": label,
+                  checked,
                 })} 
               />
               <span part="radio-label">${label}</span>

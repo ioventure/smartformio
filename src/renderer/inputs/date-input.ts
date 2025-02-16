@@ -29,6 +29,7 @@ export function renderDateInput(field: DateField): string {
           "aria-required": field.required ? "true" : undefined,
           "aria-describedby": `help-${field.name} error-${field.name}`,
           "aria-invalid": "false",
+          value: field.value,
         })}
       />
     </div>

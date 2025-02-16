@@ -25,7 +25,7 @@ export function renderTextInput(field: TextField): string {
             "aria-describedby": `help-${field.name} error-${field.name}`,
             "aria-invalid": "false",
           })}
-        ></textarea>
+        >${field.value || ""}</textarea>
       </div>
     `;
     return renderFieldWrapper(field, input);
@@ -86,6 +86,7 @@ export function renderTextInput(field: TextField): string {
           "aria-describedby": `help-${field.name} error-${field.name}`,
           "aria-invalid": "false",
           ...(typeSpecificAttrs[field.type] || {}),
+          value: field.value,
         })} 
       />
       ${field.trailingIcon ? `<span part="trailing-icon">${field.trailingIcon}</span>` : ""}

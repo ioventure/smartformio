@@ -24,14 +24,17 @@ export function renderSelect(field: SelectField): string {
           "aria-label": field.label,
           "aria-required": field.required ? "true" : undefined,
           "aria-describedby": `help-${field.name} error-${field.name}`,
-          "aria-invalid": "false"
+          "aria-invalid": "false",
         })}
       >
-        ${field.options.map(option => {
-          const value = typeof option === 'string' ? option : option.value;
-          const label = typeof option === 'string' ? option : option.label;
-          return `<option value="${value}">${label}</option>`;
-        }).join("")}
+        ${field.options
+          .map((option) => {
+            const value = typeof option === "string" ? option : option.value;
+            const label = typeof option === "string" ? option : option.label;
+            const selected = field.value === value ? "selected" : "";
+            return `<option value="${value}" ${selected}>${label}</option>`;
+          })
+          .join("")}
       </select>
     </div>
   `;

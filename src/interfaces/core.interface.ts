@@ -29,7 +29,7 @@ export interface BaseField {
   /** Whether the field is required */
   required?: boolean;
   /** Default value for the field */
-  defaultValue?: string | number | boolean;
+  value?: string | number | boolean;
   /** Whether the field is readonly */
   readonly?: boolean;
   /** Whether the field is disabled */
