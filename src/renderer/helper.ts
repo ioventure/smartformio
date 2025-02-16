@@ -1,6 +1,9 @@
 import { BaseField } from "@interfaces/core.interface";
 
-type AttributeMap = Record<string, string | number | boolean | null | undefined>;
+type AttributeMap = Record<
+  string,
+  string | number | boolean | null | undefined
+>;
 
 /**
  * Renders HTML attributes from an attribute map.
@@ -24,13 +27,17 @@ export function renderAttr(attrs: AttributeMap): string {
 
 /**
  * Escapes HTML special characters in a string.
+ * Uses a regex-based replacement for universal compatibility (SSR-friendly).
  * @param str The string to escape
  * @returns The escaped string
  */
 function escapeHtml(str: string): string {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 /**
@@ -74,16 +81,20 @@ export function renderFieldLabel(
 export function renderMessageContainer(field: BaseField): string {
   const helpId = `help-${field.name}`;
   const errorId = `error-${field.name}`;
-  
+
   return `
     <div part="message-container">
-      ${field.helpText ? `
+      ${
+        field.helpText
+          ? `
         <div 
           id="${helpId}" 
           part="help-text" 
           data-help="${field.name}"
         >${escapeHtml(field.helpText)}</div>
-      ` : ''}
+      `
+          : ""
+      }
       <div 
         id="${errorId}" 
         part="error-text" 
@@ -97,6 +108,7 @@ export function renderMessageContainer(field: BaseField): string {
 
 /**
  * Renders common field wrapper elements.
+ * Updates the inner input HTML to ensure that the aria-describedby attribute is set robustly.
  * @param field The field configuration
  * @param inputHtml The rendered input HTML
  * @returns The complete field HTML
@@ -119,10 +131,25 @@ export function renderFieldWrapper(
     fieldParts.push("field-disabled");
   }
 
-  const describedBy = [
-    field.helpText && helpId,
-    errorId
-  ].filter(Boolean).join(" ");
+  const describedBy = [field.helpText ? helpId : null, errorId]
+    .filter(Boolean)
+    .join(" ");
+
+  // Robustly inject or replace the aria-describedby attribute in the input HTML
+  let modifiedInputHtml = inputHtml;
+  if (/aria-describedby="/.test(inputHtml)) {
+    // Replace existing aria-describedby value using a regex
+    modifiedInputHtml = inputHtml.replace(
+      /aria-describedby="[^"]*"/,
+      `aria-describedby="${describedBy}"`
+    );
+  } else {
+    // Insert aria-describedby attribute into the first input tag
+    modifiedInputHtml = inputHtml.replace(
+      /(<input\b[^>]*)(>)/,
+      `$1 aria-describedby="${describedBy}"$2`
+    );
+  }
 
   return `
     <div 
@@ -133,10 +160,7 @@ export function renderFieldWrapper(
     >
       ${renderFieldLabel(field, field.name, field.hiddenLabel)}
       <div part="input-container">
-        ${inputHtml.replace(
-          'aria-describedby="',
-          `aria-describedby="${describedBy}" `
-        )}
+        ${modifiedInputHtml}
       </div>
       ${renderMessageContainer(field)}
     </div>
