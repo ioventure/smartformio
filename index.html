@@ -116,7 +116,8 @@
             required: true,
             accept: "image/*",
             validationMessage: "Please select a valid image file",
-            helpText: "Upload your profile picture (JPG, PNG)",
+            helpText: "Upload your profile picture (JPG, PNG) up to 5MB",
+            maxFileSize: 50, // 5MB in KB
           },
           {
             type: "file",
@@ -126,7 +127,11 @@
             accept: ".pdf,.doc,.docx",
             required: true,
             validationMessage: "Please select valid document files",
-            helpText: "Upload your documents (PDF, DOC)",
+            helpText:
+              "Upload up to 3 documents (PDF, DOC) max 2MB each, total 5MB",
+            maxFiles: 3,
+            maxFileSize: 2048, // 2MB in KB
+            maxTotalSize: 5120, // 5MB in KB
           },
           {
             type: "radio",

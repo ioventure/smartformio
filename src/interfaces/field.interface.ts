@@ -67,6 +67,12 @@ export interface FileField extends BaseField {
   multiple?: boolean;
   /** Icon to display at the start of the input */
   leadingIcon?: string;
+  /** Maximum size of each file in KB */
+  maxFileSize?: number;
+  /** Maximum total size of all files in KB (for multiple file uploads) */
+  maxTotalSize?: number;
+  /** Maximum number of files allowed for multiple file upload */
+  maxFiles?: number;
 }
 
 /**

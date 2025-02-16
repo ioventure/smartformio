@@ -36,14 +36,45 @@ export function attachFileInputHandler(
           : "";
     }
 
+    let validationError = "";
+    const files = Array.from(input.files || []);
+
+    // Validate individual file sizes
+    if (field.maxFileSize) {
+      const maxSizeInBytes = field.maxFileSize * 1024;
+      const oversizedFiles = files.filter((file) => file.size > maxSizeInBytes);
+      if (oversizedFiles.length > 0) {
+        validationError = `File${oversizedFiles.length > 1 ? "s" : ""} ${oversizedFiles.map((f) => f.name).join(", ")} exceed${oversizedFiles.length === 1 ? "s" : ""} the maximum file size of ${field.maxFileSize}KB`;
+      }
+    }
+
+    // Validate total upload size for multiple files
+    if (!validationError && field.maxTotalSize && field.multiple) {
+      const maxTotalSizeInBytes = field.maxTotalSize * 1024;
+      const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+      if (totalSize > maxTotalSizeInBytes) {
+        const totalSizeInKB = Math.round(totalSize / 1024);
+        validationError = `Total upload size of ${totalSizeInKB}KB exceeds the maximum allowed size of ${field.maxTotalSize}KB`;
+      }
+    }
+
+    // Validate maximum number of files for multiple file upload
+    if (!validationError && field.maxFiles && field.multiple) {
+      if (files.length > field.maxFiles) {
+        validationError = `Maximum ${field.maxFiles} file${field.maxFiles === 1 ? "" : "s"} allowed`;
+      }
+    }
+
     const valueToValidate =
       input.files && input.files.length > 0
         ? field.multiple
-          ? Array.from(input.files)
+          ? files
           : input.files[0]
         : "";
 
-    const result = validateField(field, valueToValidate);
+    const result = validationError
+      ? { isValid: false, message: validationError }
+      : validateField(field, valueToValidate);
     const errorElement = form.querySelector(
       `[data-error="${field.name}"]`
     ) as HTMLElement;
