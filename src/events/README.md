@@ -1,47 +1,24 @@
-# Events Directory
+# Events Folder
 
-This directory contains event-related logic for the SmartFormIO library.
+This folder contains all logic related to form event handling, validation, and submission. Here's a quick overview:
 
-## Files
+- **form.event.ts**  
+  Sets up the event listeners for each field type and orchestrates form submission.
 
-- `form.event.ts`: Contains the event definitions and handling logic for forms.
+- **form.submission.ts**  
+  Collects the form data on submit and runs an overall validation pass on the final dataset.
 
-## Usage
+- **validation.utils.ts**  
+  Provides shared helper functions for applying/clearing error states on inputs.
 
-The event handling logic allows you to manage form events effectively. Below are examples of how to use the event handling components.
+- **field-handlers/**  
+  Houses individual handlers for each field type:
+  - `checkbox-input.handler.ts`
+  - `date-input.handler.ts`
+  - `file-input.handler.ts`
+  - `radio-input.handler.ts`
+  - `select-input.handler.ts`
+  - `text-input.handler.ts`
+  - `index.ts` (Re-exports all handlers)
 
-### Basic Event Handling Example
-
-```typescript
-import { EventManager } from "./form.event";
-
-const eventManager = new EventManager();
-
-eventManager.on("formSubmitted", (data) => {
-  console.log("Form submitted with data:", data);
-});
-
-// Trigger the event
-eventManager.trigger("formSubmitted", {
-  username: "testUser",
-  email: "test@example.com",
-});
-```
-
-### Custom Events
-
-You can create custom events by extending the base event class. Here’s an example of a custom event:
-
-```typescript
-import { BaseEvent } from "./base-event";
-
-class CustomFormEvent extends BaseEvent {
-  constructor() {
-    super("customFormEvent");
-  }
-}
-```
-
-## Contributing
-
-We welcome contributions! Please see our [contributing guidelines](CONTRIBUTING.md) for more information on how to get involved.
+This modular approach ensures maintainability, clarity, and ease of extension for additional input types in the future.
