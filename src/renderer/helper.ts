@@ -82,8 +82,14 @@ export function renderMessageContainer(field: BaseField): string {
   const helpId = `help-${field.name}`;
   const errorId = `error-${field.name}`;
 
+  // Determine container parts based on content
+  const containerParts = ["message-container"];
+  if (!field.helpText) {
+    containerParts.push("message-container-empty");
+  }
+
   return `
-    <div part="message-container">
+    <div part="${containerParts.join(" ")}">
       ${
         field.helpText
           ? `

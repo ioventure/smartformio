@@ -237,14 +237,17 @@ smart-form-io::part(message-container) {
   margin-top: calc(var(--smartform-spacing) * 0.25);
 }
 
+smart-form-io::part(message-container-empty) {
+  min-height: 0;
+  margin-top: 0;
+}
+
 /* Error Text */
 smart-form-io::part(error-text),
 smart-form-io::part(help-text) {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: relative;
   width: 100%;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   transition:
     opacity var(--smartform-transition-duration)
       var(--smartform-transition-timing),
@@ -256,6 +259,8 @@ smart-form-io::part(error-text) {
   color: var(--smartform-error-color);
   opacity: 0;
   visibility: hidden;
+  padding: 0.5em 0;
+  display: block;
 }
 
 smart-form-io::part(error-text-visible) {
