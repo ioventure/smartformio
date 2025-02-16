@@ -15,6 +15,9 @@ export function setupFormEvents(
     return;
   }
 
+  // Prevent native validation
+  form.setAttribute("novalidate", "true");
+
   // Setup validation for each field
   schema.fields.forEach((field) => {
     const inputs = form.querySelectorAll(
@@ -29,30 +32,35 @@ export function setupFormEvents(
 
     if (!inputs.length || !errorElement) return;
 
+    // ----------------------------
+    //  Reusable show/hide helpers
+    // ----------------------------
     const showError = (message: string) => {
-      // Show error message
       errorElement.textContent = message;
       errorElement.setAttribute("part", "error-text error-text-visible");
 
-      // Add invalid state to inputs
-      inputs.forEach((input) => {
-        const inputParts = input.getAttribute("part")?.split(" ") || [];
-        input.setAttribute("part", [...inputParts, "input-invalid"].join(" "));
-        input.setAttribute("aria-invalid", "true");
-      });
-
-      // Hide help text
       if (helpElement) {
         helpElement.setAttribute("part", "help-text help-text-hidden");
       }
+
+      inputs.forEach((input) => {
+        const inputParts = input.getAttribute("part")?.split(" ") || [];
+        if (!inputParts.includes("input-invalid")) {
+          inputParts.push("input-invalid");
+        }
+        input.setAttribute("part", inputParts.join(" "));
+        input.setAttribute("aria-invalid", "true");
+      });
     };
 
     const hideError = () => {
-      // Hide error message
       errorElement.textContent = "";
       errorElement.setAttribute("part", "error-text");
 
-      // Remove invalid state from inputs
+      if (helpElement) {
+        helpElement.setAttribute("part", "help-text");
+      }
+
       inputs.forEach((input) => {
         const inputParts =
           input
@@ -62,18 +70,24 @@ export function setupFormEvents(
         input.setAttribute("part", inputParts.join(" "));
         input.setAttribute("aria-invalid", "false");
       });
-
-      // Show help text
-      if (helpElement) {
-        helpElement.setAttribute("part", "help-text");
-      }
     };
 
     // Initialize states
     hideError();
 
-    // Handle checkbox group validation
+    // ---------------------------------
+    //  Handle checkbox group validation
+    // ---------------------------------
     if (field.type === "checkbox" && field.options) {
+      const minSelect =
+        field.minSelect !== undefined
+          ? field.minSelect
+          : field.required
+            ? 1
+            : 0;
+      const maxSelect =
+        field.maxSelect !== undefined ? field.maxSelect : Infinity;
+
       const requiredInput = form.querySelector(
         `[data-required-group="${field.name}"]`
       ) as HTMLInputElement;
@@ -86,43 +100,43 @@ export function setupFormEvents(
             );
             const checkedCount = checkedInputs.length;
 
-            // Validate min/max selection
-            if (field.minSelect && checkedCount < field.minSelect) {
-              showError(`Please select at least ${field.minSelect} options`);
-              requiredInput.value = "";
-            } else if (field.maxSelect && checkedCount > field.maxSelect) {
+            if (checkedCount < minSelect) {
               showError(
-                `Please select no more than ${field.maxSelect} options`
+                `Please select at least ${minSelect} option${minSelect > 1 ? "s" : ""}`
               );
               requiredInput.value = "";
-              (input as HTMLInputElement).checked = false;
+            } else if (checkedCount > maxSelect) {
+              showError(
+                `Please select no more than ${maxSelect} option${maxSelect > 1 ? "s" : ""}`
+              );
+              requiredInput.value = "";
             } else {
               hideError();
               requiredInput.value = checkedCount > 0 ? "true" : "";
             }
 
-            // Disable remaining checkboxes if max is reached
             if (field.maxSelect) {
-              const canSelect = checkedCount < field.maxSelect;
+              const canSelect = checkedCount < maxSelect;
               inputs.forEach((inp) => {
-                if (!(inp as HTMLInputElement).checked) {
-                  (inp as HTMLInputElement).disabled = !canSelect;
-                }
+                (inp as HTMLInputElement).disabled =
+                  !(inp as HTMLInputElement).checked && !canSelect;
               });
             }
           });
         });
       }
-    }
+    } else if (field.type === "file") {
+      // ----------------------------
+      //  Handle file input changes
+      // ----------------------------
+      inputs[0].addEventListener("change", () => {
+        const input = inputs[0] as HTMLInputElement;
 
-    // Handle file input changes
-    if (field.type === "file") {
-      const fileNameElement = inputs[0].parentElement
-        ?.nextElementSibling as HTMLElement;
-      if (fileNameElement) {
-        inputs[0].addEventListener("change", () => {
-          const input = inputs[0] as HTMLInputElement;
-          if (input.files?.length) {
+        // Optionally update a file name display if an element exists.
+        const fileNameElement = input.parentElement
+          ?.nextElementSibling as HTMLElement;
+        if (fileNameElement) {
+          if (input.files && input.files.length > 0) {
             const fileNames = Array.from(input.files)
               .map((file) => file.name)
               .join(", ");
@@ -130,41 +144,68 @@ export function setupFormEvents(
           } else {
             fileNameElement.textContent = "";
           }
-          validateAndShowError();
+        }
+
+        // Determine the value to validate:
+        // For multiple file inputs, pass an array of File objects.
+        // For a single file input, pass the single File object if available.
+        // If no file is selected, pass an empty string.
+        const valueToValidate =
+          input.files && input.files.length > 0
+            ? field.multiple
+              ? Array.from(input.files)
+              : input.files[0]
+            : "";
+
+        const result = validateField(field, valueToValidate);
+        if (!result.isValid && result.message) {
+          showError(result.message);
+        } else {
+          hideError();
+        }
+      });
+    } else if (field.type === "date") {
+      // ----------------------------
+      //  Handle date input: show picker on click and validate on change
+      // ----------------------------
+      inputs[0].addEventListener("click", () => {
+        (inputs[0] as HTMLInputElement).showPicker?.();
+      });
+      inputs[0].addEventListener("change", () => {
+        const input = inputs[0] as HTMLInputElement;
+        const result = validateField(field, input.value);
+        if (!result.isValid && result.message) {
+          showError(result.message);
+        } else {
+          hideError();
+        }
+      });
+    } else {
+      // -------------------------------------
+      //  Generic validation on blur or input
+      // -------------------------------------
+      const validateAndShowError = () => {
+        const input = inputs[0] as HTMLInputElement;
+        const result = validateField(field, input.value);
+        if (!result.isValid && result.message) {
+          showError(result.message);
+        } else {
+          hideError();
+        }
+      };
+
+      inputs[0].addEventListener("blur", validateAndShowError);
+      if (schema.validateOnChange && field.type !== "file") {
+        inputs[0].addEventListener("input", () => {
+          setTimeout(validateAndShowError, 0);
         });
       }
     }
-
-    // Handle date input click to open picker
-    if (field.type === "date") {
-      inputs[0].addEventListener("click", () => {
-        // @ts-ignore: showPicker is a new API and might not be in TypeScript defs
-        (inputs[0] as HTMLInputElement).showPicker?.();
-      });
-    }
-
-    const validateAndShowError = () => {
-      const input = inputs[0] as HTMLInputElement;
-      const result = validateField(field, input.value);
-      if (!result.isValid && result.message) {
-        showError(result.message);
-      } else {
-        hideError();
-      }
-    };
-
-    // Add validation on blur
-    inputs[0].addEventListener("blur", validateAndShowError);
-
-    // Add validation on input if validateOnChange is true (except for file inputs)
-    if (schema.validateOnChange && field.type !== "file") {
-      inputs[0].addEventListener("input", () => {
-        setTimeout(validateAndShowError, 0);
-      });
-    }
   });
 
-  // Setup form submission
+  // ---------------------
+  //  Setup form submission
+  // ---------------------
   form.addEventListener("submit", (event: Event) => {
     event.preventDefault();
 
@@ -173,7 +214,7 @@ export function setupFormEvents(
     const checkboxGroups = new Set<string>();
     let hasErrors = false;
 
-    // First pass: collect checkbox group names and initialize arrays
+    // First pass: collect checkbox group names and initialize arrays.
     formData.forEach((value, key) => {
       if (key.endsWith("[]")) {
         const groupName = key.slice(0, -2);
@@ -182,7 +223,7 @@ export function setupFormEvents(
       }
     });
 
-    // Second pass: process form data
+    // Second pass: process form data.
     formData.forEach((value, key) => {
       if (key.endsWith("-required")) return; // Skip hidden required inputs
 
@@ -190,67 +231,168 @@ export function setupFormEvents(
         (f) => f.name === key || `${f.name}[]` === key
       );
 
-      if (field?.type === "file" && field.multiple) {
-        // Handle multiple files
+      if (field?.type === "file") {
         const input = form.querySelector(`[name="${key}"]`) as HTMLInputElement;
-        data[key] = input.files ? Array.from(input.files) : [];
+        if (field.multiple) {
+          data[key] = input.files ? Array.from(input.files) : [];
+        } else {
+          data[key] =
+            input.files && input.files.length > 0 ? input.files[0] : "";
+        }
       } else if (checkboxGroups.has(key.replace("[]", ""))) {
-        // Handle checkbox groups
         const groupName = key.replace("[]", "");
         data[groupName].push(value);
       } else if (field?.type === "checkbox" && !field.options) {
-        // Handle single checkbox (convert to boolean)
         const input = form.querySelector(`[name="${key}"]`) as HTMLInputElement;
         data[key] = input.checked;
       } else {
-        // Handle other inputs
         data[key] = value;
       }
     });
 
-    // Third pass: validate checkbox groups
+    // Ensure file inputs are present even if no file was selected.
+    schema.fields.forEach((field) => {
+      if (field.type === "file" && !(field.name in data)) {
+        data[field.name] = field.multiple ? [] : "";
+      }
+    });
+
+    // -------------------------------------------------
+    //  Third pass: validate checkbox groups individually.
+    // -------------------------------------------------
     checkboxGroups.forEach((groupName) => {
       const field = schema.fields.find((f) => f.name === groupName);
       if (field?.type === "checkbox" && field.options) {
         const checkedCount = data[groupName].length;
+        const minSelect =
+          field.minSelect !== undefined
+            ? field.minSelect
+            : field.required
+              ? 1
+              : 0;
+        const maxSelect =
+          field.maxSelect !== undefined ? field.maxSelect : Infinity;
+
         const errorElement = form.querySelector(
           `[data-error="${groupName}"]`
         ) as HTMLElement;
+        const helpElement = form.querySelector(
+          `[data-help="${groupName}"]`
+        ) as HTMLElement;
+        const inputs = form.querySelectorAll(
+          `[name="${groupName}"], [name="${groupName}[]"]`
+        );
 
-        if (field.minSelect && checkedCount < field.minSelect) {
+        if (checkedCount < minSelect) {
           hasErrors = true;
           if (errorElement) {
-            errorElement.textContent = `Please select at least ${field.minSelect} options`;
+            errorElement.textContent = field.validationMessage
+              ? field.validationMessage
+              : `Please select at least ${minSelect} option${minSelect > 1 ? "s" : ""}`;
             errorElement.setAttribute("part", "error-text error-text-visible");
           }
-        } else if (field.maxSelect && checkedCount > field.maxSelect) {
+          if (helpElement) {
+            helpElement.setAttribute("part", "help-text help-text-hidden");
+          }
+          inputs.forEach((input) => {
+            const inputParts = input.getAttribute("part")?.split(" ") || [];
+            if (!inputParts.includes("input-invalid")) {
+              inputParts.push("input-invalid");
+            }
+            input.setAttribute("part", inputParts.join(" "));
+            input.setAttribute("aria-invalid", "true");
+          });
+        } else if (checkedCount > maxSelect) {
           hasErrors = true;
           if (errorElement) {
-            errorElement.textContent = `Please select no more than ${field.maxSelect} options`;
+            errorElement.textContent = `Please select no more than ${maxSelect} option${maxSelect > 1 ? "s" : ""}`;
             errorElement.setAttribute("part", "error-text error-text-visible");
           }
+          if (helpElement) {
+            helpElement.setAttribute("part", "help-text help-text-hidden");
+          }
+          inputs.forEach((input) => {
+            const inputParts = input.getAttribute("part")?.split(" ") || [];
+            if (!inputParts.includes("input-invalid")) {
+              inputParts.push("input-invalid");
+            }
+            input.setAttribute("part", inputParts.join(" "));
+            input.setAttribute("aria-invalid", "true");
+          });
+        } else {
+          if (errorElement) {
+            errorElement.textContent = "";
+            errorElement.setAttribute("part", "error-text");
+          }
+          if (helpElement) {
+            helpElement.setAttribute("part", "help-text");
+          }
+          inputs.forEach((input) => {
+            const inputParts =
+              input
+                .getAttribute("part")
+                ?.split(" ")
+                .filter((p) => p !== "input-invalid") || [];
+            input.setAttribute("part", inputParts.join(" "));
+            input.setAttribute("aria-invalid", "false");
+          });
         }
       }
     });
 
-    // Validate all fields
+    // ---------------------------
+    //  Fourth pass: validate all remaining fields at once.
+    // ---------------------------
     const validationResults = validateForm(schema, data);
-
-    // Show validation messages
     Object.entries(validationResults).forEach(([fieldName, result]) => {
+      const errorElement = form.querySelector(
+        `[data-error="${fieldName}"]`
+      ) as HTMLElement;
+      const helpElement = form.querySelector(
+        `[data-help="${fieldName}"]`
+      ) as HTMLElement;
+      const inputs = form.querySelectorAll(
+        `[name="${fieldName}"], [name="${fieldName}[]"]`
+      );
+
       if (!result.isValid && result.message) {
         hasErrors = true;
-        const errorElement = form.querySelector(
-          `[data-error="${fieldName}"]`
-        ) as HTMLElement;
         if (errorElement) {
           errorElement.textContent = result.message;
           errorElement.setAttribute("part", "error-text error-text-visible");
         }
+        if (helpElement) {
+          helpElement.setAttribute("part", "help-text help-text-hidden");
+        }
+        inputs.forEach((input) => {
+          const inputParts = input.getAttribute("part")?.split(" ") || [];
+          if (!inputParts.includes("input-invalid")) {
+            inputParts.push("input-invalid");
+          }
+          input.setAttribute("part", inputParts.join(" "));
+          input.setAttribute("aria-invalid", "true");
+        });
+      } else {
+        if (errorElement) {
+          errorElement.textContent = "";
+          errorElement.setAttribute("part", "error-text");
+        }
+        if (helpElement) {
+          helpElement.setAttribute("part", "help-text");
+        }
+        inputs.forEach((input) => {
+          const inputParts =
+            input
+              .getAttribute("part")
+              ?.split(" ")
+              .filter((p) => p !== "input-invalid") || [];
+          input.setAttribute("part", inputParts.join(" "));
+          input.setAttribute("aria-invalid", "false");
+        });
       }
     });
 
-    // Only submit if there are no validation errors
+    // Only submit if there are no validation errors.
     if (!hasErrors) {
       onSubmit(data);
     }

@@ -11,9 +11,6 @@ export function renderFileInput(field: FileField): string {
     inputParts.push("input-leading-icon");
   }
 
-  // Default button text based on multiple property
-  const defaultButtonText = field.multiple ? "Upload Files" : "Upload File";
-
   const input = `
     <div part="input-wrapper">
       ${field.leadingIcon ? `<span part="leading-icon">${field.leadingIcon}</span>` : ""}
@@ -31,10 +28,8 @@ export function renderFileInput(field: FileField): string {
           "aria-required": field.required ? "true" : undefined,
           "aria-describedby": `help-${field.name} error-${field.name}`,
           "aria-invalid": "false",
-          title: field.buttonText || defaultButtonText
         })} 
       />
-      <span part="file-name"></span>
     </div>
   `;
 

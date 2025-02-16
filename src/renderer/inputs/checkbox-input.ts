@@ -24,12 +24,16 @@ export function renderCheckbox(field: CheckboxField): string {
                 ? `description-${field.name}`
                 : undefined,
               "aria-invalid": "false",
-              checked: field.defaultValue ? "true" : undefined, // Use defaultValue for pre-filling
+              checked: field.value ? "true" : undefined,
             })} 
           />
           <div part="checkbox-content">
             <span part="checkbox-label">${field.label}</span>
-            ${field.description ? `<span part="checkbox-description" id="description-${field.name}">${field.description}</span>` : ""}
+            ${
+              field.description
+                ? `<span part="checkbox-description" id="description-${field.name}">${field.description}</span>`
+                : ""
+            }
           </div>
         </label>
       </div>
@@ -46,7 +50,13 @@ export function renderCheckbox(field: CheckboxField): string {
   }
 
   const input = `
-    <div part="${groupParts.join(" ")}" role="group" aria-label="${field.label}">
+    <div 
+      part="${groupParts.join(" ")}" 
+      role="group" 
+      aria-label="${field.label}"
+      ${field.minSelect ? `data-min-select="${field.minSelect}"` : ""}
+      ${field.maxSelect ? `data-max-select="${field.maxSelect}"` : ""}
+    >
       ${
         field.required
           ? `
@@ -55,8 +65,6 @@ export function renderCheckbox(field: CheckboxField): string {
           name="${field.name}-required" 
           data-required-group="${field.name}" 
           required
-          ${field.minSelect ? `data-min-select="${field.minSelect}"` : ""}
-          ${field.maxSelect ? `data-max-select="${field.maxSelect}"` : ""}
         />
       `
           : ""
@@ -68,8 +76,16 @@ export function renderCheckbox(field: CheckboxField): string {
           const description =
             typeof option === "string" ? undefined : option.description;
           const isChecked =
-            Array.isArray(field.defaultValue) &&
-            field.defaultValue.includes(value);
+            Array.isArray(field.value) && field.value.includes(value);
+
+          // Build aria-describedby by combining description and error container.
+          let ariaDescribedBy = "";
+          if (description) {
+            ariaDescribedBy += `description-${field.name}-${index}`;
+          }
+          // Always add error element id so that error messages are announced.
+          ariaDescribedBy +=
+            (ariaDescribedBy ? " " : "") + `error-${field.name}`;
 
           return `
           <label part="checkbox-container">
@@ -83,17 +99,22 @@ export function renderCheckbox(field: CheckboxField): string {
                 disabled: field.disabled,
                 "data-testid": `input-${field.name}-${index}`,
                 "data-group": field.name,
+                "data-group-index": index.toString(),
                 "aria-label": label,
-                "aria-describedby": description
-                  ? `description-${field.name}-${index}`
-                  : undefined,
+                "aria-describedby": ariaDescribedBy,
                 "aria-invalid": "false",
-                checked: isChecked ? "true" : undefined, // Use defaultValue for pre-filling
-              })} 
+                checked: isChecked ? "true" : undefined,
+                "data-min-select": field.minSelect?.toString(),
+                "data-max-select": field.maxSelect?.toString(),
+              })}
             />
             <div part="checkbox-content">
               <span part="checkbox-label">${label}</span>
-              ${description ? `<span part="checkbox-description" id="description-${field.name}-${index}">${description}</span>` : ""}
+              ${
+                description
+                  ? `<span part="checkbox-description" id="description-${field.name}-${index}">${description}</span>`
+                  : ""
+              }
             </div>
           </label>
         `;
