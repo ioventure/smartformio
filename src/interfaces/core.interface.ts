@@ -8,10 +8,6 @@
 export interface SmartFormConfig {
   /** Whether to validate on change */
   validateOnChange?: boolean;
-  /** Validation debounce time in milliseconds */
-  validationDebounce?: number;
-  /** Custom validation handler */
-  customValidation?: ValidationHandler;
 }
 
 /**
@@ -60,4 +56,3 @@ export interface FormSchema {
 
 // Import this here to avoid circular dependency
 import { FormFieldSchema } from "./field.interface";
-import { ValidationHandler } from "./validation.interface";
