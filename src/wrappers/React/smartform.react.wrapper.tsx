@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, forwardRef } from "react";
-import "../../web-components/smartform"; // Import and register the core web component
+import "../../web-components/smartform";
 
 // Create a React component that renders the custom element using React.createElement.
 // Using forwardRef allows us to pass a ref to the underlying custom element.
@@ -14,8 +14,6 @@ SmartFormElement.displayName = "SmartFormElement";
 export interface SmartFormIOProps {
   /** The form schema that defines the structure and validation rules */
   schema: Record<string, any>;
-  /** Option to disable default styles */
-  disableDefaultStyles?: boolean;
   /** Callback function called when form is submitted */
   onSubmit?: (data: any) => void;
 }
@@ -46,7 +44,6 @@ export interface SmartFormIOProps {
  */
 export const SmartFormReact: React.FC<SmartFormIOProps> = ({
   schema,
-  disableDefaultStyles = false,
   onSubmit,
 }) => {
   const formRef = useRef<HTMLElement>(null);
@@ -61,13 +58,6 @@ export const SmartFormReact: React.FC<SmartFormIOProps> = ({
     // Set the schema attribute.
     currentElement.setAttribute("schema", schemaString);
 
-    // Set or remove the disable-default-styles attribute.
-    if (disableDefaultStyles) {
-      currentElement.setAttribute("disable-default-styles", "");
-    } else {
-      currentElement.removeAttribute("disable-default-styles");
-    }
-
     // Event handler for form submission.
     const handleSubmit = (event: Event) => {
       if (typeof onSubmit === "function" && event instanceof CustomEvent) {
@@ -81,7 +71,7 @@ export const SmartFormReact: React.FC<SmartFormIOProps> = ({
     return () => {
       currentElement.removeEventListener("smartformio:submit", handleSubmit);
     };
-  }, [schemaString, disableDefaultStyles, onSubmit]);
+  }, [schemaString, onSubmit]);
 
   return <SmartFormElement ref={formRef} />;
 };

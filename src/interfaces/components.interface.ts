@@ -8,8 +8,6 @@
 export interface SmartFormElement extends HTMLElement {
   /** The form schema as a JSON string */
   schema: string;
-  /** Whether to disable default styles */
-  disableDefaultStyles: boolean;
   /** Event handler for form submission */
   onSubmit?: (event: CustomEvent<Record<string, any>>) => void;
 }

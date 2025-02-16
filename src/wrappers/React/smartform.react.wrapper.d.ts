@@ -2,7 +2,6 @@ import { FC } from "react";
 
 export interface SmartFormIOProps {
   schema: Record<string, any>;
-  disableDefaultStyles?: boolean;
   onSubmit?: (data: any) => void;
 }
 

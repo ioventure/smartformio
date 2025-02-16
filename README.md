@@ -121,7 +121,6 @@ interface FormSchema {
   description?: string;
   fields: FormFieldSchema[];
   validateOnChange?: boolean;
-  showSubmitButton?: boolean;
   submitButtonText?: string;
 }
 ```
@@ -186,7 +185,6 @@ smart-form-io::part(error-text) {
 ```typescript
 interface SmartFormElement extends HTMLElement {
   schema: string;
-  disableDefaultStyles: boolean;
 }
 ```
 
@@ -195,7 +193,6 @@ interface SmartFormElement extends HTMLElement {
 ```typescript
 interface SmartFormIOProps {
   schema: FormSchema;
-  disableDefaultStyles?: boolean;
   onSubmit?: (data: any) => void;
 }
 ```

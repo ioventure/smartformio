@@ -29,11 +29,6 @@ declare global {
     schema: string;
 
     /**
-     * Whether to disable default styles
-     */
-    disableDefaultStyles: boolean;
-
-    /**
      * Event handler for form submission
      */
     onSubmit?: (event: CustomEvent<Record<string, any>>) => void;

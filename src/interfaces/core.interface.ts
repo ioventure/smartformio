@@ -10,8 +10,6 @@ export interface SmartFormConfig {
   validateOnChange?: boolean;
   /** Validation debounce time in milliseconds */
   validationDebounce?: number;
-  /** Whether to disable default styles */
-  disableDefaultStyles?: boolean;
   /** Custom validation handler */
   customValidation?: ValidationHandler;
 }
@@ -56,8 +54,6 @@ export interface FormSchema {
   fields: FormFieldSchema[];
   /** Enable real-time validation on input */
   validateOnChange?: boolean;
-  /** Show the submit button */
-  showSubmitButton?: boolean;
   /** Custom text for the submit button */
   submitButtonText?: string;
 }
