@@ -1,16 +1,7 @@
-// events/form.event.ts
-
-/**
- * Form Event Setup
- *
- * Sets up form validation and submission events within the provided Shadow DOM.
- * It leverages specialized input handlers for each field type, ensuring a clean,
- * modular approach to event logic.
- */
-
 import { FormSchema } from "@interfaces/core.interface";
 import { FormFieldSchema } from "@interfaces/field.interface";
 import { collectFormData, validateRemainingFields } from "./form.submission";
+import { handleApiSubmission } from "./form.api.events";
 import {
   attachTextInputHandler,
   attachDateInputHandler,
@@ -18,12 +9,10 @@ import {
   attachRadioHandler,
   attachSelectHandler,
   attachCheckboxHandler,
-} from "@events/field-handlers";
+} from "./field-handlers";
 
 /**
- * Updates the submit button state based on the form's current validation status.
- * @param form The HTMLFormElement
- * @param schema The form schema
+ * Updates the submit button state based on form validation
  */
 function updateSubmitButtonState(
   form: HTMLFormElement,
@@ -61,72 +50,78 @@ function updateSubmitButtonState(
 }
 
 /**
- * Sets up form validation and submission events within the provided Shadow DOM.
- * @param shadow The ShadowRoot containing the form
- * @param schema The schema defining the form fields
- * @param onSubmit Callback invoked with form data when submission is successful
+ * Sets up form validation and submission events
  */
-export function setupFormEvents(
-  shadow: ShadowRoot,
-  schema: FormSchema,
-  onSubmit: (data: Record<string, any>) => void
-): void {
+export function setupFormEvents(shadow: ShadowRoot, schema: FormSchema): void {
   const form = shadow.querySelector("#smartform") as HTMLFormElement;
   if (!form) {
     console.warn("Form element with id 'smartform' not found in Shadow DOM.");
     return;
   }
 
-  // Disable native validation; rely on our own event-based validation
+  // Disable native validation
   form.setAttribute("novalidate", "true");
-  form.dataset.validateOnChange = "true";
+  form.dataset.validateOnChange = schema.validateOnChange?.toString() || "true";
 
-  // Attach field-specific event handlers
+  // Attach field-specific handlers
   schema.fields.forEach((field: FormFieldSchema) => {
+    const updateState = () => updateSubmitButtonState(form, schema);
+
     switch (field.type) {
       case "checkbox":
-        attachCheckboxHandler(field, form, () =>
-          updateSubmitButtonState(form, schema)
-        );
+        attachCheckboxHandler(field, form, updateState);
         break;
       case "date":
-        attachDateInputHandler(field, form, () =>
-          updateSubmitButtonState(form, schema)
-        );
+        attachDateInputHandler(field, form, updateState);
         break;
       case "file":
-        attachFileInputHandler(field, form, () =>
-          updateSubmitButtonState(form, schema)
-        );
+        attachFileInputHandler(field, form, updateState);
         break;
       case "radio":
-        attachRadioHandler(field, form, () =>
-          updateSubmitButtonState(form, schema)
-        );
+        attachRadioHandler(field, form, updateState);
         break;
       case "select":
-        attachSelectHandler(field, form, () =>
-          updateSubmitButtonState(form, schema)
-        );
+        attachSelectHandler(field, form, updateState);
         break;
       default:
-        // For standard text-based fields (text, email, password, etc.)
-        attachTextInputHandler(field, form, () =>
-          updateSubmitButtonState(form, schema)
-        );
+        attachTextInputHandler(field, form, updateState);
         break;
     }
   });
 
-  // Setup form submission handler
-  form.addEventListener("submit", (event: Event) => {
+  // Handle form submission
+  form.addEventListener("submit", async (event: Event) => {
     event.preventDefault();
-    const data = collectFormData(form, schema);
-    const hasErrors = validateRemainingFields(form, schema, data);
-    updateSubmitButtonState(form, schema);
 
-    if (!hasErrors) {
-      onSubmit(data);
+    try {
+      // Collect and validate form data
+      const formData = collectFormData(form, schema);
+      const hasErrors = validateRemainingFields(form, schema, formData);
+
+      if (hasErrors) {
+        throw new Error("Form validation failed");
+      }
+
+      // Handle API submission if configured
+      if (schema.api) {
+        await handleApiSubmission(form, schema, formData);
+      } else {
+        // If no API config, just emit submit event and reset
+        const submitEvent = new CustomEvent("smartformio:submit", {
+          bubbles: true,
+          composed: true,
+          detail: formData,
+        });
+        form.dispatchEvent(submitEvent);
+        form.reset();
+      }
+    } catch (error) {
+      console.error("Form submission failed:", error);
+      // Let the error propagate for global error handlers
+      throw error;
     }
   });
+
+  // Initial button state
+  updateSubmitButtonState(form, schema);
 }
