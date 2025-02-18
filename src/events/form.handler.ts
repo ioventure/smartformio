@@ -1,5 +1,5 @@
 import { FormSchema } from "@interfaces/core.interface";
-import { HttpService } from "@services/http.service";
+import { httpService } from "@services/http.service";
 import { collectFormData, validateRemainingFields } from "./form.submission";
 
 /**
@@ -59,7 +59,7 @@ export async function handleFormSubmission(
       }
 
       try {
-        const response = await HttpService.request(schema.api, formData);
+        const response = await httpService.request(schema.api, formData);
 
         if (response.success) {
           // Dispatch success event

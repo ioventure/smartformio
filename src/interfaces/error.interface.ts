@@ -31,6 +31,7 @@ export interface ComponentErrorDetails {
   props?: Record<string, any>;
   attribute?: string;
   schema?: string;
+  instanceId?: string; // Added for tracking individual component instances
 }
 
 /**

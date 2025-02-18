@@ -24,8 +24,6 @@ export type {
 } from "@interfaces/validation.interface";
 export type { FormSubmitEvent } from "@interfaces/events.interface";
 export type {
-  SmartFormElement,
-  SmartFormAttributes,
   SmartFormParts,
   FormElements,
 } from "@interfaces/components.interface";

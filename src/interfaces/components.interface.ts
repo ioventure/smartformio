@@ -2,55 +2,82 @@
  * @file Web component related interfaces and types
  */
 
+import { FormSchema } from "./core.interface";
+
 /**
  * SmartForm web component element interface
  */
-export interface SmartFormElement extends HTMLElement {
-  /** The form schema as a JSON string */
+export interface SmartFormIOElement extends HTMLElement {
   schema: string;
-  /** Event handler for form submission */
-  onSubmit?: (event: CustomEvent<Record<string, any>>) => void;
+  formId: string;
 }
 
 /**
- * SmartForm web component attributes
+ * SmartForm web component element interface
  */
-export interface SmartFormAttributes {
-  /** The form schema as a JSON string */
-  schema?: string;
-  /** Whether to disable default styles */
-  "disable-default-styles"?: "";
+export interface SmartFormIOElement extends HTMLElement {
+  schema: string;
+  formId: string;
 }
 
 /**
- * SmartForm CSS part names for styling
+ * SmartForm web component attributes interface
+ */
+export interface SmartFormIOAttributes {
+  schema?: string;
+}
+
+/**
+ * Props interface for SmartForm
+ */
+export interface SmartFormIOProps extends SmartFormIOAttributes {
+  // Define additional properties for SmartFormIOProps
+}
+
+/**
+ * SmartForm parts interface
  */
 export interface SmartFormParts {
-  container: string;
-  title: string;
-  field: string;
-  label: string;
-  "input-wrapper": string;
-  input: string;
-  "input-invalid": string;
-  "help-text": string;
-  "error-text": string;
-  button: string;
-  "leading-icon": string;
-  "trailing-icon": string;
-  "checkbox-group": string;
-  "checkbox-container": string;
-  "checkbox-label": string;
-  "checkbox-description": string;
-  "radio-group": string;
-  "radio-label": string;
+  // Define properties for SmartForm parts
 }
 
 /**
- * Form DOM elements interface
+ * Form elements interface
  */
 export interface FormElements {
-  input: HTMLInputElement;
-  error: HTMLElement;
-  help?: HTMLElement;
+  // Define properties for form elements
+}
+
+/**
+ * SmartForm parts interface
+ */
+export interface SmartFormParts {
+  // Define properties for SmartForm parts
+}
+
+/**
+ * Form elements interface
+ */
+export interface FormElements {
+  // Define properties for form elements
+}
+
+/**
+ * Custom events interface for SmartForm
+ */
+export interface SmartFormEvents {
+  "smartformio:submit": CustomEvent<any>;
+  "smartformio:error": CustomEvent<any[]>;
+  "smartformio:change": CustomEvent<any>;
+}
+
+/**
+ * Props interface for React wrapper
+ */
+export interface SmartFormReactProps {
+  schema: FormSchema;
+  onSubmit?: (data: any) => void;
+  onError?: (errors: any[]) => void;
+  onChange?: (data: any) => void;
+  className?: string;
 }

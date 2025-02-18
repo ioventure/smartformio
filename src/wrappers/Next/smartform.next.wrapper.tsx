@@ -1,82 +1,57 @@
-"use client";
+import React from "react";
+import type { ComponentType } from "react";
+import { SmartFormReactProps } from "@interfaces/components.interface";
 
-import React, { useEffect, useMemo, useRef, forwardRef } from "react";
-import "../../web-components/smartform"; // Import and register the core web component
-
-// Create a Next.js component that renders the custom element using React.createElement.
-// Using forwardRef allows us to pass a ref to the underlying custom element.
-const SmartFormElement = forwardRef<
-  HTMLElement,
-  React.HTMLAttributes<HTMLElement>
->((props, ref) => {
-  return React.createElement("smart-form-io", { ...props, ref });
-});
-SmartFormElement.displayName = "SmartFormElement";
-
-export interface SmartFormIOProps {
-  /** The form schema that defines the structure and validation rules */
-  schema: Record<string, any>;
-  /** Callback function called when form is submitted */
-  onSubmit?: (data: any) => void;
+// Define loading component props type
+interface LoadingProps {
+  className?: string;
 }
 
+// Loading component with proper typing
+const LoadingComponent: React.FC<LoadingProps> = ({ className }) => (
+  <div
+    data-smartform-loading
+    className={className}
+    style={{ minHeight: "100px" }}
+  />
+);
+
 /**
- * SmartFormNext is a Next.js wrapper for the SmartFormIO web component.
- * It's specifically designed to work with Next.js's client components.
- *
- * @component
- * @example
- * ```tsx
- * 'use client';
- *
- * import { SmartFormNext } from '@ioventure/smartformio';
- *
- * const MyForm = () => {
- *   const schema = {
- *     fields: [
- *       { type: "text", name: "username", required: true }
- *     ]
- *   };
- *
- *   return (
- *     <SmartFormNext
- *       schema={schema}
- *       onSubmit={(data) => console.log(data)}
- *     />
- *   );
- * };
- * ```
+ * Dynamic import type for Next.js
  */
-export const SmartFormNext: React.FC<SmartFormIOProps> = ({
-  schema,
-  onSubmit,
-}) => {
-  const formRef = useRef<HTMLElement>(null);
+declare function dynamic<P = {}>(
+  dynamicOptions: () => Promise<ComponentType<P>>,
+  options?: {
+    loading?: ComponentType<LoadingProps>;
+    ssr?: boolean;
+  }
+): ComponentType<P>;
 
-  // Memoize the schema JSON string to avoid unnecessary recalculations.
-  const schemaString = useMemo(() => JSON.stringify(schema), [schema]);
+/**
+ * Dynamic import of the React wrapper with SSR disabled
+ * This ensures the web component is only loaded client-side
+ */
+const SmartFormReactClient = dynamic<SmartFormReactProps>(
+  () =>
+    import("../React/smartform.react.wrapper").then(
+      (mod) => mod.SmartFormReact
+    ),
+  {
+    ssr: false,
+    loading: LoadingComponent,
+  }
+);
 
-  useEffect(() => {
-    const currentElement = formRef.current;
-    if (!currentElement) return;
-
-    // Set the schema attribute.
-    currentElement.setAttribute("schema", schemaString);
-
-    // Event handler for form submission.
-    const handleSubmit = (event: Event) => {
-      if (typeof onSubmit === "function" && event instanceof CustomEvent) {
-        onSubmit(event.detail);
-      }
-    };
-
-    currentElement.addEventListener("smartformio:submit", handleSubmit);
-
-    // Cleanup the event listener.
-    return () => {
-      currentElement.removeEventListener("smartformio:submit", handleSubmit);
-    };
-  }, [schemaString, onSubmit]);
-
-  return <SmartFormElement ref={formRef} />;
+/**
+ * Next.js wrapper for SmartForm
+ * Handles SSR and hydration appropriately
+ */
+export const SmartFormNext: React.FC<SmartFormReactProps> = (props) => {
+  return <SmartFormReactClient {...props} />;
 };
+
+// Add display name for better debugging
+SmartFormNext.displayName = "SmartFormNext";
+
+// Export the props type for convenience
+export type { SmartFormReactProps as SmartFormNextProps };

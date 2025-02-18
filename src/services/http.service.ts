@@ -4,15 +4,31 @@ import { logger } from "./logger.service";
 import { ApiErrorResponse } from "@interfaces/error.interface";
 
 /**
- * Generic HTTP Service for making API requests
+ * Singleton HTTP Service for making API requests
+ * Handles API communication in both static and SSR environments
  */
 export class HttpService {
+  private static instance: HttpService;
   private static readonly logContext = "HttpService";
+
+  private constructor() {
+    // Private constructor to enforce singleton pattern
+  }
+
+  /**
+   * Get the singleton instance of HttpService
+   */
+  public static getInstance(): HttpService {
+    if (!HttpService.instance) {
+      HttpService.instance = new HttpService();
+    }
+    return HttpService.instance;
+  }
 
   /**
    * Handle API error responses
    */
-  private static handleApiError(
+  private handleApiError(
     error: any,
     status?: number,
     endpoint?: string,
@@ -43,7 +59,7 @@ export class HttpService {
   /**
    * Makes an HTTP request using ApiConfig
    */
-  static async request<T = any>(
+  public async request<T = any>(
     config: ApiConfig,
     data?: any
   ): Promise<ApiResponse<T>> {
@@ -78,7 +94,7 @@ export class HttpService {
           clearTimeout(timeoutId);
         } catch (error) {
           if (error instanceof Error && error.name === "AbortError") {
-            return HttpService.handleApiError(
+            return this.handleApiError(
               { message: "Request timeout", code: "TIMEOUT" },
               undefined,
               endpoint,
@@ -93,7 +109,7 @@ export class HttpService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        return HttpService.handleApiError(errorData, response.status, endpoint);
+        return this.handleApiError(errorData, response.status, endpoint);
       }
 
       const responseData = await response.json();
@@ -102,7 +118,10 @@ export class HttpService {
         data: responseData,
       };
     } catch (error: any) {
-      return HttpService.handleApiError(error, undefined, endpoint);
+      return this.handleApiError(error, undefined, endpoint);
     }
   }
 }
+
+// Export singleton instance
+export const httpService = HttpService.getInstance();

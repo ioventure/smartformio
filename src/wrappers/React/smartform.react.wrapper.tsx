@@ -1,77 +1,92 @@
-import React, { useEffect, useMemo, useRef, forwardRef } from "react";
-import "../../web-components/smartform";
+import React, { useEffect, useRef, useCallback } from "react";
+import { SmartForm } from "@web-components/smartform";
+import {
+  SmartFormIOElement,
+  SmartFormIOAttributes,
+  SmartFormEvents,
+  SmartFormReactProps,
+} from "@interfaces/components.interface";
 
-// Create a React component that renders the custom element using React.createElement.
-// Using forwardRef allows us to pass a ref to the underlying custom element.
-const SmartFormElement = forwardRef<
-  HTMLElement,
-  React.HTMLAttributes<HTMLElement>
->((props, ref) => {
-  return React.createElement("smart-form-io", { ...props, ref });
-});
-SmartFormElement.displayName = "SmartFormElement";
+type SmartFormIOProps = SmartFormIOAttributes & {
+  ref?: React.RefObject<SmartFormIOElement>;
+  className?: string;
+};
 
-export interface SmartFormIOProps {
-  /** The form schema that defines the structure and validation rules */
-  schema: Record<string, any>;
-  /** Callback function called when form is submitted */
-  onSubmit?: (data: any) => void;
+// Extend the JSX namespace
+declare module "react" {
+  namespace JSX {
+    interface IntrinsicElements {
+      "smart-form-io": SmartFormIOProps;
+    }
+  }
 }
 
 /**
- * SmartFormReact is a React wrapper for the SmartFormIO web component.
- *
- * @component
- * @example
- * ```tsx
- * import { SmartFormReact } from '@ioventure/smartformio';
- *
- * const MyForm = () => {
- *   const schema = {
- *     fields: [
- *       { type: "text", name: "username", required: true }
- *     ]
- *   };
- *
- *   return (
- *     <SmartFormReact
- *       schema={schema}
- *       onSubmit={(data) => console.log(data)}
- *     />
- *   );
- * };
- * ```
+ * React wrapper for SmartForm web component
+ * Handles SSR and client-side rendering appropriately
  */
-export const SmartFormReact: React.FC<SmartFormIOProps> = ({
+export const SmartFormReact: React.FC<SmartFormReactProps> = ({
   schema,
   onSubmit,
+  onError,
+  onChange,
+  className,
 }) => {
-  const formRef = useRef<HTMLElement>(null);
+  const formRef = useRef<SmartFormIOElement>(null);
+  const isSSR = SmartForm.isServerSide();
 
-  // Memoize the schema JSON string to avoid unnecessary recalculations.
-  const schemaString = useMemo(() => JSON.stringify(schema), [schema]);
+  const setupEventListeners = useCallback(() => {
+    const formElement = formRef.current;
+    if (!formElement) return;
+
+    const eventHandlers: {
+      [K in keyof SmartFormEvents]: (e: SmartFormEvents[K]) => void;
+    } = {
+      "smartformio:submit": (e) => onSubmit?.(e.detail),
+      "smartformio:error": (e) => onError?.(e.detail),
+      "smartformio:change": (e) => onChange?.(e.detail),
+    };
+
+    // Add event listeners
+    Object.entries(eventHandlers).forEach(([event, handler]) => {
+      formElement.addEventListener(event, handler as EventListener);
+    });
+
+    // Cleanup function
+    return () => {
+      Object.entries(eventHandlers).forEach(([event, handler]) => {
+        formElement.removeEventListener(event, handler as EventListener);
+      });
+    };
+  }, [onSubmit, onError, onChange]);
 
   useEffect(() => {
-    const currentElement = formRef.current;
-    if (!currentElement) return;
+    if (!isSSR) {
+      return setupEventListeners();
+    }
+    return;
+  }, [setupEventListeners, isSSR]);
 
-    // Set the schema attribute.
-    currentElement.setAttribute("schema", schemaString);
+  // If in SSR environment, render a placeholder
+  if (isSSR) {
+    return (
+      <div
+        data-smartform-ssr-placeholder
+        className={className}
+        data-schema={JSON.stringify(schema)}
+      />
+    );
+  }
 
-    // Event handler for form submission.
-    const handleSubmit = (event: Event) => {
-      if (typeof onSubmit === "function" && event instanceof CustomEvent) {
-        onSubmit(event.detail);
-      }
-    };
+  // Cast ref to any to avoid type conflicts with custom elements
+  const elementProps = {
+    ref: formRef as any,
+    schema: JSON.stringify(schema),
+    className,
+  };
 
-    currentElement.addEventListener("smartformio:submit", handleSubmit);
-
-    // Cleanup the event listener.
-    return () => {
-      currentElement.removeEventListener("smartformio:submit", handleSubmit);
-    };
-  }, [schemaString, onSubmit]);
-
-  return <SmartFormElement ref={formRef} />;
+  return <smart-form-io {...elementProps} />;
 };
+
+// Add display name for better debugging
+SmartFormReact.displayName = "SmartFormReact";

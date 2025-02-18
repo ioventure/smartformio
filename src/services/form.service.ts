@@ -1,87 +1,117 @@
 import { FormSchema } from "@interfaces/core.interface";
-import { SubmissionResponse } from "@interfaces/api.interface";
-import { HttpService } from "@services/http.service";
-import { FORM_API_EVENTS, dispatchFormEvent } from "@events/form.api.events";
+import { formApiHandler } from "@events/form.api.events";
+import { logger } from "@services/logger.service";
 
 /**
- * Form Submission Service
- * Handles form submission with API integration and event management
+ * Singleton FormService class
+ * Manages form instances and their configurations
  */
-export class FormSubmissionService {
-  private form: HTMLFormElement;
-  private schema: FormSchema;
+export class FormService {
+  private static instance: FormService;
+  private formInstances: Map<
+    string,
+    {
+      form: HTMLFormElement;
+      schema: FormSchema;
+    }
+  >;
+  private readonly logContext = "FormService";
 
-  constructor(form: HTMLFormElement, schema: FormSchema) {
-    this.form = form;
-    this.schema = schema;
+  private constructor() {
+    this.formInstances = new Map();
+    logger.info("FormService singleton initialized", this.logContext);
   }
 
   /**
-   * Handles the form submission process
+   * Get the singleton instance of FormService
    */
-  async submit(formData: Record<string, any>): Promise<void> {
+  public static getInstance(): FormService {
+    if (!FormService.instance) {
+      FormService.instance = new FormService();
+    }
+    return FormService.instance;
+  }
+
+  /**
+   * Register a new form instance
+   */
+  public registerForm(
+    id: string,
+    form: HTMLFormElement,
+    schema: FormSchema
+  ): void {
+    if (this.formInstances.has(id)) {
+      logger.warn(
+        `Form with ID ${id} already exists. Updating configuration.`,
+        this.logContext
+      );
+    }
+    this.formInstances.set(id, { form, schema });
+    logger.info(`Form ${id} registered successfully`, this.logContext);
+  }
+
+  /**
+   * Unregister a form instance
+   */
+  public unregisterForm(id: string): void {
+    if (this.formInstances.delete(id)) {
+      logger.info(`Form ${id} unregistered successfully`, this.logContext);
+    }
+  }
+
+  /**
+   * Get a form instance by ID
+   */
+  public getForm(
+    id: string
+  ): { form: HTMLFormElement; schema: FormSchema } | undefined {
+    return this.formInstances.get(id);
+  }
+
+  /**
+   * Handle form submission
+   */
+  public async submit(
+    id: string,
+    formData: Record<string, any>
+  ): Promise<void> {
+    const instance = this.formInstances.get(id);
+    if (!instance) {
+      throw new Error(`Form with ID ${id} not found`);
+    }
+
+    const { form, schema } = instance;
+
     try {
-      // Dispatch submit event
-      dispatchFormEvent(this.form, FORM_API_EVENTS.SUBMIT, formData);
-
-      if (this.schema.api) {
-        const response = await this.submitToApi(formData);
-
-        if (response.success) {
-          await this.handleSuccess(response);
-        } else {
-          await this.handleError(response.error);
-        }
+      if (schema.api) {
+        await formApiHandler.handleSubmission(form, schema, formData, id);
       } else {
-        // If no API config, just dispatch submit event and reset form
-        this.form.reset();
+        // If no API config, just reset form
+        form.reset();
       }
     } catch (error) {
-      await this.handleError(error);
+      logger.error(
+        `Form submission failed for ${id}`,
+        error instanceof Error ? error : new Error(String(error)),
+        this.logContext
+      );
       throw error;
     }
   }
 
   /**
-   * Submits form data to the API
+   * Update form UI state during submission
    */
-  private async submitToApi(
-    formData: Record<string, any>
-  ): Promise<SubmissionResponse> {
-    if (!this.schema.api) {
-      throw new Error("API configuration is missing");
+  public updateSubmitButtonState(id: string, isSubmitting: boolean): void {
+    const instance = this.formInstances.get(id);
+    if (!instance) {
+      return;
     }
 
-    return HttpService.request(this.schema.api, formData);
-  }
-
-  /**
-   * Handles successful submission
-   */
-  private async handleSuccess(response: SubmissionResponse): Promise<void> {
-    dispatchFormEvent(this.form, FORM_API_EVENTS.SUCCESS, {
-      data: response.data,
-    });
-
-    this.form.reset();
-  }
-
-  /**
-   * Handles submission error
-   */
-  private async handleError(error: any): Promise<void> {
-    dispatchFormEvent(this.form, FORM_API_EVENTS.ERROR, {
-      error,
-    });
-  }
-
-  /**
-   * Updates form UI state during submission
-   */
-  updateSubmitButtonState(isSubmitting: boolean): void {
-    const submitButton = this.form.querySelector(
+    const submitButton = instance.form.querySelector(
       'button[type="submit"]'
     ) as HTMLButtonElement;
+
     if (submitButton) {
       submitButton.disabled = isSubmitting;
       if (isSubmitting) {
@@ -92,3 +122,6 @@ export class FormSubmissionService {
     }
   }
 }
+
+// Export singleton instance
+export const formService = FormService.getInstance();

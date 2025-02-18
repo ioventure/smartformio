@@ -1,5 +1,7 @@
 import { FormSchema } from "@interfaces/core.interface";
-import { HttpService } from "@services/http.service";
+import { httpService } from "@services/http.service";
+import { logger } from "@services/logger.service";
+import { formService } from "@services/form.service";
 
 /**
  * Custom event types for form API events
@@ -11,93 +13,114 @@ export const FORM_API_EVENTS = {
 } as const;
 
 /**
- * Dispatches a custom form event
+ * Singleton FormApiHandler Service
+ * Manages form API events and submissions
  */
-export function dispatchFormEvent(
-  form: HTMLFormElement,
-  eventName: string,
-  detail: Record<string, any>
-): void {
-  const event = new CustomEvent(eventName, {
-    bubbles: true,
-    composed: true,
-    detail,
-  });
-  form.dispatchEvent(event);
-}
+export class FormApiHandler {
+  private static instance: FormApiHandler;
+  private readonly logContext = "FormApiHandler";
 
-/**
- * Handles the API submission process
- */
-export async function handleApiSubmission(
-  form: HTMLFormElement,
-  schema: FormSchema,
-  formData: Record<string, any>
-): Promise<void> {
-  if (!schema.api) {
-    return;
+  private constructor() {
+    logger.info("FormApiHandler singleton initialized", this.logContext);
   }
 
-  const submitButton = form.querySelector(
-    'button[type="submit"]'
-  ) as HTMLButtonElement;
-  if (submitButton) {
-    submitButton.disabled = true;
-    submitButton.setAttribute("aria-busy", "true");
+  /**
+   * Get the singleton instance of FormApiHandler
+   */
+  public static getInstance(): FormApiHandler {
+    if (!FormApiHandler.instance) {
+      FormApiHandler.instance = new FormApiHandler();
+    }
+    return FormApiHandler.instance;
   }
 
-  try {
-    // Dispatch submit event
-    dispatchFormEvent(form, FORM_API_EVENTS.SUBMIT, formData);
+  /**
+   * Dispatches a custom form event
+   */
+  private dispatchFormEvent(
+    form: HTMLFormElement,
+    eventName: string,
+    detail: Record<string, any>
+  ): void {
+    const event = new CustomEvent(eventName, {
+      bubbles: true,
+      composed: true,
+      detail,
+    });
+    form.dispatchEvent(event);
+    logger.debug(`Dispatched event: ${eventName}`, this.logContext);
+  }
 
-    const response = await HttpService.request(schema.api, formData);
+  /**
+   * Handles the API submission process
+   */
+  public async handleSubmission(
+    form: HTMLFormElement,
+    schema: FormSchema,
+    formData: Record<string, any>,
+    formId: string
+  ): Promise<void> {
+    if (!schema.api) {
+      logger.warn("No API configuration provided", this.logContext);
+      return;
+    }
 
-    if (response.success) {
-      // Dispatch success event
-      dispatchFormEvent(form, FORM_API_EVENTS.SUCCESS, {
+    logger.info(`Starting API submission for form ${formId}`, this.logContext);
+
+    // Update form state through FormService
+    formService.updateSubmitButtonState(formId, true);
+
+    try {
+      // Dispatch submit event
+      this.dispatchFormEvent(form, FORM_API_EVENTS.SUBMIT, formData);
+
+      // Use singleton httpService instance
+      const response = await httpService.request(schema.api, formData);
+
+      if (response.success) {
+        logger.info(
+          `API submission successful for form ${formId}`,
+          this.logContext
+        );
+
+        // Dispatch success event
+        this.dispatchFormEvent(form, FORM_API_EVENTS.SUCCESS, {
+          data: formData,
+          response: response.data,
+        });
+
+        // Reset form on success
+        form.reset();
+      } else {
+        throw response.error;
+      }
+    } catch (error) {
+      logger.error(
+        `API submission failed for form ${formId}`,
+        error instanceof Error ? error : new Error(String(error)),
+        this.logContext
+      );
+
+      // Dispatch error event
+      this.dispatchFormEvent(form, FORM_API_EVENTS.ERROR, {
         data: formData,
-        response: response.data,
+        error,
       });
 
-      // Reset form on success
-      form.reset();
-    } else {
-      throw response.error;
+      throw error;
+    } finally {
+      // Reset UI loading state through FormService
+      formService.updateSubmitButtonState(formId, false);
     }
-  } catch (error) {
-    // Dispatch error event
-    dispatchFormEvent(form, FORM_API_EVENTS.ERROR, {
-      data: formData,
-      error,
-    });
+  }
 
-    console.error("API submission failed:", error);
-    throw error;
-  } finally {
-    // Reset UI loading state
-    if (submitButton) {
-      submitButton.disabled = false;
-      submitButton.removeAttribute("aria-busy");
-    }
+  /**
+   * Updates form UI state during API submission
+   */
+  public updateSubmissionState(formId: string, isSubmitting: boolean): void {
+    formService.updateSubmitButtonState(formId, isSubmitting);
   }
 }
 
-/**
- * Updates form UI state during API submission
- */
-export function updateFormSubmissionState(
-  form: HTMLFormElement,
-  isSubmitting: boolean
-): void {
-  const submitButton = form.querySelector(
-    'button[type="submit"]'
-  ) as HTMLButtonElement;
-  if (submitButton) {
-    submitButton.disabled = isSubmitting;
-    if (isSubmitting) {
-      submitButton.setAttribute("aria-busy", "true");
-    } else {
-      submitButton.removeAttribute("aria-busy");
-    }
-  }
-}
+// Export singleton instance
+export const formApiHandler = FormApiHandler.getInstance();
