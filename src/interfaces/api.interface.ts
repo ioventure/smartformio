@@ -1,7 +1,7 @@
 /**
  * API Configuration Interface
  */
-export interface ApiConfig {
+export interface IApiConfig {
   /** API endpoint URL */
   endpoint: string;
   /** HTTP method to use */
@@ -17,7 +17,7 @@ export interface ApiConfig {
 /**
  * Generic API Response
  */
-export interface ApiResponse<T = any> {
+export interface IApiResponse<T = any> {
   success: boolean;
   data?: T;
   error?: {
@@ -31,4 +31,4 @@ export interface ApiResponse<T = any> {
 /**
  * Form submission response
  */
-export type SubmissionResponse = ApiResponse;
+export type SubmissionResponse = IApiResponse;

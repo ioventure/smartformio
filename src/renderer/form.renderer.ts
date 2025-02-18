@@ -1,5 +1,5 @@
-import { FormSchema } from "@interfaces/core.interface";
-import { FormFieldSchema } from "@interfaces/field.interface";
+import { IFormSchema } from "@interfaces/core.interface";
+import { IFormFieldSchema } from "@interfaces/field.interface";
 import { renderTextInput } from "@renderer/inputs/text-input";
 import { renderDateInput } from "@renderer/inputs/date-input";
 import { renderFileInput } from "@renderer/inputs/file-input";
@@ -33,7 +33,7 @@ export class FormRenderer {
   /**
    * Renders a field based on its type
    */
-  private renderField(field: FormFieldSchema): string {
+  private renderField(field: IFormFieldSchema): string {
     const fieldType = field.type;
     switch (fieldType) {
       case "text":
@@ -61,11 +61,11 @@ export class FormRenderer {
   /**
    * Renders a complete form based on the provided schema
    */
-  public async render(schema: FormSchema): Promise<string> {
+  public async render(schema: IFormSchema): Promise<string> {
     logger.info("Rendering form with schema", this.logContext);
 
     try {
-      const fields = schema.fields.map((field: FormFieldSchema) =>
+      const fields = schema.fields.map((field: IFormFieldSchema) =>
         this.renderField(field)
       );
 

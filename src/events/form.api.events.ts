@@ -1,4 +1,4 @@
-import { FormSchema } from "@interfaces/core.interface";
+import { IFormSchema } from "@interfaces/core.interface";
 import { httpService } from "@services/http.service";
 import { logger } from "@services/logger.service";
 import { formService } from "@services/form.service";
@@ -56,7 +56,7 @@ export class FormApiHandler {
    */
   public async handleSubmission(
     form: HTMLFormElement,
-    schema: FormSchema,
+    schema: IFormSchema,
     formData: Record<string, any>,
     formId: string
   ): Promise<void> {

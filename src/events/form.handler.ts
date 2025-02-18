@@ -1,4 +1,4 @@
-import { FormSchema } from "@interfaces/core.interface";
+import { IFormSchema } from "@interfaces/core.interface";
 import { httpService } from "@services/http.service";
 import { collectFormData, validateRemainingFields } from "./form.submission";
 
@@ -32,7 +32,7 @@ function dispatchFormEvent(
  */
 export async function handleFormSubmission(
   form: HTMLFormElement,
-  schema: FormSchema
+  schema: IFormSchema
 ): Promise<void> {
   try {
     // Collect form data

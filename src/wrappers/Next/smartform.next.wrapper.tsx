@@ -1,6 +1,6 @@
 import React from "react";
 import type { ComponentType } from "react";
-import { SmartFormReactProps } from "@interfaces/components.interface";
+import { ISmartFormReactProps } from "@interfaces/components.interface";
 
 // Define loading component props type
 interface LoadingProps {
@@ -31,7 +31,7 @@ declare function dynamic<P = {}>(
  * Dynamic import of the React wrapper with SSR disabled
  * This ensures the web component is only loaded client-side
  */
-const SmartFormReactClient = dynamic<SmartFormReactProps>(
+const SmartFormReactClient = dynamic<ISmartFormReactProps>(
   () =>
     import("../React/smartform.react.wrapper").then(
       (mod) => mod.SmartFormReact
@@ -46,7 +46,7 @@ const SmartFormReactClient = dynamic<SmartFormReactProps>(
  * Next.js wrapper for SmartForm
  * Handles SSR and hydration appropriately
  */
-export const SmartFormNext: React.FC<SmartFormReactProps> = (props) => {
+export const SmartFormNext: React.FC<ISmartFormReactProps> = (props) => {
   return <SmartFormReactClient {...props} />;
 };
 
@@ -54,4 +54,4 @@ export const SmartFormNext: React.FC<SmartFormReactProps> = (props) => {
 SmartFormNext.displayName = "SmartFormNext";
 
 // Export the props type for convenience
-export type { SmartFormReactProps as SmartFormNextProps };
+export type { ISmartFormReactProps as SmartFormNextProps };

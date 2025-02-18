@@ -5,7 +5,7 @@
 /**
  * Configuration options for SmartFormIO
  */
-export interface SmartFormConfig {
+export interface ISmartFormConfig {
   /** Whether to validate on change */
   validateOnChange?: boolean;
 }
@@ -13,7 +13,7 @@ export interface SmartFormConfig {
 /**
  * Base properties common to all form fields
  */
-export interface BaseField {
+export interface IBaseField {
   /** Unique identifier for the field */
   name: string;
   /** Label text to display above the field */
@@ -41,22 +41,22 @@ export interface BaseField {
 /**
  * Configuration for the entire form
  */
-import { ApiConfig } from "./api.interface";
+import { IApiConfig } from "./api.interface";
 
-export interface FormSchema {
+export interface IFormSchema {
   /** Form title */
   title?: string;
   /** Form description */
   description?: string;
   /** Array of form fields */
-  fields: FormFieldSchema[];
+  fields: IFormFieldSchema[];
   /** Enable real-time validation on input */
   validateOnChange?: boolean;
   /** Custom text for the submit button */
   submitButtonText?: string;
   /** API configuration for form submission */
-  api?: ApiConfig;
+  api?: IApiConfig;
 }
 
 // Import this here to avoid circular dependency
-import { FormFieldSchema } from "./field.interface";
+import { IFormFieldSchema } from "./field.interface";

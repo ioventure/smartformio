@@ -1,10 +1,10 @@
-import { FileField } from "@interfaces/field.interface";
+import { IFileField } from "@interfaces/field.interface";
 import { renderAttr, renderFieldWrapper } from "@renderer/helper";
 
 /**
  * Renders a file input field based on the provided schema
  */
-export function renderFileInput(field: FileField): string {
+export function renderFileInput(field: IFileField): string {
   // Build input parts
   const inputParts = ["input", "input-file"];
   if (field.leadingIcon) {

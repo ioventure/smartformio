@@ -1,4 +1,4 @@
-import { TextField } from "@interfaces/field.interface";
+import { ITextField } from "@interfaces/field.interface";
 import { validateField } from "@utils/validation";
 import { applyErrorState, clearErrorState } from "../validation.utils";
 import { logger } from "@services/logger.service";
@@ -29,7 +29,7 @@ export class TextInputHandler {
    * Attaches validation event handlers for text inputs.
    */
   public attachHandler(
-    field: TextField,
+    field: ITextField,
     form: HTMLFormElement,
     updateSubmitButtonState: () => void
   ): void {
@@ -72,7 +72,7 @@ export class TextInputHandler {
 
 // Export singleton instance
 export const attachTextInputHandler = (
-  field: TextField,
+  field: ITextField,
   form: HTMLFormElement,
   updateSubmitButtonState: () => void
 ) => {

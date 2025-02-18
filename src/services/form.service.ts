@@ -1,4 +1,4 @@
-import { FormSchema } from "@interfaces/core.interface";
+import { IFormSchema } from "@interfaces/core.interface";
 import { formApiHandler } from "@events/form.api.events";
 import { logger } from "@services/logger.service";
 
@@ -12,7 +12,7 @@ export class FormService {
     string,
     {
       form: HTMLFormElement;
-      schema: FormSchema;
+      schema: IFormSchema;
     }
   >;
   private readonly logContext = "FormService";
@@ -38,7 +38,7 @@ export class FormService {
   public registerForm(
     id: string,
     form: HTMLFormElement,
-    schema: FormSchema
+    schema: IFormSchema
   ): void {
     if (this.formInstances.has(id)) {
       logger.warn(
@@ -64,7 +64,7 @@ export class FormService {
    */
   public getForm(
     id: string
-  ): { form: HTMLFormElement; schema: FormSchema } | undefined {
+  ): { form: HTMLFormElement; schema: IFormSchema } | undefined {
     return this.formInstances.get(id);
   }
 

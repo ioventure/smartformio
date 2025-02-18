@@ -1,10 +1,10 @@
-import { CheckboxField } from "@interfaces/field.interface";
+import { ICheckboxField } from "@interfaces/field.interface";
 import { renderAttr, renderFieldWrapper } from "@renderer/helper";
 
 /**
  * Renders a checkbox input or group based on the provided schema
  */
-export function renderCheckbox(field: CheckboxField): string {
+export function renderCheckbox(field: ICheckboxField): string {
   // Handle single checkbox
   if (!field.options) {
     const input = `

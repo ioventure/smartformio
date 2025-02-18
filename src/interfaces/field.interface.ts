@@ -2,12 +2,12 @@
  * @file Field-specific interfaces for different input types
  */
 
-import { BaseField } from "./core.interface";
+import { IBaseField } from "./core.interface";
 
 /**
  * Properties for text-based input fields
  */
-export interface TextField extends BaseField {
+export interface ITextField extends IBaseField {
   type: "text" | "email" | "password" | "number" | "textarea";
   /** Regular expression pattern for validation */
   pattern?: string;
@@ -28,15 +28,15 @@ export interface TextField extends BaseField {
 /**
  * Properties for select dropdowns
  */
-export interface SelectOption {
+export interface ISelectOption {
   value: string;
   label: string;
 }
 
-export interface SelectField extends BaseField {
+export interface ISelectField extends IBaseField {
   type: "select";
   /** Array of options to display in the dropdown */
-  options: (SelectOption | string)[];
+  options: (ISelectOption | string)[];
   /** Icon to display at the start of the input */
   leadingIcon?: string;
 }
@@ -44,7 +44,7 @@ export interface SelectField extends BaseField {
 /**
  * Properties for date inputs
  */
-export interface DateField extends BaseField {
+export interface IDateField extends IBaseField {
   type: "date";
   /** Date format string */
   format?: string;
@@ -59,7 +59,7 @@ export interface DateField extends BaseField {
 /**
  * Properties for file inputs
  */
-export interface FileField extends BaseField {
+export interface IFileField extends IBaseField {
   type: "file";
   /** Accepted file types */
   accept?: string;
@@ -78,15 +78,15 @@ export interface FileField extends BaseField {
 /**
  * Properties for radio button groups
  */
-export interface RadioOption {
+export interface IRadioOption {
   value: string;
   label: string;
 }
 
-export interface RadioField extends BaseField {
+export interface IRadioField extends IBaseField {
   type: "radio";
   /** Array of radio button options */
-  options: (RadioOption | string)[];
+  options: (IRadioOption | string)[];
   /** Display layout for radio options: 'vertical' | 'horizontal' */
   display?: "vertical" | "horizontal";
 }
@@ -94,16 +94,16 @@ export interface RadioField extends BaseField {
 /**
  * Properties for checkbox inputs
  */
-export interface CheckboxOption {
+export interface ICheckboxOption {
   value: string;
   label: string;
   description?: string;
 }
 
-export interface CheckboxField extends BaseField {
+export interface ICheckboxField extends IBaseField {
   type: "checkbox";
   /** Array of checkbox options for groups */
-  options?: (CheckboxOption | string)[];
+  options?: (ICheckboxOption | string)[];
   /** Description for single checkbox */
   description?: string;
   /** Display layout for checkbox options: 'vertical' | 'horizontal' */
@@ -117,15 +117,15 @@ export interface CheckboxField extends BaseField {
 /**
  * Union type of all possible field types
  */
-export type FormFieldSchema =
-  | TextField
-  | SelectField
-  | DateField
-  | FileField
-  | RadioField
-  | CheckboxField;
+export type IFormFieldSchema =
+  | ITextField
+  | ISelectField
+  | IDateField
+  | IFileField
+  | IRadioField
+  | ICheckboxField;
 
 /**
  * Type for field renderer functions
  */
-export type FieldRenderer = (field: FormFieldSchema) => string;
+export type IFieldRenderer = (field: IFormFieldSchema) => string;

@@ -1,5 +1,5 @@
-import { FormSchema } from "@interfaces/core.interface";
-import { FormFieldSchema } from "@interfaces/field.interface";
+import { IFormSchema } from "@interfaces/core.interface";
+import { IFormFieldSchema } from "@interfaces/field.interface";
 import { validateForm } from "@utils/validation";
 import { logger } from "@services/logger.service";
 
@@ -30,7 +30,7 @@ export class FormSubmissionHandler {
    */
   public collectFormData(
     form: HTMLFormElement,
-    schema: FormSchema
+    schema: IFormSchema
   ): Record<string, any> {
     logger.debug("Collecting form data", this.logContext);
 
@@ -83,7 +83,7 @@ export class FormSubmissionHandler {
       });
 
       // Ensure file inputs are present even if no file was selected
-      schema.fields.forEach((field: FormFieldSchema) => {
+      schema.fields.forEach((field: IFormFieldSchema) => {
         if (field.type === "file" && !(field.name in data)) {
           data[field.name] = field.multiple ? [] : "";
         }
@@ -107,7 +107,7 @@ export class FormSubmissionHandler {
    */
   public validateRemainingFields(
     form: HTMLFormElement,
-    schema: FormSchema,
+    schema: IFormSchema,
     data: Record<string, any>
   ): boolean {
     logger.debug("Validating remaining fields", this.logContext);
@@ -177,13 +177,13 @@ export class FormSubmissionHandler {
 }
 
 // Export singleton instance
-export const collectFormData = (form: HTMLFormElement, schema: FormSchema) => {
+export const collectFormData = (form: HTMLFormElement, schema: IFormSchema) => {
   return FormSubmissionHandler.getInstance().collectFormData(form, schema);
 };
 
 export const validateRemainingFields = (
   form: HTMLFormElement,
-  schema: FormSchema,
+  schema: IFormSchema,
   data: Record<string, any>
 ) => {
   return FormSubmissionHandler.getInstance().validateRemainingFields(

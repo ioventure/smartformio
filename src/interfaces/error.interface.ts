@@ -13,7 +13,7 @@ export enum ErrorType {
 /**
  * Runtime error details interface
  */
-export interface RuntimeErrorDetails {
+export interface IRuntimeErrorDetails {
   stack?: string;
   context?: any;
   filename?: string;
@@ -25,7 +25,7 @@ export interface RuntimeErrorDetails {
 /**
  * Component error details interface
  */
-export interface ComponentErrorDetails {
+export interface IComponentErrorDetails {
   method?: string;
   component?: string;
   props?: Record<string, any>;
@@ -37,7 +37,7 @@ export interface ComponentErrorDetails {
 /**
  * Validation error details interface
  */
-export interface ValidationErrorDetails {
+export interface IValidationErrorDetails {
   field?: string;
   value?: any;
   constraints?: Record<string, string>;
@@ -46,7 +46,7 @@ export interface ValidationErrorDetails {
 /**
  * API Error response interface
  */
-export interface ApiErrorResponse {
+export interface IApiErrorResponse {
   message: string;
   code: string;
   details?: any;
@@ -56,7 +56,7 @@ export interface ApiErrorResponse {
 /**
  * Interface for structured error information
  */
-export interface ErrorInfo {
+export interface IErrorInfo {
   type: ErrorType;
   code: string;
   message: string;
@@ -67,7 +67,7 @@ export interface ErrorInfo {
 /**
  * Logger configuration interface
  */
-export interface LoggerConfig {
+export interface ILoggerConfig {
   level: LogLevel;
   context?: string;
   enabled?: boolean;
@@ -76,16 +76,16 @@ export interface LoggerConfig {
 /**
  * Error handler configuration interface
  */
-export interface ErrorHandlerConfig {
+export interface IErrorHandlerConfig {
   /** Whether to automatically handle window errors */
   handleWindowErrors?: boolean;
   /** Whether to automatically handle unhandled promise rejections */
   handlePromiseRejections?: boolean;
   /** Custom error formatter function */
-  errorFormatter?: (error: Error | string, code?: string) => ErrorInfo;
+  errorFormatter?: (error: Error | string, code?: string) => IErrorInfo;
 }
 
 /**
  * Error listener function type
  */
-export type ErrorListener = (error: ErrorInfo) => void;
+export type IErrorListener = (error: IErrorInfo) => void;

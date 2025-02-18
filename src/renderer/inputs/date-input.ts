@@ -1,10 +1,10 @@
-import { DateField } from "@interfaces/field.interface";
+import { IDateField } from "@interfaces/field.interface";
 import { renderAttr, renderFieldWrapper } from "@renderer/helper";
 
 /**
  * Renders a date input field based on the provided schema
  */
-export function renderDateInput(field: DateField): string {
+export function renderDateInput(field: IDateField): string {
   // Build date input parts
   const dateParts = ["input", "input-date"];
   if (field.leadingIcon) {

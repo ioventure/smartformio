@@ -1,4 +1,4 @@
-import { BaseField } from "@interfaces/core.interface";
+import { IBaseField } from "@interfaces/core.interface";
 
 type AttributeMap = Record<
   string,
@@ -48,7 +48,7 @@ function escapeHtml(str: string): string {
  * @returns The rendered label HTML or empty string if no label
  */
 export function renderFieldLabel(
-  field: BaseField,
+  field: IBaseField,
   id: string,
   isHidden?: boolean
 ): string {
@@ -78,7 +78,7 @@ export function renderFieldLabel(
  * @param field The field configuration
  * @returns The rendered message container HTML
  */
-export function renderMessageContainer(field: BaseField): string {
+export function renderMessageContainer(field: IBaseField): string {
   const helpId = `help-${field.name}`;
   const errorId = `error-${field.name}`;
 
@@ -120,7 +120,7 @@ export function renderMessageContainer(field: BaseField): string {
  * @returns The complete field HTML
  */
 export function renderFieldWrapper(
-  field: BaseField,
+  field: IBaseField,
   inputHtml: string
 ): string {
   const fieldId = `field-${field.name}`;

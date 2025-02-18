@@ -1,14 +1,13 @@
 import React, { useEffect, useRef, useCallback } from "react";
 import { SmartForm } from "@web-components/smartform";
 import {
-  SmartFormIOElement,
-  SmartFormIOAttributes,
-  SmartFormEvents,
-  SmartFormReactProps,
+  ISmartFormIOElement,
+  ISmartFormEvents,
+  ISmartFormReactProps,
 } from "@interfaces/components.interface";
 
-type SmartFormIOProps = SmartFormIOAttributes & {
-  ref?: React.RefObject<SmartFormIOElement>;
+type SmartFormIOProps = any & {
+  ref?: React.RefObject<ISmartFormIOElement>;
   className?: string;
 };
 
@@ -25,14 +24,14 @@ declare module "react" {
  * React wrapper for SmartForm web component
  * Handles SSR and client-side rendering appropriately
  */
-export const SmartFormReact: React.FC<SmartFormReactProps> = ({
+export const SmartFormReact: React.FC<ISmartFormReactProps> = ({
   schema,
   onSubmit,
   onError,
   onChange,
   className,
 }) => {
-  const formRef = useRef<SmartFormIOElement>(null);
+  const formRef = useRef<ISmartFormIOElement>(null);
   const isSSR = SmartForm.isServerSide();
 
   const setupEventListeners = useCallback(() => {
@@ -40,7 +39,7 @@ export const SmartFormReact: React.FC<SmartFormReactProps> = ({
     if (!formElement) return;
 
     const eventHandlers: {
-      [K in keyof SmartFormEvents]: (e: SmartFormEvents[K]) => void;
+      [K in keyof ISmartFormEvents]: (e: ISmartFormEvents[K]) => void;
     } = {
       "smartformio:submit": (e) => onSubmit?.(e.detail),
       "smartformio:error": (e) => onError?.(e.detail),

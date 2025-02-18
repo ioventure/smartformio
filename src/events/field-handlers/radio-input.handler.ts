@@ -1,4 +1,4 @@
-import { RadioField } from "@interfaces/field.interface";
+import { IRadioField } from "@interfaces/field.interface";
 import { validateField } from "@utils/validation";
 import { applyErrorState, clearErrorState } from "../validation.utils";
 import { logger } from "@services/logger.service";
@@ -29,7 +29,7 @@ export class RadioInputHandler {
    * Attaches event handlers for radio input fields.
    */
   public attachHandler(
-    field: RadioField,
+    field: IRadioField,
     form: HTMLFormElement,
     updateSubmitButtonState: () => void
   ): void {
@@ -70,7 +70,7 @@ export class RadioInputHandler {
 
 // Export singleton instance
 export const attachRadioHandler = (
-  field: RadioField,
+  field: IRadioField,
   form: HTMLFormElement,
   updateSubmitButtonState: () => void
 ) => {

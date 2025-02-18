@@ -1,10 +1,10 @@
-import { RadioField } from "@interfaces/field.interface";
+import { IRadioField } from "@interfaces/field.interface";
 import { renderAttr, renderFieldWrapper } from "@renderer/helper";
 
 /**
  * Renders a radio button group based on the provided schema
  */
-export function renderRadio(field: RadioField): string {
+export function renderRadio(field: IRadioField): string {
   const groupParts = ["radio-group"];
   if (field.display) {
     groupParts.push(`radio-group-${field.display}`);

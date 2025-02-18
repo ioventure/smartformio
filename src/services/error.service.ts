@@ -1,13 +1,13 @@
 import { logger } from "./logger.service";
 import {
   ErrorType,
-  ErrorInfo,
-  ErrorHandlerConfig,
-  ErrorListener,
-  ApiErrorResponse,
-  RuntimeErrorDetails,
-  ComponentErrorDetails,
-  ValidationErrorDetails,
+  IErrorInfo,
+  IErrorHandlerConfig,
+  IErrorListener,
+  IApiErrorResponse,
+  IRuntimeErrorDetails,
+  IComponentErrorDetails,
+  IValidationErrorDetails,
 } from "@interfaces/error.interface";
 
 /**
@@ -15,9 +15,9 @@ import {
  */
 export class ErrorHandlerService {
   private static instance: ErrorHandlerService;
-  private errorListeners: Set<ErrorListener> = new Set();
+  private errorListeners: Set<IErrorListener> = new Set();
 
-  private config: ErrorHandlerConfig = {
+  private config: IErrorHandlerConfig = {
     handleWindowErrors: true,
     handlePromiseRejections: true,
   };
@@ -26,7 +26,7 @@ export class ErrorHandlerService {
     if (typeof window !== "undefined" && this.config.handleWindowErrors) {
       // Handle runtime errors
       window.addEventListener("error", (event) => {
-        const details: RuntimeErrorDetails = {
+        const details: IRuntimeErrorDetails = {
           filename: event.filename,
           lineno: event.lineno,
           colno: event.colno,
@@ -44,7 +44,7 @@ export class ErrorHandlerService {
       // Handle unhandled promise rejections
       if (this.config.handlePromiseRejections) {
         window.addEventListener("unhandledrejection", (event) => {
-          const details: RuntimeErrorDetails = {
+          const details: IRuntimeErrorDetails = {
             reason: event.reason,
             context: { type: "promise.rejection" },
           };
@@ -74,7 +74,7 @@ export class ErrorHandlerService {
   /**
    * Configure the error handler
    */
-  public configure(config: Partial<ErrorHandlerConfig>): void {
+  public configure(config: Partial<IErrorHandlerConfig>): void {
     this.config = { ...this.config, ...config };
   }
 
@@ -86,7 +86,7 @@ export class ErrorHandlerService {
     error: Error | string,
     code: string = "UNKNOWN_ERROR",
     details?: any
-  ): ErrorInfo {
+  ): IErrorInfo {
     // Use custom formatter if provided
     if (this.config.errorFormatter) {
       return this.config.errorFormatter(error, code);
@@ -111,7 +111,7 @@ export class ErrorHandlerService {
     error: Error | string,
     code: string,
     details?: any
-  ): ErrorInfo {
+  ): IErrorInfo {
     const formattedError = this.formatError(type, error, code, details);
 
     // Log error with appropriate level
@@ -132,13 +132,13 @@ export class ErrorHandlerService {
    * Handle API errors with structured response
    */
   public handleApiError(
-    error: Error | string | ApiErrorResponse,
+    error: Error | string | IApiErrorResponse,
     code?: string,
     details?: any
-  ): ErrorInfo {
+  ): IErrorInfo {
     // Handle structured API error response
     if (typeof error === "object" && !("stack" in error) && "status" in error) {
-      const apiError = error as ApiErrorResponse;
+      const apiError = error as IApiErrorResponse;
       return this.formatAndNotify(
         ErrorType.API,
         new Error(apiError.message),
@@ -162,8 +162,8 @@ export class ErrorHandlerService {
   public handleValidationError(
     error: Error | string,
     code?: string,
-    details?: ValidationErrorDetails
-  ): ErrorInfo {
+    details?: IValidationErrorDetails
+  ): IErrorInfo {
     return this.formatAndNotify(
       ErrorType.VALIDATION,
       error,
@@ -178,8 +178,8 @@ export class ErrorHandlerService {
   public handleComponentError(
     error: Error | string,
     code?: string,
-    details?: ComponentErrorDetails
-  ): ErrorInfo {
+    details?: IComponentErrorDetails
+  ): IErrorInfo {
     return this.formatAndNotify(
       ErrorType.COMPONENT,
       error,
@@ -194,8 +194,8 @@ export class ErrorHandlerService {
   public handleRuntimeError(
     error: Error | string,
     code?: string,
-    details?: RuntimeErrorDetails
-  ): ErrorInfo {
+    details?: IRuntimeErrorDetails
+  ): IErrorInfo {
     return this.formatAndNotify(
       ErrorType.RUNTIME,
       error,
@@ -207,14 +207,14 @@ export class ErrorHandlerService {
   /**
    * Add error listener
    */
-  public addErrorListener(listener: ErrorListener): void {
+  public addErrorListener(listener: IErrorListener): void {
     this.errorListeners.add(listener);
   }
 
   /**
    * Remove error listener
    */
-  public removeErrorListener(listener: ErrorListener): void {
+  public removeErrorListener(listener: IErrorListener): void {
     this.errorListeners.delete(listener);
   }
 
@@ -228,7 +228,7 @@ export class ErrorHandlerService {
   /**
    * Notify all error listeners
    */
-  private notifyListeners(error: ErrorInfo): void {
+  private notifyListeners(error: IErrorInfo): void {
     this.errorListeners.forEach((listener) => {
       try {
         listener(error);

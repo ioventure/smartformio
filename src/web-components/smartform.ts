@@ -1,9 +1,9 @@
-import { FormSchema } from "@interfaces/core.interface";
+import { IFormSchema } from "@interfaces/core.interface";
 import { formEventHandler } from "@events/form.event";
 import { formRenderer } from "@renderer/form.renderer";
 import { errorHandler } from "@services/error.service";
 import { logger } from "@services/logger.service";
-import { ComponentErrorDetails } from "@interfaces/error.interface";
+import { IComponentErrorDetails } from "@interfaces/error.interface";
 import { formService } from "@services/form.service";
 
 /**
@@ -12,7 +12,7 @@ import { formService } from "@services/form.service";
  */
 export class SmartForm extends HTMLElement {
   private shadow!: ShadowRoot;
-  private schema: FormSchema | null = null;
+  private schema: IFormSchema | null = null;
   private formId!: string;
   private static readonly logContext = "SmartForm";
   private static instanceCount = 0;
@@ -63,7 +63,7 @@ export class SmartForm extends HTMLElement {
         this.parseAndRenderSchema(schemaAttr);
       }
     } catch (error) {
-      const details: ComponentErrorDetails = {
+      const details: IComponentErrorDetails = {
         method: "connectedCallback",
         component: "SmartForm",
         instanceId: this.formId,
@@ -111,7 +111,7 @@ export class SmartForm extends HTMLElement {
         this.parseAndRenderSchema(newValue);
       }
     } catch (error) {
-      const details: ComponentErrorDetails = {
+      const details: IComponentErrorDetails = {
         method: "attributeChangedCallback",
         component: "SmartForm",
         attribute: name,
@@ -136,7 +136,7 @@ export class SmartForm extends HTMLElement {
       );
       this.renderComponent();
     } catch (error) {
-      const details: ComponentErrorDetails = {
+      const details: IComponentErrorDetails = {
         method: "parseAndRenderSchema",
         component: "SmartForm",
         schema: schemaAttr,
@@ -203,7 +203,7 @@ export class SmartForm extends HTMLElement {
         SmartForm.logContext
       );
     } catch (error) {
-      const details: ComponentErrorDetails = {
+      const details: IComponentErrorDetails = {
         method: "renderComponent",
         component: "SmartForm",
         instanceId: this.formId,

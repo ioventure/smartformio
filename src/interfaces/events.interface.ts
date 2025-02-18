@@ -2,11 +2,11 @@
  * Custom form event types
  */
 
-export interface FormSubmitEvent extends CustomEvent<Record<string, any>> {
+export interface IFormSubmitEvent extends CustomEvent<Record<string, any>> {
   type: "smartformio:submit";
 }
 
-export interface FormSuccessEvent
+export interface IFormSuccessEvent
   extends CustomEvent<{
     data: Record<string, any>;
     response: any;
@@ -14,7 +14,7 @@ export interface FormSuccessEvent
   type: "smartformio:success";
 }
 
-export interface FormErrorEvent
+export interface IFormErrorEvent
   extends CustomEvent<{
     data: Record<string, any>;
     error: any;
@@ -34,9 +34,9 @@ export const FORM_EVENTS = {
 /**
  * Event listener types
  */
-export type FormSubmitListener = (event: FormSubmitEvent) => void;
-export type FormSuccessListener = (event: FormSuccessEvent) => void;
-export type FormErrorListener = (event: FormErrorEvent) => void;
+export type FormSubmitListener = (event: IFormSubmitEvent) => void;
+export type FormSuccessListener = (event: IFormSuccessEvent) => void;
+export type FormErrorListener = (event: IFormErrorEvent) => void;
 
 /**
  * Helper to create typed event listeners

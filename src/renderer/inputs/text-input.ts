@@ -1,10 +1,10 @@
-import { TextField } from "@interfaces/field.interface";
+import { ITextField } from "@interfaces/field.interface";
 import { renderAttr, renderFieldWrapper } from "@renderer/helper";
 
 /**
  * Renders a text input field based on the provided schema
  */
-export function renderTextInput(field: TextField): string {
+export function renderTextInput(field: ITextField): string {
   // Handle textarea separately as it's a different element
   if (field.type === "textarea") {
     const input = `

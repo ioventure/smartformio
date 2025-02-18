@@ -1,4 +1,4 @@
-import { CheckboxField } from "@interfaces/field.interface";
+import { ICheckboxField } from "@interfaces/field.interface";
 import { applyErrorState, clearErrorState } from "../validation.utils";
 import { logger } from "@services/logger.service";
 
@@ -28,7 +28,7 @@ export class CheckboxInputHandler {
    * Attaches event handlers for checkbox fields.
    */
   public attachHandler(
-    field: CheckboxField,
+    field: ICheckboxField,
     form: HTMLFormElement,
     updateSubmitButtonState: () => void
   ): void {
@@ -124,7 +124,7 @@ export class CheckboxInputHandler {
 
 // Export singleton instance
 export const attachCheckboxHandler = (
-  field: CheckboxField,
+  field: ICheckboxField,
   form: HTMLFormElement,
   updateSubmitButtonState: () => void
 ) => {

@@ -1,7 +1,7 @@
-import { ApiConfig, ApiResponse } from "@interfaces/api.interface";
+import { IApiConfig, IApiResponse } from "@interfaces/api.interface";
 import { errorHandler } from "./error.service";
 import { logger } from "./logger.service";
-import { ApiErrorResponse } from "@interfaces/error.interface";
+import { IApiErrorResponse } from "@interfaces/error.interface";
 
 /**
  * Singleton HTTP Service for making API requests
@@ -33,8 +33,8 @@ export class HttpService {
     status?: number,
     endpoint?: string,
     timeout?: number
-  ): ApiResponse<any> {
-    const apiError: ApiErrorResponse = {
+  ): IApiResponse<any> {
+    const apiError: IApiErrorResponse = {
       message: error.message || "API request failed",
       code: error.code || (status ? `HTTP_${status}` : "UNKNOWN_ERROR"),
       status,
@@ -60,9 +60,9 @@ export class HttpService {
    * Makes an HTTP request using ApiConfig
    */
   public async request<T = any>(
-    config: ApiConfig,
+    config: IApiConfig,
     data?: any
-  ): Promise<ApiResponse<T>> {
+  ): Promise<IApiResponse<T>> {
     const { endpoint, method, timeout, headers, withCredentials } = config;
 
     logger.info(

@@ -1,8 +1,8 @@
-import { FormSchema } from "@interfaces/core.interface";
+import { IFormSchema } from "@interfaces/core.interface";
 import {
-  DateField,
-  FormFieldSchema,
-  TextField,
+  IDateField,
+  IFormFieldSchema,
+  ITextField,
 } from "@interfaces/field.interface";
 
 /**
@@ -32,7 +32,7 @@ const DEFAULT_PATTERNS = {
  * @param value - The current field value
  * @returns Validation result with status and optional error message
  */
-function validateTextField(field: TextField, value: string): ValidationResult {
+function validateTextField(field: ITextField, value: string): ValidationResult {
   if (!field) {
     return { isValid: false, message: "Field configuration is missing." };
   }
@@ -99,7 +99,7 @@ function validateTextField(field: TextField, value: string): ValidationResult {
  * @param value - The current field value
  * @returns Validation result with status and optional error message
  */
-function validateDateField(field: DateField, value: string): ValidationResult {
+function validateDateField(field: IDateField, value: string): ValidationResult {
   if (!field) {
     return { isValid: false, message: "Field configuration is missing." };
   }
@@ -133,7 +133,7 @@ function validateDateField(field: DateField, value: string): ValidationResult {
  * @returns Validation result with status and optional error message
  */
 export function validateField(
-  field: FormFieldSchema,
+  field: IFormFieldSchema,
   value: any
 ): ValidationResult {
   if (!field) {
@@ -174,7 +174,7 @@ export function validateField(
  * @returns Object mapping field names to validation results
  */
 export function validateForm(
-  schema: FormSchema,
+  schema: IFormSchema,
   formData: Record<string, any>
 ): Record<string, ValidationResult> {
   try {

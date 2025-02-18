@@ -1,10 +1,10 @@
-import { SelectField } from "@interfaces/field.interface";
+import { ISelectField } from "@interfaces/field.interface";
 import { renderAttr, renderFieldWrapper } from "@renderer/helper";
 
 /**
  * Renders a select dropdown field based on the provided schema
  */
-export function renderSelect(field: SelectField): string {
+export function renderSelect(field: ISelectField): string {
   // Build input parts
   const inputParts = ["input", "input-select"];
   if (field.leadingIcon) {

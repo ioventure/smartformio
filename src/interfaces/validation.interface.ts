@@ -2,12 +2,12 @@
  * @file Validation-related interfaces and types
  */
 
-import { FormFieldSchema } from "./field.interface";
+import { IFormFieldSchema } from "./field.interface";
 
 /**
  * Result of a validation operation
  */
-export interface ValidationResult {
+export interface IValidationResult {
   /** Whether the field is valid */
   isValid: boolean;
   /** Optional validation error message */
@@ -17,15 +17,15 @@ export interface ValidationResult {
 /**
  * Type for validation handler functions
  */
-export type ValidationHandler = (
-  field: FormFieldSchema,
-  value: any
-) => ValidationResult;
+export type IValidationHandler = (
+  field: IFormFieldSchema,
+  value: unknown
+) => IValidationResult;
 
 /**
  * Interface for managing validation UI state
  */
-export interface ValidationUIManager {
+export interface IValidationUIManager {
   /** Show error message and invalid state */
   showError: (message: string) => void;
   /** Hide error message and restore valid state */

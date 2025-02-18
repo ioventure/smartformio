@@ -3,27 +3,23 @@
  */
 
 export type {
-  SmartFormConfig,
-  BaseField,
-  FormSchema,
+  ISmartFormConfig,
+  IBaseField,
+  IFormSchema,
 } from "@interfaces/core.interface";
 export type {
-  TextField,
-  SelectField,
-  DateField,
-  FileField,
-  RadioField,
-  CheckboxField,
-  FormFieldSchema,
-  FieldRenderer,
+  ITextField,
+  ISelectField,
+  IDateField,
+  IFileField,
+  IRadioField,
+  ICheckboxField,
+  IFormFieldSchema,
+  IFieldRenderer,
 } from "@interfaces/field.interface";
 export type {
-  ValidationResult,
-  ValidationHandler,
-  ValidationUIManager,
+  IValidationResult,
+  IValidationHandler,
+  IValidationUIManager,
 } from "@interfaces/validation.interface";
-export type { FormSubmitEvent } from "@interfaces/events.interface";
-export type {
-  SmartFormParts,
-  FormElements,
-} from "@interfaces/components.interface";
+export type { IFormSubmitEvent as FormSubmitEvent } from "@interfaces/events.interface";

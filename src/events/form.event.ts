@@ -1,5 +1,5 @@
-import { FormSchema } from "@interfaces/core.interface";
-import { FormFieldSchema } from "@interfaces/field.interface";
+import { IFormSchema } from "@interfaces/core.interface";
+import { IFormFieldSchema } from "@interfaces/field.interface";
 import { FormSubmissionHandler } from "./form.submission";
 import { formApiHandler, FORM_API_EVENTS } from "./form.api.events";
 import { logger } from "@services/logger.service";
@@ -40,7 +40,7 @@ export class FormEventHandler {
    */
   private updateSubmitButtonState(
     form: HTMLFormElement,
-    schema: FormSchema,
+    schema: IFormSchema,
     formId: string
   ): void {
     const hasErrors = form.querySelectorAll('[aria-invalid="true"]').length > 0;
@@ -75,7 +75,7 @@ export class FormEventHandler {
    */
   public setupEvents(
     shadow: ShadowRoot,
-    schema: FormSchema,
+    schema: IFormSchema,
     formId: string
   ): void {
     const form = shadow.querySelector("#smartform") as HTMLFormElement;
@@ -93,7 +93,7 @@ export class FormEventHandler {
       schema.validateOnChange?.toString() || "true";
 
     // Attach field-specific handlers
-    schema.fields.forEach((field: FormFieldSchema) => {
+    schema.fields.forEach((field: IFormFieldSchema) => {
       const updateState = () =>
         this.updateSubmitButtonState(form, schema, formId);
 

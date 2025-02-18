@@ -1,4 +1,4 @@
-import { FileField } from "@interfaces/field.interface";
+import { IFileField } from "@interfaces/field.interface";
 import { validateField } from "@utils/validation";
 import { applyErrorState, clearErrorState } from "../validation.utils";
 import { logger } from "@services/logger.service";
@@ -29,7 +29,7 @@ export class FileInputHandler {
    * Attaches event handlers for file input fields.
    */
   public attachHandler(
-    field: FileField,
+    field: IFileField,
     form: HTMLFormElement,
     updateSubmitButtonState: () => void
   ): void {
@@ -114,7 +114,7 @@ export class FileInputHandler {
 
 // Export singleton instance
 export const attachFileInputHandler = (
-  field: FileField,
+  field: IFileField,
   form: HTMLFormElement,
   updateSubmitButtonState: () => void
 ) => {
