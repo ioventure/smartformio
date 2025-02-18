@@ -1,9 +1,45 @@
 import { ApiConfig, ApiResponse } from "@interfaces/api.interface";
+import { errorHandler } from "./error.service";
+import { logger } from "./logger.service";
+import { ApiErrorResponse } from "@interfaces/error.interface";
 
 /**
  * Generic HTTP Service for making API requests
  */
 export class HttpService {
+  private static readonly logContext = "HttpService";
+
+  /**
+   * Handle API error responses
+   */
+  private static handleApiError(
+    error: any,
+    status?: number,
+    endpoint?: string,
+    timeout?: number
+  ): ApiResponse<any> {
+    const apiError: ApiErrorResponse = {
+      message: error.message || "API request failed",
+      code: error.code || (status ? `HTTP_${status}` : "UNKNOWN_ERROR"),
+      status,
+      details: {
+        ...(error.details || {}),
+        endpoint,
+        timeout,
+      },
+    };
+
+    errorHandler.handleApiError(apiError);
+    return {
+      success: false,
+      error: {
+        message: apiError.message,
+        code: apiError.code,
+        details: apiError.details,
+      },
+    };
+  }
+
   /**
    * Makes an HTTP request using ApiConfig
    */
@@ -11,100 +47,62 @@ export class HttpService {
     config: ApiConfig,
     data?: any
   ): Promise<ApiResponse<T>> {
+    const { endpoint, method, timeout, headers, withCredentials } = config;
+
+    logger.info(
+      `Making ${method || "GET"} request to ${endpoint}`,
+      HttpService.logContext
+    );
+
     try {
-      const { endpoint, method, timeout, headers, withCredentials } = config;
-
-      // Prepare fetch options with only provided values
-      const requestOptions: RequestInit = {};
-
-      if (method) {
-        requestOptions.method = method;
-      }
-
-      if (headers) {
-        requestOptions.headers = headers;
-      }
+      const requestOptions: RequestInit = {
+        method: method || "GET",
+        headers: headers || {},
+        credentials: withCredentials ? "include" : "same-origin",
+      };
 
       if (data) {
         requestOptions.body = JSON.stringify(data);
       }
 
-      if (withCredentials) {
-        requestOptions.credentials = "include";
-      }
+      let response: Response;
 
-      // Handle timeout if provided
       if (timeout) {
         const controller = new AbortController();
         requestOptions.signal = controller.signal;
 
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => {
-            controller.abort();
-            reject(new Error("Request timeout"));
-          }, timeout);
-        });
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
 
         try {
-          const response = await Promise.race([
-            fetch(endpoint, requestOptions),
-            timeoutPromise,
-          ]);
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw {
-              message: errorData.message || "API request failed",
-              status: response.status,
-              details: errorData,
-            };
-          }
-
-          const responseData = await response.json();
-          return {
-            success: true,
-            data: responseData,
-          };
+          response = await fetch(endpoint, requestOptions);
+          clearTimeout(timeoutId);
         } catch (error) {
-          if (error instanceof Error && error.message === "Request timeout") {
-            return {
-              success: false,
-              error: {
-                message: "Request timeout",
-                code: "TIMEOUT",
-              },
-            };
+          if (error instanceof Error && error.name === "AbortError") {
+            return HttpService.handleApiError(
+              { message: "Request timeout", code: "TIMEOUT" },
+              undefined,
+              endpoint,
+              timeout
+            );
           }
           throw error;
         }
       } else {
-        // Make request without timeout
-        const response = await fetch(endpoint, requestOptions);
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw {
-            message: errorData.message || "API request failed",
-            status: response.status,
-            details: errorData,
-          };
-        }
-
-        const responseData = await response.json();
-        return {
-          success: true,
-          data: responseData,
-        };
+        response = await fetch(endpoint, requestOptions);
       }
-    } catch (error: any) {
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        return HttpService.handleApiError(errorData, response.status, endpoint);
+      }
+
+      const responseData = await response.json();
       return {
-        success: false,
-        error: {
-          message: error.message || "An unexpected error occurred",
-          code: error.code || "UNKNOWN_ERROR",
-          details: error.details || error,
-        },
+        success: true,
+        data: responseData,
       };
+    } catch (error: any) {
+      return HttpService.handleApiError(error, undefined, endpoint);
     }
   }
 }
