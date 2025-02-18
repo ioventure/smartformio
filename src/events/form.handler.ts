@@ -1,6 +1,5 @@
 import { FormSchema } from "@interfaces/core.interface";
-import { SubmissionResponse } from "@interfaces/api.interface";
-import { FormApi } from "../api/form.api";
+import { HttpService } from "@services/http.service";
 import { collectFormData, validateRemainingFields } from "./form.submission";
 
 /**
@@ -33,8 +32,7 @@ function dispatchFormEvent(
  */
 export async function handleFormSubmission(
   form: HTMLFormElement,
-  schema: FormSchema,
-  shadow: ShadowRoot
+  schema: FormSchema
 ): Promise<void> {
   try {
     // Collect form data
@@ -61,7 +59,7 @@ export async function handleFormSubmission(
       }
 
       try {
-        const response = await FormApi.submit(formData, schema.api);
+        const response = await HttpService.request(schema.api, formData);
 
         if (response.success) {
           // Dispatch success event

@@ -5,7 +5,7 @@ export interface ApiConfig {
   /** API endpoint URL */
   endpoint: string;
   /** HTTP method to use */
-  method?: "POST" | "PUT" | "PATCH";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   /** Additional headers to include */
   headers?: Record<string, string>;
   /** Timeout in milliseconds */
@@ -15,14 +15,20 @@ export interface ApiConfig {
 }
 
 /**
- * Form submission response
+ * Generic API Response
  */
-export interface SubmissionResponse {
+export interface ApiResponse<T = any> {
   success: boolean;
-  data?: any;
+  data?: T;
   error?: {
     message: string;
     code?: string;
     details?: any;
+    status?: number;
   };
 }
+
+/**
+ * Form submission response
+ */
+export type SubmissionResponse = ApiResponse;

@@ -2,7 +2,11 @@
  * @file Main export file for all SmartFormIO interfaces and types
  */
 
-export type { SmartFormConfig, BaseField, FormSchema } from "@interfaces/core.interface";
+export type {
+  SmartFormConfig,
+  BaseField,
+  FormSchema,
+} from "@interfaces/core.interface";
 export type {
   TextField,
   SelectField,
@@ -18,11 +22,7 @@ export type {
   ValidationHandler,
   ValidationUIManager,
 } from "@interfaces/validation.interface";
-export type {
-  FormSubmitEvent,
-  FormSubmitHandler,
-  SmartFormEventMap,
-} from "@interfaces/events.interface";
+export type { FormSubmitEvent } from "@interfaces/events.interface";
 export type {
   SmartFormElement,
   SmartFormAttributes,

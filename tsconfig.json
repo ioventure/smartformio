@@ -33,6 +33,7 @@
       "@events/*": ["src/events/*"],
       "@interfaces/*": ["src/interfaces/*"],
       "@renderer/*": ["src/renderer/*"],
+      "@services/*": ["src/services/*"],
       "@utils/*": ["src/utils/*"],
       "@web-components/*": ["src/web-components/*"],
       "@wrappers/*": ["src/wrappers/*"],
@@ -54,18 +55,7 @@
     "emitDecoratorMetadata": true,
     "useDefineForClassFields": true
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.d.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts"
-  ],
-  "references": [
-    { "path": "./tsconfig.node.json" }
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }

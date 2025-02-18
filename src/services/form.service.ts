@@ -1,7 +1,7 @@
-import { FormSchema } from "../interfaces/core.interface";
-import { SubmissionResponse } from "../interfaces/api.interface";
-import { FormApi } from "../api/form.api";
-import { FORM_API_EVENTS, dispatchFormEvent } from "../events/form.api.events";
+import { FormSchema } from "@interfaces/core.interface";
+import { SubmissionResponse } from "@interfaces/api.interface";
+import { HttpService } from "@services/http.service";
+import { FORM_API_EVENTS, dispatchFormEvent } from "@events/form.api.events";
 
 /**
  * Form Submission Service
@@ -51,7 +51,8 @@ export class FormSubmissionService {
     if (!this.schema.api) {
       throw new Error("API configuration is missing");
     }
-    return FormApi.submit(formData, this.schema.api);
+
+    return HttpService.request(this.schema.api, formData);
   }
 
   /**

@@ -2,7 +2,7 @@
  * Global type declarations for SmartFormIO
  */
 
-import { FormSchema } from "./interfaces/form.interface";
+import { FormSchema } from "@interfaces/core.interface";
 
 declare global {
   /**

@@ -1,5 +1,5 @@
 import { FormSchema } from "@interfaces/core.interface";
-import { FormApi } from "../api/form.api";
+import { HttpService } from "@services/http.service";
 
 /**
  * Custom event types for form API events
@@ -30,7 +30,6 @@ export function dispatchFormEvent(
  * Handles the API submission process
  */
 export async function handleApiSubmission(
-  this: unknown,
   form: HTMLFormElement,
   schema: FormSchema,
   formData: Record<string, any>
@@ -51,7 +50,7 @@ export async function handleApiSubmission(
     // Dispatch submit event
     dispatchFormEvent(form, FORM_API_EVENTS.SUBMIT, formData);
 
-    const response = await FormApi.submit(formData, schema.api);
+    const response = await HttpService.request(schema.api, formData);
 
     if (response.success) {
       // Dispatch success event
