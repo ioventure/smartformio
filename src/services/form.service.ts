@@ -2,7 +2,6 @@ import { FormSchema } from "../interfaces/core.interface";
 import { SubmissionResponse } from "../interfaces/api.interface";
 import { FormApi } from "../api/form.api";
 import { FORM_API_EVENTS, dispatchFormEvent } from "../events/form.api.events";
-import { defaultApiConfig, defaultCallbacks } from "../config/form.config";
 
 /**
  * Form Submission Service
@@ -14,11 +13,7 @@ export class FormSubmissionService {
 
   constructor(form: HTMLFormElement, schema: FormSchema) {
     this.form = form;
-    this.schema = {
-      ...schema,
-      api: schema.api || defaultApiConfig,
-      callbacks: schema.callbacks || defaultCallbacks,
-    };
+    this.schema = schema;
   }
 
   /**
@@ -26,11 +21,6 @@ export class FormSubmissionService {
    */
   async submit(formData: Record<string, any>): Promise<void> {
     try {
-      // Call onSubmit callback
-      if (this.schema.callbacks?.onSubmit) {
-        await this.schema.callbacks.onSubmit(formData);
-      }
-
       // Dispatch submit event
       dispatchFormEvent(this.form, FORM_API_EVENTS.SUBMIT, formData);
 
@@ -68,10 +58,6 @@ export class FormSubmissionService {
    * Handles successful submission
    */
   private async handleSuccess(response: SubmissionResponse): Promise<void> {
-    if (this.schema.callbacks?.onSuccess) {
-      await this.schema.callbacks.onSuccess(response.data);
-    }
-
     dispatchFormEvent(this.form, FORM_API_EVENTS.SUCCESS, {
       data: response.data,
     });
@@ -83,17 +69,9 @@ export class FormSubmissionService {
    * Handles submission error
    */
   private async handleError(error: any): Promise<void> {
-    if (this.schema.callbacks?.onError) {
-      await this.schema.callbacks.onError(error);
-    }
-
     dispatchFormEvent(this.form, FORM_API_EVENTS.ERROR, {
       error,
     });
-
-    if (this.schema.api?.handleError) {
-      this.schema.api.handleError(error);
-    }
   }
 
   /**
