@@ -41,7 +41,7 @@ export interface BaseField {
 /**
  * Configuration for the entire form
  */
-import { ApiConfig, FormCallbacks } from "./api.interface";
+import { ApiConfig } from "./api.interface";
 
 export interface FormSchema {
   /** Form title */
@@ -56,8 +56,6 @@ export interface FormSchema {
   submitButtonText?: string;
   /** API configuration for form submission */
   api?: ApiConfig;
-  /** Form submission callbacks */
-  callbacks?: FormCallbacks;
 }
 
 // Import this here to avoid circular dependency

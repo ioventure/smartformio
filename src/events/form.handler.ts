@@ -48,7 +48,7 @@ export async function handleFormSubmission(
 
     // Call onSubmit callback if provided
     if (schema.callbacks?.onSubmit) {
-      await schema.callbacks.onSubmit(formData);
+      schema.callbacks.onSubmit.call(this, formData);
     }
 
     // Dispatch submit event

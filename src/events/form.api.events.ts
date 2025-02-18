@@ -1,5 +1,4 @@
 import { FormSchema } from "@interfaces/core.interface";
-import { SubmissionResponse } from "@interfaces/api.interface";
 import { FormApi } from "../api/form.api";
 
 /**
@@ -31,6 +30,7 @@ export function dispatchFormEvent(
  * Handles the API submission process
  */
 export async function handleApiSubmission(
+  this: unknown,
   form: HTMLFormElement,
   schema: FormSchema,
   formData: Record<string, any>
@@ -48,22 +48,12 @@ export async function handleApiSubmission(
   }
 
   try {
-    // Call onSubmit callback if provided
-    if (schema.callbacks?.onSubmit) {
-      await schema.callbacks.onSubmit(formData);
-    }
-
     // Dispatch submit event
     dispatchFormEvent(form, FORM_API_EVENTS.SUBMIT, formData);
 
     const response = await FormApi.submit(formData, schema.api);
 
     if (response.success) {
-      // Call onSuccess callback if provided
-      if (schema.callbacks?.onSuccess) {
-        await schema.callbacks.onSuccess(response.data);
-      }
-
       // Dispatch success event
       dispatchFormEvent(form, FORM_API_EVENTS.SUCCESS, {
         data: formData,
@@ -76,11 +66,6 @@ export async function handleApiSubmission(
       throw response.error;
     }
   } catch (error) {
-    // Call onError callback if provided
-    if (schema.callbacks?.onError) {
-      await schema.callbacks.onError(error);
-    }
-
     // Dispatch error event
     dispatchFormEvent(form, FORM_API_EVENTS.ERROR, {
       data: formData,

@@ -15,11 +15,6 @@ export class FormApi {
     config: ApiConfig
   ): Promise<SubmissionResponse> {
     try {
-      // Apply data transformation if configured
-      const transformedData = config.transformData
-        ? await config.transformData(data)
-        : data;
-
       // Prepare fetch options
       const options: RequestInit = {
         method: config.method || FormApi.DEFAULT_METHOD,
@@ -27,7 +22,7 @@ export class FormApi {
           "Content-Type": "application/json",
           ...config.headers,
         },
-        body: JSON.stringify(transformedData),
+        body: JSON.stringify(data),
         // credentials: config.withCredentials ? "include" : "same-origin",
       };
 
@@ -70,11 +65,6 @@ export class FormApi {
             code: "TIMEOUT",
           },
         };
-      }
-
-      // Handle custom error handling if configured
-      if (config.handleError) {
-        config.handleError(error);
       }
 
       return {
