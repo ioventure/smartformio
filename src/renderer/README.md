@@ -1,21 +1,53 @@
-# Renderer Directory
+# Renderer Module
 
-This directory contains rendering logic for the SmartFormIO library.
+This module contains rendering logic for the SmartFormIO library. Each renderer follows the singleton pattern to ensure consistent state management and efficient resource usage.
 
-## Files
+## Architecture
 
-- `form.renderer.ts`: Contains the main rendering logic for forms.
-- `helper.ts`: Contains helper functions used in rendering.
-- `inputs/`: Contains specific input type components for forms.
+### Core Components
+
+- `form.renderer.ts`: Main form renderer (singleton)
+- `helper.ts`: Rendering utilities (singleton)
+- `inputs/`: Field-specific renderers (all singletons)
+
+### Design Patterns
+
+#### Singleton Pattern
+
+All renderers implement the singleton pattern to ensure:
+
+- Single source of truth for rendering logic
+- Consistent rendering behavior
+- Efficient resource usage
+
+Example implementation:
+
+```typescript
+export class FormRenderer {
+  private static instance: FormRenderer;
+  private static readonly LOG_CONTEXT = "FormRenderer";
+
+  private constructor() {
+    // Private constructor
+  }
+
+  public static getInstance(): FormRenderer {
+    if (!FormRenderer.instance) {
+      FormRenderer.instance = new FormRenderer();
+    }
+    return FormRenderer.instance;
+  }
+}
+
+export const formRenderer = FormRenderer.getInstance();
+```
 
 ## Usage
 
-The rendering logic is designed to be flexible and customizable. Below are examples of how to use the rendering components.
-
-### Basic Rendering Example
+### Form Rendering
 
 ```typescript
-import { renderForm } from "./form.renderer";
+import { formRenderer } from "@renderer/form.renderer";
 
 const schema = {
   fields: [
@@ -34,160 +66,194 @@ const schema = {
   ],
 };
 
-const formElement = document.getElementById("myForm");
-renderForm(formElement, schema);
+// Using the singleton renderer
+const html = await formRenderer.render(schema);
 ```
 
-### Custom Input Components
-
-You can create custom input components by extending the base input class. Here's an example of a custom checkbox input:
+### Input Renderers
 
 ```typescript
-import { BaseInput } from "./base-input";
+import {
+  textInputRenderer,
+  dateInputRenderer,
+  fileInputRenderer,
+  selectInputRenderer,
+  radioInputRenderer,
+  checkboxInputRenderer,
+} from "@renderer/inputs";
 
-class CustomCheckboxInput extends BaseInput {
-  render() {
-    // Custom rendering logic for checkbox
-  }
-}
+// Using specific input renderers
+const textFieldHtml = textInputRenderer.render(textField);
+const dateFieldHtml = dateInputRenderer.render(dateField);
 ```
 
-## Styling Components
+### Rendering Utilities
 
-Each rendered component exposes CSS parts that can be styled using the `::part()` selector. Here's how to style different components:
+```typescript
+import { renderHelper } from "@renderer/helper";
+
+// Using the helper singleton
+const attributes = renderHelper.renderAttributes({
+  name: "example",
+  required: true,
+});
+
+const escapedText = renderHelper.escapeHtml("<script>alert('xss')</script>");
+```
+
+## Component Structure
 
 ### Form Container
 
+```html
+<form id="smartform" part="container" novalidate>
+  <h2 part="title">Form Title</h2>
+  <p part="description">Form Description</p>
+  <!-- Fields -->
+  <button type="submit" part="button">Submit</button>
+</form>
+```
+
+### Field Structure
+
+```html
+<div part="field" role="group">
+  <label part="label">Field Label</label>
+  <div part="input-container">
+    <input part="input" />
+  </div>
+  <div part="message-container">
+    <div part="help-text">Help text</div>
+    <div part="error-text" role="alert"></div>
+  </div>
+</div>
+```
+
+## Styling
+
+Each renderer exposes CSS parts for styling:
+
+### Form Parts
+
 ```css
 smart-form-io::part(container) {
-  font-family: var(--smartform-font-family);
-  background: var(--smartform-bg-color);
-  padding: var(--smartform-spacing);
-  border-radius: var(--smartform-border-radius);
-  max-width: 400px;
-  margin: 0 auto;
+  /* Form container */
+}
+smart-form-io::part(title) {
+  /* Form title */
+}
+smart-form-io::part(description) {
+  /* Form description */
+}
+smart-form-io::part(button) {
+  /* Submit button */
 }
 ```
 
-### Input Fields
+### Field Parts
 
 ```css
-/* Base Input */
-smart-form-io::part(input) {
-  width: 100%;
-  padding: var(--smartform-input-padding);
-  border: var(--smartform-input-border);
-  border-radius: var(--smartform-border-radius);
-  transition: var(--smartform-input-transition);
+smart-form-io::part(field) {
+  /* Field wrapper */
 }
-
-/* Select Input */
-smart-form-io::part(input-select) {
-  padding-right: 2.5em;
-  background-image: url("data:image/svg+xml,..."); /* Custom dropdown arrow */
+smart-form-io::part(field-required) {
+  /* Required field */
 }
-
-/* File Input */
-smart-form-io::part(input-file)::file-selector-button {
-  padding: 0.4em 0.8em;
-  margin-right: 0.8em;
-  border: 1px solid var(--smartform-primary-color);
-  background: #fff;
-  color: var(--smartform-primary-color);
+smart-form-io::part(field-disabled) {
+  /* Disabled field */
 }
-```
-
-### Checkbox and Radio Groups
-
-```css
-/* Checkbox Group */
-smart-form-io::part(checkbox-group) {
-  display: flex;
-  gap: 0.4rem;
-}
-
-/* Radio Group */
-smart-form-io::part(radio-group) {
-  display: flex;
-  gap: 1rem;
-}
-
-/* Vertical Layout */
-smart-form-io::part(checkbox-group-vertical),
-smart-form-io::part(radio-group-vertical) {
-  flex-direction: column;
-}
-
-/* Horizontal Layout */
-smart-form-io::part(checkbox-group-horizontal),
-smart-form-io::part(radio-group-horizontal) {
-  flex-direction: row;
-  flex-wrap: wrap;
-}
-```
-
-### Labels and Help Text
-
-```css
-/* Label */
 smart-form-io::part(label) {
-  display: block;
-  font-weight: 500;
-  color: var(--smartform-text-color);
-  margin-bottom: calc(var(--smartform-spacing) * 0.25);
+  /* Field label */
 }
-
-/* Help Text */
-smart-form-io::part(help-text) {
-  color: var(--smartform-help-color);
-  font-size: 0.875rem;
+smart-form-io::part(input-container) {
+  /* Input wrapper */
 }
 ```
 
-### Error States
+### Input Parts
 
 ```css
-/* Invalid Input */
+smart-form-io::part(input) {
+  /* Base input */
+}
+smart-form-io::part(input-text) {
+  /* Text input */
+}
+smart-form-io::part(input-select) {
+  /* Select input */
+}
+smart-form-io::part(input-file) {
+  /* File input */
+}
 smart-form-io::part(input-invalid) {
-  border-color: var(--smartform-error-color);
-}
-
-/* Error Message */
-smart-form-io::part(error-text) {
-  color: var(--smartform-error-color);
-  font-size: 0.75rem;
+  /* Invalid input state */
 }
 ```
 
-### Icons
+### Message Parts
 
 ```css
-/* Leading Icon */
-smart-form-io::part(leading-icon) {
-  position: absolute;
-  left: 0.4em;
-  top: 50%;
-  transform: translateY(-50%);
+smart-form-io::part(message-container) {
+  /* Message wrapper */
 }
-
-/* Trailing Icon */
-smart-form-io::part(trailing-icon) {
-  position: absolute;
-  right: 0.4em;
-  top: 50%;
-  transform: translateY(-50%);
+smart-form-io::part(help-text) {
+  /* Help text */
+}
+smart-form-io::part(error-text) {
+  /* Error message */
 }
 ```
 
 ## Accessibility
 
-The renderer implements ARIA attributes and keyboard navigation for better accessibility:
+The renderers implement comprehensive accessibility features:
 
-- All form controls have associated labels
-- Error messages are announced to screen readers
-- Focus management for keyboard navigation
-- ARIA states for validation feedback
+### ARIA Attributes
+
+- `aria-label`: Descriptive labels for inputs
+- `aria-required`: Required field indication
+- `aria-invalid`: Validation state
+- `aria-describedby`: Links inputs to help/error text
+- `aria-errormessage`: Links inputs to error messages
+- `role`: Semantic roles for components
+
+### Keyboard Navigation
+
+- Tab navigation between fields
+- Arrow key navigation in radio/checkbox groups
+- Space/Enter for selection
+- Escape to close dropdowns
+
+### Screen Reader Support
+
+- Descriptive labels and instructions
+- Error message announcements
+- Status updates
+- Field group relationships
+
+## Error Handling
+
+All renderers implement consistent error handling:
+
+```typescript
+try {
+  // Rendering logic
+} catch (error) {
+  logger.error(
+    "Error message",
+    error instanceof Error ? error : new Error(String(error)),
+    "ContextName"
+  );
+  throw error;
+}
+```
 
 ## Contributing
 
-We welcome contributions! Please see our [contributing guidelines](CONTRIBUTING.md) for more information on how to get involved.
+1. Follow the singleton pattern for new renderers
+2. Maintain consistent error handling
+3. Include comprehensive JSDoc documentation
+4. Add appropriate ARIA attributes
+5. Update tests for new functionality
+
+See [CONTRIBUTING.md](../../CONTRIBUTING.md) for detailed guidelines.

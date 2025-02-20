@@ -1,27 +1,118 @@
+/**
+ * @file Form renderer implementation
+ * @module Renderer/Form
+ * @description Handles complete form rendering in both static and SSR environments.
+ */
+
 import { IFormSchema } from "@interfaces/core.interface";
-import { IFormFieldSchema } from "@interfaces/field.interface";
-import { renderTextInput } from "@renderer/inputs/text-input";
-import { renderDateInput } from "@renderer/inputs/date-input";
-import { renderFileInput } from "@renderer/inputs/file-input";
-import { renderSelect } from "@renderer/inputs/select-input";
-import { renderRadio } from "@renderer/inputs/radio-input";
-import { renderCheckbox } from "@renderer/inputs/checkbox-input";
+import {
+  IFormFieldSchema,
+  ITextField,
+  IDateField,
+  IFileField,
+  ISelectField,
+  IRadioField,
+  ICheckboxField,
+} from "@interfaces/field.interface";
+import {
+  textInputRenderer,
+  dateInputRenderer,
+  fileInputRenderer,
+  selectInputRenderer,
+  radioInputRenderer,
+  checkboxInputRenderer,
+} from "@renderer/inputs";
+import { renderHelper } from "@renderer/helper";
 import { logger } from "@services/logger.service";
 
 /**
- * Singleton FormRenderer Service
- * Handles form rendering in both static and SSR environments
+ * Form configuration
+ * @constant
+ */
+const FORM_CONFIG = {
+  ID: "smartform",
+  PARTS: {
+    CONTAINER: "container",
+    TITLE: "title",
+    DESCRIPTION: "description",
+    BUTTON: "button",
+  },
+  DEFAULTS: {
+    SUBMIT_TEXT: "Submit",
+  },
+} as const;
+
+/**
+ * Field type definitions
+ */
+type TextFieldType = "text" | "email" | "password" | "number" | "textarea";
+type FieldType =
+  | TextFieldType
+  | "date"
+  | "file"
+  | "select"
+  | "radio"
+  | "checkbox";
+
+/**
+ * Field type guards
+ */
+function isTextField(field: IFormFieldSchema): field is ITextField {
+  return ["text", "email", "password", "number", "textarea"].includes(
+    field.type as string
+  );
+}
+
+function isDateField(field: IFormFieldSchema): field is IDateField {
+  return field.type === "date";
+}
+
+function isFileField(field: IFormFieldSchema): field is IFileField {
+  return field.type === "file";
+}
+
+function isSelectField(field: IFormFieldSchema): field is ISelectField {
+  return field.type === "select";
+}
+
+function isRadioField(field: IFormFieldSchema): field is IRadioField {
+  return field.type === "radio";
+}
+
+function isCheckboxField(field: IFormFieldSchema): field is ICheckboxField {
+  return field.type === "checkbox";
+}
+
+/**
+ * Singleton renderer for complete forms
+ * @class FormRenderer
+ * @description Manages rendering of complete forms based on schema configurations.
+ * Coordinates between different input renderers to build the complete form.
+ *
+ * Features:
+ * - Complete form rendering
+ * - Field type handling
+ * - Title and description support
+ * - Submit button customization
+ * - Error handling
+ *
+ * @example
+ * ```typescript
+ * // Using the renderer
+ * const html = await formRenderer.render(schema);
+ * ```
  */
 export class FormRenderer {
   private static instance: FormRenderer;
-  private readonly logContext = "FormRenderer";
+  private static readonly LOG_CONTEXT = "FormRenderer";
 
   private constructor() {
-    logger.info("FormRenderer singleton initialized", this.logContext);
+    logger.info("FormRenderer singleton initialized", FormRenderer.LOG_CONTEXT);
   }
 
   /**
-   * Get the singleton instance of FormRenderer
+   * Gets the singleton instance of FormRenderer
+   * @returns {FormRenderer} The singleton instance
    */
   public static getInstance(): FormRenderer {
     if (!FormRenderer.instance) {
@@ -31,85 +122,157 @@ export class FormRenderer {
   }
 
   /**
-   * Renders a field based on its type
+   * Renders a complete form based on the provided schema
+   * @param {IFormSchema} schema - The form configuration schema
+   * @returns {Promise<string>} The rendered form HTML
    */
-  private renderField(field: IFormFieldSchema): string {
-    const fieldType = field.type;
-    logger.debug(
-      `Rendering field: ${field.name} (type: ${fieldType})`,
-      this.logContext
-    );
-    switch (fieldType) {
-      case "text":
-      case "email":
-      case "password":
-      case "number":
-      case "textarea":
-        return renderTextInput(field);
-      case "date":
-        return renderDateInput(field);
-      case "file":
-        return renderFileInput(field);
-      case "select":
-        return renderSelect(field);
-      case "radio":
-        return renderRadio(field);
-      case "checkbox":
-        return renderCheckbox(field);
-      default:
-        logger.warn(`Unsupported field type: ${fieldType}`, this.logContext);
-        return "";
+  public async render(schema: IFormSchema): Promise<string> {
+    try {
+      logger.info(
+        `Rendering form with ${schema.fields.length} fields`,
+        FormRenderer.LOG_CONTEXT
+      );
+
+      this.logFormConfiguration(schema);
+
+      const form = `
+        <form 
+          id="${FORM_CONFIG.ID}" 
+          part="${FORM_CONFIG.PARTS.CONTAINER}"
+          novalidate
+        >
+          ${this.renderFormHeader(schema)}
+          ${this.renderFormFields(schema)}
+          ${this.renderSubmitButton(schema)}
+        </form>
+      `;
+
+      logger.info("Form rendered successfully", FormRenderer.LOG_CONTEXT);
+      logger.debug(
+        `Generated form HTML length: ${form.length} characters`,
+        FormRenderer.LOG_CONTEXT
+      );
+
+      return form;
+    } catch (error) {
+      logger.error(
+        "Error rendering form",
+        error instanceof Error ? error : new Error(String(error)),
+        FormRenderer.LOG_CONTEXT
+      );
+      throw error;
     }
   }
 
   /**
-   * Renders a complete form based on the provided schema
+   * Logs form configuration details
+   * @private
    */
-  public async render(schema: IFormSchema): Promise<string> {
-    logger.info(
-      `Rendering form with ${schema.fields.length} fields`,
-      this.logContext
+  private logFormConfiguration(schema: IFormSchema): void {
+    const fieldTypes = schema.fields.map(
+      (f) => (f as { type: FieldType }).type
     );
 
     logger.debug(
       `Form configuration: ${JSON.stringify({
         hasTitle: !!schema.title,
         hasDescription: !!schema.description,
-        submitButtonText: schema.submitButtonText || "Submit",
+        submitButtonText:
+          schema.submitButtonText || FORM_CONFIG.DEFAULTS.SUBMIT_TEXT,
+        fieldCount: schema.fields.length,
+        fieldTypes,
       })}`,
-      this.logContext
+      FormRenderer.LOG_CONTEXT
+    );
+  }
+
+  /**
+   * Renders form header (title and description)
+   * @private
+   */
+  private renderFormHeader(schema: IFormSchema): string {
+    return `
+      ${schema.title ? `<h2 part="${FORM_CONFIG.PARTS.TITLE}">${renderHelper.escapeHtml(schema.title)}</h2>` : ""}
+      ${schema.description ? `<p part="${FORM_CONFIG.PARTS.DESCRIPTION}">${renderHelper.escapeHtml(schema.description)}</p>` : ""}
+    `;
+  }
+
+  /**
+   * Renders all form fields
+   * @private
+   */
+  private renderFormFields(schema: IFormSchema): string {
+    return schema.fields
+      .map((field: IFormFieldSchema) => this.renderField(field))
+      .join("\n");
+  }
+
+  /**
+   * Renders a field based on its type
+   * @private
+   */
+  private renderField(field: IFormFieldSchema): string {
+    const fieldType = (field as { type: FieldType }).type;
+
+    logger.debug(
+      `Rendering field: ${field.name} (type: ${fieldType})`,
+      FormRenderer.LOG_CONTEXT
     );
 
     try {
-      const fields = schema.fields.map((field: IFormFieldSchema) =>
-        this.renderField(field)
-      );
+      if (isTextField(field)) {
+        return textInputRenderer.render(field);
+      }
+      if (isDateField(field)) {
+        return dateInputRenderer.render(field);
+      }
+      if (isFileField(field)) {
+        return fileInputRenderer.render(field);
+      }
+      if (isSelectField(field)) {
+        return selectInputRenderer.render(field);
+      }
+      if (isRadioField(field)) {
+        return radioInputRenderer.render(field);
+      }
+      if (isCheckboxField(field)) {
+        return checkboxInputRenderer.render(field);
+      }
 
-      const form = `
-        <form id="smartform" part="container">
-          ${schema.title ? `<h2 part="title">${schema.title}</h2>` : ""}
-          ${schema.description ? `<p part="description">${schema.description}</p>` : ""}
-          ${fields.join("\n")}
-          <button type="submit" part="button" disabled>${schema.submitButtonText || "Submit"}</button>
-        </form>
-      `;
-
-      logger.info("Form rendered successfully", this.logContext);
-      logger.debug(
-        `Generated form HTML length: ${form.length} characters`,
-        this.logContext
+      logger.warn(
+        `Unsupported field type: ${fieldType}`,
+        FormRenderer.LOG_CONTEXT
       );
-      return form;
+      return "";
     } catch (error) {
       logger.error(
-        "Error rendering form",
+        `Error rendering field: ${field.name}`,
         error instanceof Error ? error : new Error(String(error)),
-        this.logContext
+        FormRenderer.LOG_CONTEXT
       );
       throw error;
     }
   }
+
+  /**
+   * Renders form submit button
+   * @private
+   */
+  private renderSubmitButton(schema: IFormSchema): string {
+    const buttonText =
+      schema.submitButtonText || FORM_CONFIG.DEFAULTS.SUBMIT_TEXT;
+    return `
+      <button 
+        type="submit" 
+        part="${FORM_CONFIG.PARTS.BUTTON}"
+        disabled
+      >${renderHelper.escapeHtml(buttonText)}</button>
+    `;
+  }
 }
 
-// Export singleton instance
+/**
+ * Singleton instance of the FormRenderer
+ * @const {FormRenderer}
+ */
 export const formRenderer = FormRenderer.getInstance();
