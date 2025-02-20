@@ -2,6 +2,10 @@
  * @file Core interfaces and types for SmartFormIO
  */
 
+import { IApiConfig } from "./api.interface";
+import { IFormFieldSchema } from "./field.interface";
+import { LoggerConfig } from "../services/logger.service";
+
 /**
  * Configuration options for SmartFormIO
  */
@@ -41,8 +45,6 @@ export interface IBaseField {
 /**
  * Configuration for the entire form
  */
-import { IApiConfig } from "./api.interface";
-
 export interface IFormSchema {
   /** Form title */
   title?: string;
@@ -56,7 +58,6 @@ export interface IFormSchema {
   submitButtonText?: string;
   /** API configuration for form submission */
   api?: IApiConfig;
+  /** Logger configuration */
+  logger?: Partial<LoggerConfig>;
 }
-
-// Import this here to avoid circular dependency
-import { IFormFieldSchema } from "./field.interface";

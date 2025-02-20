@@ -14,27 +14,37 @@ The utility functions provide essential functionalities that can be reused throu
 
 ```typescript
 import { validateEmail, validateRequired } from "./validation";
+import { logger } from "@services/logger.service";
 
 const email = "test@example.com";
 const isValidEmail = validateEmail(email);
-console.log("Is valid email:", isValidEmail);
+logger.info(`Email validation result: ${isValidEmail}`);
 
 const username = "";
 const isRequiredValid = validateRequired(username);
-console.log("Is required valid:", isRequiredValid);
+logger.info(`Required field validation result: ${isRequiredValid}`);
 ```
 
 ### Custom Validation Functions
 
-You can create custom validation functions by extending the base validation class. Here’s an example of a custom validation function:
+You can create custom validation functions by extending the base validation class. Here's an example of a custom validation function:
 
 ```typescript
 import { BaseValidation } from "./base-validation";
+import { logger } from "@services/logger.service";
 
 class CustomValidation extends BaseValidation {
   validate(value) {
-    // Custom validation logic
-    return value.length > 5; // Example: value must be longer than 5 characters
+    try {
+      // Custom validation logic
+      return value.length > 5; // Example: value must be longer than 5 characters
+    } catch (error) {
+      logger.error(
+        "Custom validation error:",
+        error instanceof Error ? error : new Error(String(error))
+      );
+      return false;
+    }
   }
 }
 ```

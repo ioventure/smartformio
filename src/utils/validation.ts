@@ -4,6 +4,7 @@ import {
   IFormFieldSchema,
   ITextField,
 } from "@interfaces/field.interface";
+import { logger } from "@services/logger.service";
 
 /**
  * Result of a validation check.
@@ -87,7 +88,10 @@ function validateTextField(field: ITextField, value: string): ValidationResult {
 
     return { isValid: true };
   } catch (error) {
-    console.error("Text field validation error:", error);
+    logger.error(
+      "Text field validation error:",
+      error instanceof Error ? error : new Error(String(error))
+    );
     return { isValid: false, message: "An error occurred during validation" };
   }
 }
@@ -119,7 +123,10 @@ function validateDateField(field: IDateField, value: string): ValidationResult {
 
     return { isValid: true };
   } catch (error) {
-    console.error("Date field validation error:", error);
+    logger.error(
+      "Date field validation error:",
+      error instanceof Error ? error : new Error(String(error))
+    );
     return { isValid: false, message: "Invalid date format" };
   }
 }
@@ -160,7 +167,10 @@ export function validateField(
         return { isValid: true };
     }
   } catch (error) {
-    console.error("Field validation error:", error);
+    logger.error(
+      "Field validation error:",
+      error instanceof Error ? error : new Error(String(error))
+    );
     return { isValid: false, message: "An error occurred during validation" };
   }
 }
@@ -189,7 +199,10 @@ export function validateForm(
 
     return validationResults;
   } catch (error) {
-    console.error("Form validation error:", error);
+    logger.error(
+      "Form validation error:",
+      error instanceof Error ? error : new Error(String(error))
+    );
     return {};
   }
 }

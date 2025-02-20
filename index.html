@@ -12,7 +12,13 @@
         description:
           "This form demonstrates all input types and their validations",
         validateOnChange: true,
-        // Add API configuration
+        // Logger configuration
+        logger: {
+          level: "debug",
+          context: "SmartFormIO-Demo",
+          enabled: true,
+        },
+        // API configuration
         api: {
           endpoint: "https://dummyjson.com/test",
           method: "POST",

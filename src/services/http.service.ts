@@ -45,6 +45,12 @@ export class HttpService {
       },
     };
 
+    logger.error(
+      `API Error: ${apiError.message}`,
+      error instanceof Error ? error : new Error(String(error)),
+      HttpService.logContext
+    );
+
     errorHandler.handleApiError(apiError);
     return {
       success: false,
@@ -66,7 +72,17 @@ export class HttpService {
     const { endpoint, method, timeout, headers, withCredentials } = config;
 
     logger.info(
-      `Making ${method || "GET"} request to ${endpoint}`,
+      `Starting ${method || "GET"} request to ${endpoint}`,
+      HttpService.logContext
+    );
+
+    logger.debug(
+      `Request config: ${JSON.stringify({
+        method,
+        withCredentials,
+        timeout,
+        hasData: !!data,
+      })}`,
       HttpService.logContext
     );
 
@@ -108,11 +124,19 @@ export class HttpService {
       }
 
       if (!response.ok) {
+        logger.warn(
+          `Request failed with status ${response.status}`,
+          HttpService.logContext
+        );
         const errorData = await response.json().catch(() => ({}));
         return this.handleApiError(errorData, response.status, endpoint);
       }
 
       const responseData = await response.json();
+      logger.debug(
+        `Request completed successfully with status ${response.status}`,
+        HttpService.logContext
+      );
       return {
         success: true,
         data: responseData,

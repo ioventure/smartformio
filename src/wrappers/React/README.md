@@ -20,6 +20,7 @@ The React wrapper allows you to easily integrate SmartFormIO into your React app
 
 ```tsx
 import { SmartFormReact } from "@ioventure/smartformio";
+import { logger } from "@ioventure/smartformio";
 
 const MyForm = () => {
   const schema = {
@@ -39,10 +40,15 @@ const MyForm = () => {
         validationMessage: "Please enter a valid email",
       },
     ],
+    logger: {
+      level: "debug",
+      context: "MyFormComponent",
+      enabled: true,
+    },
   };
 
   const handleSubmit = (data) => {
-    console.log("Form data:", data);
+    logger.info("Form submitted with data", { data });
   };
 
   return <SmartFormReact schema={schema} onSubmit={handleSubmit} />;

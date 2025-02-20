@@ -1,17 +1,31 @@
 import { ISelectField } from "@interfaces/field.interface";
 import { renderAttr, renderFieldWrapper } from "@renderer/helper";
+import { logger } from "@services/logger.service";
+
+const LOG_CONTEXT = "SelectInputRenderer";
 
 /**
  * Renders a select dropdown field based on the provided schema
  */
 export function renderSelect(field: ISelectField): string {
-  // Build input parts
-  const inputParts = ["input", "input-select"];
-  if (field.leadingIcon) {
-    inputParts.push("input-leading-icon");
-  }
+  try {
+    logger.debug(
+      `Rendering select input for field: ${field.name}`,
+      LOG_CONTEXT
+    );
 
-  const input = `
+    // Build input parts
+    const inputParts = ["input", "input-select"];
+    if (field.leadingIcon) {
+      inputParts.push("input-leading-icon");
+    }
+
+    logger.debug(
+      `Building select with ${field.options.length} options`,
+      LOG_CONTEXT
+    );
+
+    const input = `
     <div part="input-wrapper">
       ${field.leadingIcon ? `<span part="leading-icon">${field.leadingIcon}</span>` : ""}
       <select 
@@ -39,5 +53,18 @@ export function renderSelect(field: ISelectField): string {
     </div>
   `;
 
-  return renderFieldWrapper(field, input);
+    logger.debug(
+      `Select input rendered successfully for: ${field.name}`,
+      LOG_CONTEXT
+    );
+    return renderFieldWrapper(field, input);
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger.error(
+      `Error rendering select input for: ${field.name}`,
+      err,
+      LOG_CONTEXT
+    );
+    throw error;
+  }
 }

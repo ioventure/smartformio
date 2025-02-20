@@ -15,6 +15,7 @@ import {
  */
 export class ErrorHandlerService {
   private static instance: ErrorHandlerService;
+  private static readonly LOG_CONTEXT = "ErrorHandler";
   private errorListeners: Set<IErrorListener> = new Set();
 
   private config: IErrorHandlerConfig = {
@@ -114,13 +115,17 @@ export class ErrorHandlerService {
   ): IErrorInfo {
     const formattedError = this.formatError(type, error, code, details);
 
-    // Log error with appropriate level
+    // Log error with appropriate level and context
     if (type === ErrorType.VALIDATION) {
-      logger.warn(`Validation Error: ${formattedError.message}`);
+      logger.warn(
+        `Validation Error: ${formattedError.message}`,
+        ErrorHandlerService.LOG_CONTEXT
+      );
     } else {
       logger.error(
         `${type.charAt(0).toUpperCase() + type.slice(1)} Error: ${formattedError.message}`,
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : new Error(String(error)),
+        ErrorHandlerService.LOG_CONTEXT
       );
     }
 
@@ -235,7 +240,8 @@ export class ErrorHandlerService {
       } catch (err) {
         logger.error(
           "Error in error listener",
-          err instanceof Error ? err : new Error(String(err))
+          err instanceof Error ? err : new Error(String(err)),
+          ErrorHandlerService.LOG_CONTEXT
         );
       }
     });

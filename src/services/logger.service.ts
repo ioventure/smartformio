@@ -13,8 +13,8 @@ export enum LogLevel {
  */
 export interface LoggerConfig {
   level: LogLevel;
-  context?: string;
-  enabled?: boolean;
+  context: string;
+  enabled: boolean;
 }
 
 /**
@@ -23,36 +23,78 @@ export interface LoggerConfig {
  */
 export class LoggerService {
   private static instance: LoggerService;
-  private context: string = "SmartFormIO";
-  private enabled: boolean = true;
-  private level: LogLevel = LogLevel.INFO;
+  private static defaultConfig: LoggerConfig = {
+    level: LogLevel.INFO,
+    context: "SmartFormIO",
+    enabled: true,
+  };
+
+  private context: string;
+  private enabled: boolean;
+  private level: LogLevel;
 
   private constructor() {
-    // Private constructor to enforce singleton pattern
-    if (typeof window !== "undefined") {
-      this.context =
-        window?.document?.currentScript?.getAttribute("data-logger-context") ||
-        this.context;
-    }
+    // Start with logging disabled by default until configured
+    this.enabled = false;
+    this.level = LoggerService.defaultConfig.level;
+    this.context = LoggerService.defaultConfig.context;
   }
 
   /**
-   * Get the singleton instance of LoggerService
+   * Get or initialize the singleton instance of LoggerService
+   * @param config Optional configuration to initialize the logger with
    */
-  public static getInstance(): LoggerService {
+  public static getInstance(config?: Partial<LoggerConfig>): LoggerService {
     if (!LoggerService.instance) {
       LoggerService.instance = new LoggerService();
+      if (config) {
+        LoggerService.instance.configure(config);
+      }
     }
     return LoggerService.instance;
   }
 
   /**
-   * Configure the logger
+   * Configure the logger with new settings
+   * @param config Partial configuration to update. Only valid values will be applied:
+   * - level: must be a valid LogLevel
+   * - context: must be a non-empty string
+   * - enabled: must be a boolean
    */
-  public configure(config: LoggerConfig): void {
-    this.level = config.level;
-    if (config.context) this.context = config.context;
-    if (typeof config.enabled !== "undefined") this.enabled = config.enabled;
+  public configure(config: Partial<LoggerConfig>): void {
+    if (!config) return;
+
+    // Update level if valid
+    if (
+      config.level !== undefined &&
+      Object.values(LogLevel).includes(config.level)
+    ) {
+      this.level = config.level;
+    }
+
+    // Update context if valid string
+    if (config.context !== undefined) {
+      const trimmedContext = config.context.trim();
+      if (trimmedContext) {
+        this.context = trimmedContext;
+      }
+    }
+
+    // Update enabled if boolean
+    if (typeof config.enabled === "boolean") {
+      this.enabled = config.enabled;
+    }
+  }
+
+  /**
+   * Get current logger configuration
+   */
+  public getConfig(): LoggerConfig {
+    return {
+      level: this.level,
+      context: this.context,
+      enabled: this.enabled,
+    };
   }
 
   /**
@@ -121,5 +163,35 @@ export class LoggerService {
   }
 }
 
-// Export singleton instance
-export const logger = LoggerService.getInstance();
+// Export logger interface with lazy initialization
+let instance: LoggerService | undefined;
+
+export const logger = {
+  configure: (config?: Partial<LoggerConfig>) => {
+    if (!instance) {
+      instance = LoggerService.getInstance(config);
+    } else {
+      instance.configure(config || {});
+    }
+  },
+  info: (message: string, context?: string) => {
+    if (!instance) instance = LoggerService.getInstance();
+    instance.info(message, context);
+  },
+  warn: (message: string, context?: string) => {
+    if (!instance) instance = LoggerService.getInstance();
+    instance.warn(message, context);
+  },
+  error: (message: string, error?: Error, context?: string) => {
+    if (!instance) instance = LoggerService.getInstance();
+    instance.error(message, error, context);
+  },
+  debug: (message: string, context?: string) => {
+    if (!instance) instance = LoggerService.getInstance();
+    instance.debug(message, context);
+  },
+  getConfig: () => {
+    if (!instance) instance = LoggerService.getInstance();
+    return instance.getConfig();
+  },
+};

@@ -35,6 +35,10 @@ export class FormRenderer {
    */
   private renderField(field: IFormFieldSchema): string {
     const fieldType = field.type;
+    logger.debug(
+      `Rendering field: ${field.name} (type: ${fieldType})`,
+      this.logContext
+    );
     switch (fieldType) {
       case "text":
       case "email":
@@ -62,7 +66,19 @@ export class FormRenderer {
    * Renders a complete form based on the provided schema
    */
   public async render(schema: IFormSchema): Promise<string> {
-    logger.info("Rendering form with schema", this.logContext);
+    logger.info(
+      `Rendering form with ${schema.fields.length} fields`,
+      this.logContext
+    );
+
+    logger.debug(
+      `Form configuration: ${JSON.stringify({
+        hasTitle: !!schema.title,
+        hasDescription: !!schema.description,
+        submitButtonText: schema.submitButtonText || "Submit",
+      })}`,
+      this.logContext
+    );
 
     try {
       const fields = schema.fields.map((field: IFormFieldSchema) =>
@@ -79,6 +95,10 @@ export class FormRenderer {
       `;
 
       logger.info("Form rendered successfully", this.logContext);
+      logger.debug(
+        `Generated form HTML length: ${form.length} characters`,
+        this.logContext
+      );
       return form;
     } catch (error) {
       logger.error(

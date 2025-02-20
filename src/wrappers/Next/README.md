@@ -21,7 +21,7 @@ The Next.js wrapper allows you to easily integrate SmartFormIO into your Next.js
 ```tsx
 "use client"; // Required for client-side components
 
-import { SmartFormNext } from "@ioventure/smartformio";
+import { SmartFormNext, logger } from "@ioventure/smartformio";
 
 const MyForm = () => {
   const schema = {
@@ -41,10 +41,15 @@ const MyForm = () => {
         validationMessage: "Please enter a valid email",
       },
     ],
+    logger: {
+      level: "debug",
+      context: "NextFormComponent",
+      enabled: true,
+    },
   };
 
   const handleSubmit = (data) => {
-    console.log("Form data:", data);
+    logger.info("Form submitted with data", { data });
   };
 
   return <SmartFormNext schema={schema} onSubmit={handleSubmit} />;
@@ -257,9 +262,13 @@ export default function FormPage() {
 // app/form/form-client.tsx (Client Component)
 ("use client");
 
-import { SmartFormNext } from "@ioventure/smartformio";
+import { SmartFormNext, logger } from "@ioventure/smartformio";
 
 export default function FormClient() {
+  const handleSubmit = (data) => {
+    logger.info("Form submitted with data", { data });
+  };
+
   return <SmartFormNext schema={schema} onSubmit={handleSubmit} />;
 }
 ```

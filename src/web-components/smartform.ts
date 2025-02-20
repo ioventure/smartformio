@@ -2,7 +2,7 @@ import { IFormSchema } from "@interfaces/core.interface";
 import { formEventHandler } from "@events/form.event";
 import { formRenderer } from "@renderer/form.renderer";
 import { errorHandler } from "@services/error.service";
-import { logger } from "@services/logger.service";
+import { logger, LogLevel } from "@services/logger.service";
 import { IComponentErrorDetails } from "@interfaces/error.interface";
 import { formService } from "@services/form.service";
 
@@ -43,11 +43,6 @@ export class SmartForm extends HTMLElement {
         this.renderError(error.message);
       }
     });
-
-    logger.info(
-      `SmartForm instance ${this.formId} created`,
-      SmartForm.logContext
-    );
   }
 
   connectedCallback(): void {
@@ -57,7 +52,6 @@ export class SmartForm extends HTMLElement {
     }
 
     try {
-      logger.info(`SmartForm ${this.formId} connected`, SmartForm.logContext);
       const schemaAttr = this.getAttribute("schema");
       if (schemaAttr) {
         this.parseAndRenderSchema(schemaAttr);
@@ -89,7 +83,6 @@ export class SmartForm extends HTMLElement {
 
     // Clean up error listeners
     errorHandler.clearListeners();
-    logger.info(`SmartForm ${this.formId} disconnected`, SmartForm.logContext);
   }
 
   attributeChangedCallback(
@@ -104,10 +97,6 @@ export class SmartForm extends HTMLElement {
 
     try {
       if (name === "schema" && newValue !== oldValue) {
-        logger.info(
-          `Schema attribute changed for ${this.formId}, updating form`,
-          SmartForm.logContext
-        );
         this.parseAndRenderSchema(newValue);
       }
     } catch (error) {
@@ -130,10 +119,44 @@ export class SmartForm extends HTMLElement {
   private parseAndRenderSchema(schemaAttr: string): void {
     try {
       this.schema = JSON.parse(schemaAttr);
+
+      // Initialize logger configuration with defaults
+      const loggerConfig: {
+        level?: LogLevel;
+        context?: string;
+        enabled?: boolean;
+      } = {
+        context: SmartForm.logContext,
+        enabled: true,
+      };
+
+      // Override with schema settings if provided
+      if (this.schema?.logger) {
+        if (this.schema.logger.level) {
+          const level = this.schema.logger.level.toUpperCase();
+          if (Object.values(LogLevel).includes(level as LogLevel)) {
+            loggerConfig.level = level as LogLevel;
+          }
+        }
+
+        if (this.schema.logger.context) {
+          loggerConfig.context = this.schema.logger.context;
+        }
+
+        if (typeof this.schema.logger.enabled === "boolean") {
+          loggerConfig.enabled = this.schema.logger.enabled;
+        }
+      }
+
+      // Configure logger before any logging happens
+      logger.configure(loggerConfig);
+
+      // Now we can start logging
       logger.info(
-        `Schema parsed successfully for ${this.formId}`,
+        `SmartForm instance ${this.formId} initialized with schema`,
         SmartForm.logContext
       );
+
       this.renderComponent();
     } catch (error) {
       const details: IComponentErrorDetails = {

@@ -1,6 +1,9 @@
 import { IFormSchema } from "@interfaces/core.interface";
 import { httpService } from "@services/http.service";
+import { logger } from "@services/logger.service";
 import { collectFormData, validateRemainingFields } from "./form.submission";
+
+const LOG_CONTEXT = "FormHandler";
 
 /**
  * Custom event types for form events
@@ -25,6 +28,7 @@ function dispatchFormEvent(
     detail,
   });
   form.dispatchEvent(event);
+  logger.debug(`Dispatched event: ${eventName}`, LOG_CONTEXT);
 }
 
 /**
@@ -35,11 +39,15 @@ export async function handleFormSubmission(
   schema: IFormSchema
 ): Promise<void> {
   try {
+    logger.info("Starting form submission process", LOG_CONTEXT);
+
     // Collect form data
     const formData = collectFormData(form, schema);
+    logger.debug("Form data collected", LOG_CONTEXT);
 
     // Validate all fields
     const hasErrors = validateRemainingFields(form, schema, formData);
+    logger.debug(`Form validation result: ${!hasErrors}`, LOG_CONTEXT);
     if (hasErrors) {
       throw new Error("Form validation failed");
     }
@@ -49,6 +57,7 @@ export async function handleFormSubmission(
 
     // If API config is provided, submit to API
     if (schema.api) {
+      logger.info("Processing API submission", LOG_CONTEXT);
       // Update UI to show loading state
       const submitButton = form.querySelector(
         'button[type="submit"]'
@@ -60,8 +69,10 @@ export async function handleFormSubmission(
 
       try {
         const response = await httpService.request(schema.api, formData);
+        logger.debug("Received API response", LOG_CONTEXT);
 
         if (response.success) {
+          logger.info("API submission successful", LOG_CONTEXT);
           // Dispatch success event
           dispatchFormEvent(form, FORM_EVENTS.SUCCESS, {
             data: formData,
@@ -92,7 +103,11 @@ export async function handleFormSubmission(
       form.reset();
     }
   } catch (error) {
-    console.error("Form submission failed:", error);
+    logger.error(
+      "Form submission failed",
+      error instanceof Error ? error : new Error(String(error)),
+      LOG_CONTEXT
+    );
     throw error;
   }
 }
