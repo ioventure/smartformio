@@ -16,55 +16,68 @@ import {
 export class ErrorHandlerService {
   private static instance: ErrorHandlerService;
   private static readonly LOG_CONTEXT = "ErrorHandler";
-  private errorListeners: Set<IErrorListener> = new Set();
+  private errorListeners: Map<string, IErrorListener> = new Map();
+  private rateLimiter: Map<string, number> = new Map();
 
   private config: IErrorHandlerConfig = {
     handleWindowErrors: true,
     handlePromiseRejections: true,
+    maxRetries: 3,
+    retryDelay: 1000,
+    rateLimitWindow: 5000,
+    maxErrorsPerWindow: 10,
   };
 
   private constructor() {
-    if (typeof window !== "undefined" && this.config.handleWindowErrors) {
-      // Handle runtime errors
-      window.addEventListener("error", (event) => {
-        const details: IRuntimeErrorDetails = {
-          filename: event.filename,
-          lineno: event.lineno,
-          colno: event.colno,
-          stack: event.error?.stack,
-          context: { type: "window.error" },
-        };
-
-        this.handleRuntimeError(
-          event.error || new Error(event.message),
-          "WINDOW_ERROR",
-          details
-        );
-      });
-
-      // Handle unhandled promise rejections
-      if (this.config.handlePromiseRejections) {
-        window.addEventListener("unhandledrejection", (event) => {
-          const details: IRuntimeErrorDetails = {
-            reason: event.reason,
-            context: { type: "promise.rejection" },
-          };
-
-          this.handleRuntimeError(
-            event.reason instanceof Error
-              ? event.reason
-              : new Error(String(event.reason)),
-            "UNHANDLED_REJECTION",
-            details
-          );
-        });
-      }
+    if (typeof window !== "undefined") {
+      this.setupGlobalErrorHandlers();
     }
   }
 
-  /**
-   * Get the singleton instance of ErrorHandlerService
-   */
+  private setupGlobalErrorHandlers(): void {
+    if (this.config.handleWindowErrors) {
+      window.addEventListener("error", this.handleWindowError.bind(this));
+    }
+
+    if (this.config.handlePromiseRejections) {
+      window.addEventListener(
+        "unhandledrejection",
+        this.handlePromiseRejection.bind(this)
+      );
+    }
+  }
+
+  private handleWindowError(event: ErrorEvent): void {
+    const details: IRuntimeErrorDetails = {
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+      stack: event.error?.stack,
+      context: { type: "window.error" },
+    };
+
+    this.handleRuntimeError(
+      event.error || new Error(event.message),
+      "WINDOW_ERROR",
+      details
+    );
+  }
+
+  private handlePromiseRejection(event: PromiseRejectionEvent): void {
+    const details: IRuntimeErrorDetails = {
+      reason: event.reason,
+      context: { type: "promise.rejection" },
+    };
+
+    this.handleRuntimeError(
+      event.reason instanceof Error
+        ? event.reason
+        : new Error(String(event.reason)),
+      "UNHANDLED_REJECTION",
+      details
+    );
+  }
+
   public static getInstance(): ErrorHandlerService {
     if (!ErrorHandlerService.instance) {
       ErrorHandlerService.instance = new ErrorHandlerService();
@@ -72,50 +85,113 @@ export class ErrorHandlerService {
     return ErrorHandlerService.instance;
   }
 
-  /**
-   * Configure the error handler
-   */
   public configure(config: Partial<IErrorHandlerConfig>): void {
     this.config = { ...this.config, ...config };
+    this.validateConfig();
   }
 
-  /**
-   * Format error details into a structured format
-   */
+  private validateConfig(): void {
+    if (this.config.maxRetries && this.config.maxRetries < 0) {
+      this.config.maxRetries = 0;
+    }
+    if (this.config.retryDelay && this.config.retryDelay < 0) {
+      this.config.retryDelay = 1000;
+    }
+  }
+
+  private isRateLimited(type: ErrorType): boolean {
+    const now = Date.now();
+    const window = this.config.rateLimitWindow || 5000;
+    const maxErrors = this.config.maxErrorsPerWindow || 10;
+    const key = `${type}_${Math.floor(now / window)}`;
+    const count = this.rateLimiter.get(key) || 0;
+
+    if (count >= maxErrors) {
+      return true;
+    }
+
+    this.rateLimiter.set(key, count + 1);
+    this.cleanupOldEntries(type, now, window);
+    return false;
+  }
+
+  private cleanupOldEntries(
+    type: ErrorType,
+    now: number,
+    window: number
+  ): void {
+    for (const [existingKey] of this.rateLimiter) {
+      if (!existingKey.startsWith(`${type}_${Math.floor(now / window)}`)) {
+        this.rateLimiter.delete(existingKey);
+      }
+    }
+  }
+
   private formatError(
     type: ErrorType,
     error: Error | string,
     code: string = "UNKNOWN_ERROR",
     details?: any
   ): IErrorInfo {
-    // Use custom formatter if provided
     if (this.config.errorFormatter) {
       return this.config.errorFormatter(error, code);
     }
 
     const errorMessage = typeof error === "string" ? error : error.message;
+    const errorStack = error instanceof Error ? error.stack : undefined;
 
     return {
       type,
       code,
       message: errorMessage,
-      details: details || (error instanceof Error ? error.stack : undefined),
+      details: details || errorStack,
       timestamp: new Date().toISOString(),
+      retryCount: 0,
+      recoverable: true,
     };
   }
 
-  /**
-   * Format error and notify listeners
-   */
-  private formatAndNotify(
+  private async formatAndNotify(
     type: ErrorType,
     error: Error | string,
     code: string,
     details?: any
-  ): IErrorInfo {
+  ): Promise<IErrorInfo> {
+    if (this.isRateLimited(type)) {
+      logger.warn(
+        `Error rate limit exceeded for type: ${type}`,
+        ErrorHandlerService.LOG_CONTEXT
+      );
+      return this.formatError(
+        type,
+        "Rate limit exceeded",
+        "RATE_LIMIT_EXCEEDED"
+      );
+    }
+
     const formattedError = this.formatError(type, error, code, details);
 
-    // Log error with appropriate level and context
+    try {
+      this.logError(type, formattedError, error);
+      await this.notifyListeners(formattedError);
+      return formattedError;
+    } catch (notifyError) {
+      logger.error(
+        "Error in error notification",
+        notifyError instanceof Error
+          ? notifyError
+          : new Error(String(notifyError)),
+        ErrorHandlerService.LOG_CONTEXT
+      );
+      return formattedError;
+    }
+  }
+
+  private logError(
+    type: ErrorType,
+    formattedError: IErrorInfo,
+    error: Error | string
+  ): void {
     if (type === ErrorType.VALIDATION) {
       logger.warn(
         `Validation Error: ${formattedError.message}`,
@@ -128,47 +204,78 @@ export class ErrorHandlerService {
         ErrorHandlerService.LOG_CONTEXT
       );
     }
-
-    this.notifyListeners(formattedError);
-    return formattedError;
   }
 
-  /**
-   * Handle API errors with structured response
-   */
-  public handleApiError(
+  public async handleApiError(
     error: Error | string | IApiErrorResponse,
     code?: string,
-    details?: any
-  ): IErrorInfo {
-    // Handle structured API error response
+    details?: any,
+    retryCount: number = 0
+  ): Promise<IErrorInfo> {
+    // Handle API error response
     if (typeof error === "object" && !("stack" in error) && "status" in error) {
       const apiError = error as IApiErrorResponse;
-      return this.formatAndNotify(
+      const errorInfo = await this.formatAndNotify(
         ErrorType.API,
         new Error(apiError.message),
-        apiError.code || `HTTP_${apiError.status}`,
-        apiError.details || details
+        apiError.code || code || `HTTP_${apiError.status}`,
+        {
+          ...apiError.details,
+          ...details,
+          retryable: apiError.retryable,
+          retryCount,
+        }
       );
+
+      // Implement retry mechanism for retryable errors
+      if (
+        apiError.retryable !== false &&
+        this.config.maxRetries &&
+        retryCount < this.config.maxRetries &&
+        this.isRetryableError(errorInfo)
+      ) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, this.config.retryDelay || 1000)
+        );
+        return this.handleApiError(error, code, details, retryCount + 1);
+      }
+
+      return errorInfo;
     }
 
     // Handle generic error
-    return this.formatAndNotify(
+    const errorInfo = await this.formatAndNotify(
       ErrorType.API,
       error instanceof Error ? error : new Error(String(error)),
       code || "API_ERROR",
-      details
+      { ...details, retryCount }
     );
+
+    // Implement retry mechanism for generic errors
+    if (
+      this.config.maxRetries &&
+      retryCount < this.config.maxRetries &&
+      this.isRetryableError(errorInfo)
+    ) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, this.config.retryDelay || 1000)
+      );
+      return this.handleApiError(error, code, details, retryCount + 1);
+    }
+
+    return errorInfo;
   }
 
-  /**
-   * Handle validation errors with field information
-   */
-  public handleValidationError(
+  private isRetryableError(error: IErrorInfo): boolean {
+    const retryableCodes = ["NETWORK_ERROR", "TIMEOUT", "SERVER_ERROR"];
+    return (error.recoverable ?? true) && retryableCodes.includes(error.code);
+  }
+
+  public async handleValidationError(
     error: Error | string,
     code?: string,
     details?: IValidationErrorDetails
-  ): IErrorInfo {
+  ): Promise<IErrorInfo> {
     return this.formatAndNotify(
       ErrorType.VALIDATION,
       error,
@@ -177,14 +284,11 @@ export class ErrorHandlerService {
     );
   }
 
-  /**
-   * Handle component errors with component context
-   */
-  public handleComponentError(
+  public async handleComponentError(
     error: Error | string,
     code?: string,
     details?: IComponentErrorDetails
-  ): IErrorInfo {
+  ): Promise<IErrorInfo> {
     return this.formatAndNotify(
       ErrorType.COMPONENT,
       error,
@@ -193,14 +297,11 @@ export class ErrorHandlerService {
     );
   }
 
-  /**
-   * Handle runtime errors with stack trace
-   */
-  public handleRuntimeError(
+  public async handleRuntimeError(
     error: Error | string,
     code?: string,
     details?: IRuntimeErrorDetails
-  ): IErrorInfo {
+  ): Promise<IErrorInfo> {
     return this.formatAndNotify(
       ErrorType.RUNTIME,
       error,
@@ -209,42 +310,38 @@ export class ErrorHandlerService {
     );
   }
 
-  /**
-   * Add error listener
-   */
-  public addErrorListener(listener: IErrorListener): void {
-    this.errorListeners.add(listener);
+  public addErrorListener(id: string, listener: IErrorListener): void {
+    this.errorListeners.set(id, listener);
   }
 
-  /**
-   * Remove error listener
-   */
-  public removeErrorListener(listener: IErrorListener): void {
-    this.errorListeners.delete(listener);
+  public removeErrorListener(id: string): void {
+    this.errorListeners.delete(id);
   }
 
-  /**
-   * Clear all error listeners
-   */
   public clearListeners(): void {
     this.errorListeners.clear();
   }
 
-  /**
-   * Notify all error listeners
-   */
-  private notifyListeners(error: IErrorInfo): void {
-    this.errorListeners.forEach((listener) => {
-      try {
-        listener(error);
-      } catch (err) {
-        logger.error(
-          "Error in error listener",
-          err instanceof Error ? err : new Error(String(err)),
-          ErrorHandlerService.LOG_CONTEXT
-        );
+  private async notifyListeners(error: IErrorInfo): Promise<void> {
+    const notificationPromises = Array.from(this.errorListeners.entries()).map(
+      async ([id, listener]) => {
+        try {
+          await listener(error);
+        } catch (listenerError) {
+          logger.error(
+            `Error in listener ${id}`,
+            listenerError instanceof Error
+              ? listenerError
+              : new Error(String(listenerError)),
+            ErrorHandlerService.LOG_CONTEXT
+          );
+          // Remove failed listener to prevent future errors
+          this.errorListeners.delete(id);
+        }
       }
-    });
+    );
+
+    await Promise.all(notificationPromises);
   }
 }
 

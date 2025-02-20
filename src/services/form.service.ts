@@ -121,6 +121,14 @@ export class FormService {
       }
     }
   }
+
+  /**
+   * Cleanup form instances
+   */
+  public cleanup(): void {
+    this.formInstances.clear();
+    logger.info("All form instances cleared", this.logContext);
+  }
 }
 
 // Export singleton instance

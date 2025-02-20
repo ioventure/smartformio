@@ -51,6 +51,19 @@ export interface IApiErrorResponse {
   code: string;
   details?: any;
   status?: number;
+  retryable?: boolean;
+}
+
+/**
+ * Retry configuration for error handling
+ */
+export interface IRetryConfig {
+  /** Current retry attempt number */
+  retryCount: number;
+  /** Maximum number of retry attempts */
+  maxRetries: number;
+  /** Delay between retries in milliseconds */
+  retryDelay: number;
 }
 
 /**
@@ -62,6 +75,8 @@ export interface IErrorInfo {
   message: string;
   details?: any;
   timestamp: string;
+  retryCount?: number;
+  recoverable?: boolean;
 }
 
 /**
@@ -83,6 +98,14 @@ export interface IErrorHandlerConfig {
   handlePromiseRejections?: boolean;
   /** Custom error formatter function */
   errorFormatter?: (error: Error | string, code?: string) => IErrorInfo;
+  /** Maximum number of retry attempts for recoverable errors */
+  maxRetries?: number;
+  /** Delay between retry attempts in milliseconds */
+  retryDelay?: number;
+  /** Rate limiting window in milliseconds */
+  rateLimitWindow?: number;
+  /** Maximum errors allowed in rate limit window */
+  maxErrorsPerWindow?: number;
 }
 
 /**
