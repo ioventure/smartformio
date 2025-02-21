@@ -5,16 +5,11 @@
 import { Field } from '@domain/field';
 import { BaseFieldElement } from '@components/base/field-element.base';
 import { IEventHandler } from '@interfaces/events/event-handler.interface';
-
-interface CheckboxOption {
-  value: string;
-  label: string;
-  description?: string;
-}
+import { CheckboxOption } from '@components/fields';
 
 export class CheckboxFieldElement extends BaseFieldElement {
   private container: HTMLElement | null = null;
-  private radioButtons: Map<string, HTMLInputElement> = new Map();
+  private checkboxes: Map<string, HTMLInputElement> = new Map();
 
   public static override get observedAttributes(): string[] {
     return [...super.observedAttributes, 'options', 'display'];
@@ -86,7 +81,7 @@ export class CheckboxFieldElement extends BaseFieldElement {
 
     // Store reference
     this.inputElement = checkbox;
-    this.radioButtons.set(field.name, checkbox);
+    this.checkboxes.set(field.name, checkbox);
 
     // Add event listeners
     this.addCheckboxEventListeners(checkbox);
@@ -138,7 +133,7 @@ export class CheckboxFieldElement extends BaseFieldElement {
       }
 
       // Store reference
-      this.radioButtons.set(checkbox.value, checkbox);
+      this.checkboxes.set(checkbox.value, checkbox);
 
       // Add event listeners
       this.addCheckboxEventListeners(checkbox);
@@ -166,12 +161,12 @@ export class CheckboxFieldElement extends BaseFieldElement {
    */
   private addCheckboxEventListeners(checkbox: HTMLInputElement): void {
     checkbox.addEventListener('change', () => {
-      const isGroup = this.radioButtons.size > 1;
+      const isGroup = this.checkboxes.size > 1;
       let value;
 
       if (isGroup) {
         // Collect all checked values for groups
-        value = Array.from(this.radioButtons.values())
+        value = Array.from(this.checkboxes.values())
           .filter((cb) => cb.checked)
           .map((cb) => cb.value);
       } else {
@@ -213,7 +208,7 @@ export class CheckboxFieldElement extends BaseFieldElement {
   protected override updateFieldContent(field: Field, container: HTMLElement): void {
     super.updateFieldContent(field, container);
 
-    const isGroup = this.radioButtons.size > 1;
+    const isGroup = this.checkboxes.size > 1;
     const currentValues = isGroup
       ? Array.isArray(field.value.raw)
         ? field.value.raw
@@ -222,12 +217,12 @@ export class CheckboxFieldElement extends BaseFieldElement {
 
     if (isGroup) {
       // Update group checkboxes
-      this.radioButtons.forEach((checkbox, value) => {
+      this.checkboxes.forEach((checkbox, value) => {
         checkbox.checked = currentValues.includes(value);
       });
     } else {
       // Update single checkbox
-      const checkbox = this.radioButtons.get(field.name);
+      const checkbox = this.checkboxes.get(field.name);
       if (checkbox) {
         checkbox.checked = !!currentValues;
       }
@@ -268,7 +263,7 @@ export class CheckboxFieldElement extends BaseFieldElement {
    */
   protected override cleanup(): void {
     super.cleanup();
-    this.radioButtons.clear();
+    this.checkboxes.clear();
     this.container = null;
   }
 }
