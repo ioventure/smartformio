@@ -3,21 +3,44 @@
  */
 
 export type FieldType =
-  | "text"
-  | "email"
-  | "password"
-  | "number"
-  | "textarea"
-  | "select"
-  | "date"
-  | "file"
-  | "radio"
-  | "checkbox";
+  | 'text'
+  | 'email'
+  | 'password'
+  | 'number'
+  | 'textarea'
+  | 'select'
+  | 'date'
+  | 'file'
+  | 'radio'
+  | 'checkbox';
 
 export interface FieldValue {
   raw: any;
   formatted: string;
   valid: boolean;
+}
+
+export interface FieldConfig {
+  label?: string;
+  placeholder?: string;
+  required?: boolean;
+  defaultValue?: any;
+  readonly?: boolean;
+  disabled?: boolean;
+  className?: string;
+  helpText?: string;
+  validationMessage?: string;
+  hiddenLabel?: boolean;
+  validation?: FieldValidation;
+}
+
+export interface FieldValidation {
+  pattern?: string;
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+  custom?: (value: any) => string | null;
 }
 
 export class Field {
@@ -33,7 +56,7 @@ export class Field {
   ) {
     this._value = {
       raw: config.defaultValue,
-      formatted: String(config.defaultValue || ""),
+      formatted: String(config.defaultValue || ''),
       valid: true,
     };
   }
@@ -61,7 +84,7 @@ export class Field {
   setValue(value: any): void {
     this._value = {
       raw: value,
-      formatted: String(value || ""),
+      formatted: String(value || ''),
       valid: this.isValid,
     };
     this._dirty = true;
@@ -82,34 +105,11 @@ export class Field {
   reset(): void {
     this._value = {
       raw: this.config.defaultValue,
-      formatted: String(this.config.defaultValue || ""),
+      formatted: String(this.config.defaultValue || ''),
       valid: true,
     };
     this._errors = [];
     this._touched = false;
     this._dirty = false;
   }
-}
-
-export interface FieldConfig {
-  label?: string;
-  placeholder?: string;
-  required?: boolean;
-  defaultValue?: any;
-  readonly?: boolean;
-  disabled?: boolean;
-  className?: string;
-  helpText?: string;
-  validationMessage?: string;
-  hiddenLabel?: boolean;
-  validation?: FieldValidation;
-}
-
-export interface FieldValidation {
-  pattern?: string;
-  minLength?: number;
-  maxLength?: number;
-  min?: number;
-  max?: number;
-  custom?: (value: any) => string | null;
 }

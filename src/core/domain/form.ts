@@ -2,13 +2,15 @@
  * @file Core form domain model
  */
 
-import { Field, FieldConfig, FieldType } from "./field";
+import { Field, FieldConfig, FieldType } from '@domain/field';
 
 export interface FormConfig {
   title?: string;
   description?: string;
   validateOnChange?: boolean;
   submitButtonText?: string;
+  disabled?: boolean;
+  readonly?: boolean;
 }
 
 export interface FormState {

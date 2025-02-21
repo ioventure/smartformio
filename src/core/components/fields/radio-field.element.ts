@@ -2,15 +2,10 @@
  * @file Radio field element implementation
  */
 
-import { Field } from '../../domain/field';
-import { BaseFieldElement } from '../base/field-element.base';
-import { IEventHandler } from '../../interfaces/events/event-handler.interface';
-
-interface RadioOption {
-  value: string;
-  label: string;
-  description?: string;
-}
+import { Field } from '@domain/field';
+import { BaseFieldElement } from '@components/base/field-element.base';
+import { IEventHandler } from '@interfaces/events/event-handler.interface';
+import { RadioOption } from '@components/fields';
 
 export class RadioFieldElement extends BaseFieldElement {
   private container: HTMLElement | null = null;
@@ -129,7 +124,7 @@ export class RadioFieldElement extends BaseFieldElement {
       const currentPart = radio.getAttribute('part') || 'radio';
       radio.setAttribute('part', `${currentPart} focused`);
       const container = radio.closest('[part="radio-container"]');
-      if (container) {
+      if (container instanceof HTMLElement) {
         container.setAttribute('part', 'radio-container focused');
       }
     });
@@ -138,7 +133,7 @@ export class RadioFieldElement extends BaseFieldElement {
       const currentPart = radio.getAttribute('part') || 'radio';
       radio.setAttribute('part', currentPart.replace(' focused', ''));
       const container = radio.closest('[part="radio-container"]');
-      if (container) {
+      if (container instanceof HTMLElement) {
         container.setAttribute('part', 'radio-container');
       }
       if (this.field) {
@@ -148,9 +143,10 @@ export class RadioFieldElement extends BaseFieldElement {
     });
 
     // Handle keyboard navigation
-    radio.addEventListener('keydown', (event) => {
-      this.handleKeyboardNavigation(event, radio);
-    });
+    radio.addEventListener('keydown', ((event: Event) => {
+      const keyboardEvent = event as KeyboardEvent;
+      this.handleKeyboardNavigation(keyboardEvent, radio);
+    }) as EventListener);
   }
 
   /**

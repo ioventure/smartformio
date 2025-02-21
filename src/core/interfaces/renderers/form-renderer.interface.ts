@@ -2,8 +2,8 @@
  * @file Form renderer interface definitions
  */
 
-import { Form } from '../../domain/form';
-import { Field } from '../../domain/field';
+import { Form } from '@domain/form';
+import { Field } from '@domain/field';
 
 /**
  * Render options interface

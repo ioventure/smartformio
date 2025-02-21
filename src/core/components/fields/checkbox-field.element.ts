@@ -2,9 +2,9 @@
  * @file Checkbox field element implementation
  */
 
-import { Field } from '../../domain/field';
-import { BaseFieldElement } from '../base/field-element.base';
-import { IEventHandler } from '../../interfaces/events/event-handler.interface';
+import { Field } from '@domain/field';
+import { BaseFieldElement } from '@components/base/field-element.base';
+import { IEventHandler } from '@interfaces/events/event-handler.interface';
 
 interface CheckboxOption {
   value: string;
@@ -14,7 +14,7 @@ interface CheckboxOption {
 
 export class CheckboxFieldElement extends BaseFieldElement {
   private container: HTMLElement | null = null;
-  private checkboxes: Map<string, HTMLInputElement> = new Map();
+  private radioButtons: Map<string, HTMLInputElement> = new Map();
 
   public static override get observedAttributes(): string[] {
     return [...super.observedAttributes, 'options', 'display'];
@@ -86,7 +86,7 @@ export class CheckboxFieldElement extends BaseFieldElement {
 
     // Store reference
     this.inputElement = checkbox;
-    this.checkboxes.set(field.name, checkbox);
+    this.radioButtons.set(field.name, checkbox);
 
     // Add event listeners
     this.addCheckboxEventListeners(checkbox);
@@ -138,7 +138,7 @@ export class CheckboxFieldElement extends BaseFieldElement {
       }
 
       // Store reference
-      this.checkboxes.set(checkbox.value, checkbox);
+      this.radioButtons.set(checkbox.value, checkbox);
 
       // Add event listeners
       this.addCheckboxEventListeners(checkbox);
@@ -166,12 +166,12 @@ export class CheckboxFieldElement extends BaseFieldElement {
    */
   private addCheckboxEventListeners(checkbox: HTMLInputElement): void {
     checkbox.addEventListener('change', () => {
-      const isGroup = this.checkboxes.size > 1;
+      const isGroup = this.radioButtons.size > 1;
       let value;
 
       if (isGroup) {
         // Collect all checked values for groups
-        value = Array.from(this.checkboxes.values())
+        value = Array.from(this.radioButtons.values())
           .filter((cb) => cb.checked)
           .map((cb) => cb.value);
       } else {
@@ -185,6 +185,10 @@ export class CheckboxFieldElement extends BaseFieldElement {
     // Handle focus/blur
     checkbox.addEventListener('focus', () => {
       checkbox.setAttribute('part', checkbox.getAttribute('part') + ' focused');
+      const container = checkbox.closest('[part="checkbox-container"]');
+      if (container instanceof HTMLElement) {
+        container.setAttribute('part', 'checkbox-container focused');
+      }
     });
 
     checkbox.addEventListener('blur', () => {
@@ -192,6 +196,10 @@ export class CheckboxFieldElement extends BaseFieldElement {
         'part',
         checkbox.getAttribute('part')?.replace(' focused', '') || 'checkbox'
       );
+      const container = checkbox.closest('[part="checkbox-container"]');
+      if (container instanceof HTMLElement) {
+        container.setAttribute('part', 'checkbox-container');
+      }
       if (this.field) {
         this.field.markAsTouched();
         this.updateFieldState(this.field);
@@ -205,7 +213,7 @@ export class CheckboxFieldElement extends BaseFieldElement {
   protected override updateFieldContent(field: Field, container: HTMLElement): void {
     super.updateFieldContent(field, container);
 
-    const isGroup = this.checkboxes.size > 1;
+    const isGroup = this.radioButtons.size > 1;
     const currentValues = isGroup
       ? Array.isArray(field.value.raw)
         ? field.value.raw
@@ -214,12 +222,12 @@ export class CheckboxFieldElement extends BaseFieldElement {
 
     if (isGroup) {
       // Update group checkboxes
-      this.checkboxes.forEach((checkbox, value) => {
+      this.radioButtons.forEach((checkbox, value) => {
         checkbox.checked = currentValues.includes(value);
       });
     } else {
       // Update single checkbox
-      const checkbox = this.checkboxes.get(field.name);
+      const checkbox = this.radioButtons.get(field.name);
       if (checkbox) {
         checkbox.checked = !!currentValues;
       }
@@ -247,7 +255,7 @@ export class CheckboxFieldElement extends BaseFieldElement {
       case 'display':
         if (this.container) {
           const wrapper = this.container.querySelector('[part^="checkbox-wrapper"]');
-          if (wrapper) {
+          if (wrapper instanceof HTMLElement) {
             wrapper.setAttribute('part', `checkbox-wrapper ${value || 'vertical'}`);
           }
         }
@@ -260,7 +268,7 @@ export class CheckboxFieldElement extends BaseFieldElement {
    */
   protected override cleanup(): void {
     super.cleanup();
-    this.checkboxes.clear();
+    this.radioButtons.clear();
     this.container = null;
   }
 }

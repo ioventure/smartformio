@@ -2,13 +2,13 @@
  * @file Base field element implementation
  */
 
-import { Field } from '../../domain/field';
-import { BaseFormElement } from './form-element.base';
+import { Field } from '@domain/field';
+import { BaseFormElement } from '@components/base/form-element.base';
 import {
   IEventHandler,
   FormEventType,
   IFieldChangeEvent,
-} from '../../interfaces/events/event-handler.interface';
+} from '@interfaces/events/event-handler.interface';
 
 export type InputElementType = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 

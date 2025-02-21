@@ -2,34 +2,9 @@
  * @file Validator interface definitions
  */
 
-import { Field } from '../../domain/field';
-import { Form } from '../../domain/form';
-
-/**
- * Validation result interface
- */
-export interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-}
-
-/**
- * Form validation result interface
- */
-export interface FormValidationResult {
-  isValid: boolean;
-  errors: Record<string, string[]>;
-}
-
-/**
- * Validation rule interface
- */
-export interface ValidationRule {
-  /**
-   * Validate a field value
-   */
-  validate(value: any): ValidationResult;
-}
+import { Field } from '@domain/field';
+import { Form } from '@domain/form';
+import { ValidationResult, FormValidationResult } from '@domain/validation';
 
 /**
  * Field validator interface
@@ -84,6 +59,16 @@ export interface IFormValidator {
    * Clear all field validators
    */
   clearFieldValidators(): void;
+}
+
+/**
+ * Validation rule interface
+ */
+export interface ValidationRule {
+  /**
+   * Validate a field value
+   */
+  validate(value: any): ValidationResult;
 }
 
 /**

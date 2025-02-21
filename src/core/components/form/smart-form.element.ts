@@ -2,13 +2,13 @@
  * @file Smart form element implementation
  */
 
-import { Form, FormConfig } from '../../domain/form';
-import { BaseFormElement } from '../base/form-element.base';
+import { Form, FormConfig } from '@domain/form';
+import { BaseFormElement } from '@components/base/form-element.base';
 import {
   IEventHandler,
   FormEventType,
   IFormSubmitEvent,
-} from '../../interfaces/events/event-handler.interface';
+} from '@interfaces/events/event-handler.interface';
 
 interface SmartFormConfig extends FormConfig {
   schema?: string;

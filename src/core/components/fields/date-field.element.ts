@@ -2,14 +2,10 @@
  * @file Date field element implementation
  */
 
-import { Field } from '../../domain/field';
-import { BaseFieldElement } from '../base/field-element.base';
-import { IEventHandler } from '../../interfaces/events/event-handler.interface';
-
-interface DateValidation {
-  min?: string | Date;
-  max?: string | Date;
-}
+import { Field } from '@domain/field';
+import { BaseFieldElement } from '@components/base/field-element.base';
+import { IEventHandler } from '@interfaces/events/event-handler.interface';
+import { DateValidation } from '@components/fields';
 
 export class DateFieldElement extends BaseFieldElement {
   private container: HTMLElement | null = null;
@@ -147,14 +143,15 @@ export class DateFieldElement extends BaseFieldElement {
     });
 
     // Handle keyboard events
-    input.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
+    input.addEventListener('keydown', ((event: Event) => {
+      const keyboardEvent = event as KeyboardEvent;
+      if (keyboardEvent.key === 'Enter') {
         // Prevent form submission on enter if there are other fields
         if (this.form && this.form.fields.length > 1) {
           event.preventDefault();
         }
       }
-    });
+    }) as EventListener);
   }
 
   /**

@@ -2,15 +2,13 @@
  * @file Base form element implementation
  */
 
-import { Form } from '../../domain/form';
-import { IEventHandler } from '../../interfaces/events/event-handler.interface';
+import { Form } from '@domain/form';
+import { IEventHandler } from '@interfaces/events/event-handler.interface';
 
 export abstract class BaseFormElement extends HTMLElement {
   protected form?: Form | null;
   protected shadow: ShadowRoot;
   protected eventHandler: IEventHandler;
-  protected isDisabled = false;
-  protected isReadonly = false;
 
   constructor(eventHandler: IEventHandler) {
     super();
@@ -41,36 +39,19 @@ export abstract class BaseFormElement extends HTMLElement {
   }
 
   /**
-   * Check if field should be disabled
-   */
-  protected isFieldDisabled(fieldName: string): boolean {
-    if (!this.form) return this.isDisabled;
-    const field = this.form.getField(fieldName);
-    return this.isDisabled || (field?.config.disabled ?? false);
-  }
-
-  /**
-   * Check if field should be readonly
-   */
-  protected isFieldReadonly(fieldName: string): boolean {
-    if (!this.form) return this.isReadonly;
-    const field = this.form.getField(fieldName);
-    return this.isReadonly || (field?.config.readonly ?? false);
-  }
-
-  /**
    * Handle attribute changes
    */
   protected handleAttributeChange(name: string, value: string): void {
-    switch (name) {
-      case 'disabled':
-        this.isDisabled = value !== null;
-        break;
-      case 'readonly':
-        this.isReadonly = value !== null;
-        break;
+    if (this.form) {
+      switch (name) {
+        case 'disabled':
+          this.form.config.disabled = value !== null;
+          break;
+        case 'readonly':
+          this.form.config.readonly = value !== null;
+          break;
+      }
     }
-    this.render();
   }
 
   /**
@@ -104,7 +85,5 @@ export abstract class BaseFormElement extends HTMLElement {
    */
   protected cleanup(): void {
     this.form = null;
-    this.isDisabled = false;
-    this.isReadonly = false;
   }
 }

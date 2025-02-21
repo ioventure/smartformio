@@ -2,32 +2,29 @@
  * @file Event system interface definitions
  */
 
-import { Field } from "../../domain/field";
-import { Form } from "../../domain/form";
-import {
-  ValidationResult,
-  FormValidationResult,
-} from "../../domain/validation";
+import { Field } from '@domain/field';
+import { Form } from '@domain/form';
+import { ValidationResult, FormValidationResult } from '@domain/validation';
 
 /**
  * Form event types
  */
 export enum FormEventType {
   // Field Events
-  FIELD_CHANGE = "field:change",
-  FIELD_BLUR = "field:blur",
-  FIELD_FOCUS = "field:focus",
-  FIELD_VALIDATION = "field:validation",
+  FIELD_CHANGE = 'field:change',
+  FIELD_BLUR = 'field:blur',
+  FIELD_FOCUS = 'field:focus',
+  FIELD_VALIDATION = 'field:validation',
 
   // Form Events
-  FORM_SUBMIT = "form:submit",
-  FORM_RESET = "form:reset",
-  FORM_VALIDATION = "form:validation",
-  FORM_ERROR = "form:error",
+  FORM_SUBMIT = 'form:submit',
+  FORM_RESET = 'form:reset',
+  FORM_VALIDATION = 'form:validation',
+  FORM_ERROR = 'form:error',
 
   // Lifecycle Events
-  INIT = "init",
-  DESTROY = "destroy",
+  INIT = 'init',
+  DESTROY = 'destroy',
 }
 
 /**
@@ -103,9 +100,7 @@ export type FormEvent =
 /**
  * Event handler type with type guard
  */
-export type EventHandler<T extends FormEvent = FormEvent> = (
-  event: T
-) => void | Promise<void>;
+export type EventHandler<T extends FormEvent = FormEvent> = (event: T) => void | Promise<void>;
 
 /**
  * Event handler interface
@@ -114,17 +109,17 @@ export interface IEventHandler {
   /**
    * Subscribe to an event with type checking
    */
-  on<T extends FormEvent>(type: T["type"], handler: EventHandler<T>): void;
+  on<T extends FormEvent>(type: T['type'], handler: EventHandler<T>): void;
 
   /**
    * Subscribe to an event once with type checking
    */
-  once<T extends FormEvent>(type: T["type"], handler: EventHandler<T>): void;
+  once<T extends FormEvent>(type: T['type'], handler: EventHandler<T>): void;
 
   /**
    * Unsubscribe from an event
    */
-  off<T extends FormEvent>(type: T["type"], handler: EventHandler<T>): void;
+  off<T extends FormEvent>(type: T['type'], handler: EventHandler<T>): void;
 
   /**
    * Emit an event
@@ -144,21 +139,21 @@ export abstract class BaseEventHandler implements IEventHandler {
   protected handlers: Map<FormEventType, Set<EventHandler>> = new Map();
   protected oneTimeHandlers: Map<FormEventType, Set<EventHandler>> = new Map();
 
-  on<T extends FormEvent>(type: T["type"], handler: EventHandler<T>): void {
+  on<T extends FormEvent>(type: T['type'], handler: EventHandler<T>): void {
     if (!this.handlers.has(type)) {
       this.handlers.set(type, new Set());
     }
     this.handlers.get(type)!.add(handler as EventHandler);
   }
 
-  once<T extends FormEvent>(type: T["type"], handler: EventHandler<T>): void {
+  once<T extends FormEvent>(type: T['type'], handler: EventHandler<T>): void {
     if (!this.oneTimeHandlers.has(type)) {
       this.oneTimeHandlers.set(type, new Set());
     }
     this.oneTimeHandlers.get(type)!.add(handler as EventHandler);
   }
 
-  off<T extends FormEvent>(type: T["type"], handler: EventHandler<T>): void {
+  off<T extends FormEvent>(type: T['type'], handler: EventHandler<T>): void {
     this.handlers.get(type)?.delete(handler as EventHandler);
     this.oneTimeHandlers.get(type)?.delete(handler as EventHandler);
   }
@@ -185,8 +180,8 @@ export abstract class BaseEventHandler implements IEventHandler {
   }
 
   protected createEvent<T extends FormEvent>(
-    type: T["type"],
-    data: Omit<T, "type" | "timestamp">
+    type: T['type'],
+    data: Omit<T, 'type' | 'timestamp'>
   ): T {
     return {
       type,

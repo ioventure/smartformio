@@ -2,91 +2,38 @@
  * @file Core validation domain model
  */
 
-import { Field } from "./field";
-import { Form } from "./form";
+import { Field } from '@domain/field';
+import { Form } from '@domain/form';
 
+/**
+ * Validation result interface
+ */
 export interface ValidationResult {
   isValid: boolean;
   errors: string[];
 }
 
+/**
+ * Form validation result interface
+ */
 export interface FormValidationResult {
   isValid: boolean;
   errors: Record<string, string[]>;
 }
 
-export class Validation {
+/**
+ * Base validator class
+ */
+export abstract class BaseValidator {
   /**
-   * Validate a single field
+   * Validate a field
    */
-  static validateField(field: Field): ValidationResult {
-    const errors: string[] = [];
-    const value = field.value.raw;
-    const config = field.config;
-
-    // Required validation
-    if (config.required && !value && value !== 0 && value !== false) {
-      errors.push(config.validationMessage || "This field is required");
-      return { isValid: false, errors };
-    }
-
-    // Skip other validations if field is empty and not required
-    if (!value && value !== 0 && value !== false) {
-      return { isValid: true, errors: [] };
-    }
-
-    // Pattern validation
-    if (config.validation?.pattern) {
-      const pattern = new RegExp(config.validation.pattern);
-      if (!pattern.test(String(value))) {
-        errors.push("Invalid format");
-      }
-    }
-
-    // Length validation for strings
-    if (typeof value === "string") {
-      if (
-        config.validation?.minLength &&
-        value.length < config.validation.minLength
-      ) {
-        errors.push(`Minimum length is ${config.validation.minLength}`);
-      }
-      if (
-        config.validation?.maxLength &&
-        value.length > config.validation.maxLength
-      ) {
-        errors.push(`Maximum length is ${config.validation.maxLength}`);
-      }
-    }
-
-    // Range validation for numbers
-    if (typeof value === "number") {
-      if (config.validation?.min && value < config.validation.min) {
-        errors.push(`Minimum value is ${config.validation.min}`);
-      }
-      if (config.validation?.max && value > config.validation.max) {
-        errors.push(`Maximum value is ${config.validation.max}`);
-      }
-    }
-
-    // Custom validation
-    if (config.validation?.custom) {
-      const customError = config.validation.custom(value);
-      if (customError) {
-        errors.push(customError);
-      }
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-    };
-  }
+  abstract validateField(field: Field): ValidationResult;
 
   /**
-   * Validate entire form
+   * Validate a form
    */
-  static validateForm(form: Form): FormValidationResult {
+  validateForm(form: Form): FormValidationResult {
     const errors: Record<string, string[]> = {};
     let isValid = true;
 
@@ -98,51 +45,81 @@ export class Validation {
       }
     });
 
-    return {
-      isValid,
-      errors,
-    };
+    return { isValid, errors };
   }
 
   /**
-   * Create a custom validator function
+   * Create a validation result
    */
-  static createValidator(
-    validationFn: (value: any) => boolean,
-    errorMessage: string
-  ): (value: any) => string | null {
-    return (value: any) => {
-      return validationFn(value) ? null : errorMessage;
-    };
+  protected createResult(isValid: boolean, errors: string[] = []): ValidationResult {
+    return { isValid, errors };
   }
 
   /**
-   * Common validators
+   * Create a form validation result
    */
-  static validators = {
-    email: Validation.createValidator(
-      (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
-      "Invalid email address"
-    ),
+  protected createFormResult(
+    isValid: boolean,
+    errors: Record<string, string[]> = {}
+  ): FormValidationResult {
+    return { isValid, errors };
+  }
+}
 
-    url: Validation.createValidator(
-      (value: string) => /^https?:\/\/.*/.test(value),
-      "Invalid URL"
-    ),
+/**
+ * Default validator implementation
+ */
+export class DefaultValidator extends BaseValidator {
+  validateField(field: Field): ValidationResult {
+    const errors: string[] = [];
 
-    numeric: Validation.createValidator(
-      (value: string) => /^\d+$/.test(value),
-      "Must be numeric"
-    ),
+    // Required validation
+    if (field.config.required && !field.value.raw) {
+      errors.push(field.config.validationMessage || 'This field is required');
+    }
 
-    alphanumeric: Validation.createValidator(
-      (value: string) => /^[a-zA-Z0-9]+$/.test(value),
-      "Must be alphanumeric"
-    ),
+    // Pattern validation
+    if (field.config.validation?.pattern && field.value.raw) {
+      const pattern = new RegExp(field.config.validation.pattern);
+      if (!pattern.test(String(field.value.raw))) {
+        errors.push('Invalid format');
+      }
+    }
 
-    phone: Validation.createValidator(
-      (value: string) => /^\+?[\d\s-]+$/.test(value),
-      "Invalid phone number"
-    ),
-  };
+    // Length validation
+    if (typeof field.value.raw === 'string') {
+      const { minLength, maxLength } = field.config.validation || {};
+
+      if (minLength !== undefined && field.value.raw.length < minLength) {
+        errors.push(`Minimum length is ${minLength} characters`);
+      }
+
+      if (maxLength !== undefined && field.value.raw.length > maxLength) {
+        errors.push(`Maximum length is ${maxLength} characters`);
+      }
+    }
+
+    // Number range validation
+    if (typeof field.value.raw === 'number') {
+      const { min, max } = field.config.validation || {};
+
+      if (min !== undefined && field.value.raw < min) {
+        errors.push(`Minimum value is ${min}`);
+      }
+
+      if (max !== undefined && field.value.raw > max) {
+        errors.push(`Maximum value is ${max}`);
+      }
+    }
+
+    // Custom validation
+    if (field.config.validation?.custom) {
+      const customError = field.config.validation.custom(field.value.raw);
+      if (customError) {
+        errors.push(customError);
+      }
+    }
+
+    return this.createResult(errors.length === 0, errors);
+  }
 }

@@ -2,11 +2,11 @@
  * @file Form service implementation
  */
 
-import { Form, FormConfig } from '../domain/form';
-import { Field, FieldConfig, FieldType } from '../domain/field';
-import { IFormRenderer, RenderOptions } from '../interfaces/renderers/form-renderer.interface';
-import { IFormValidator } from '../interfaces/validators/validator.interface';
-import { IEventHandler, FormEventType } from '../interfaces/events/event-handler.interface';
+import { Form, FormConfig } from '@domain/form';
+import { Field, FieldConfig, FieldType } from '@domain/field';
+import { IFormRenderer, RenderOptions } from '@interfaces/renderers/form-renderer.interface';
+import { IFormValidator } from '@interfaces/validators/validator.interface';
+import { IEventHandler, FormEventType } from '@interfaces/events/event-handler.interface';
 
 export interface FormServiceConfig {
   renderer: IFormRenderer;

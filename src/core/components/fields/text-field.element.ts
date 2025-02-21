@@ -2,9 +2,9 @@
  * @file Text field element implementation
  */
 
-import { Field } from '../../domain/field';
-import { BaseFieldElement } from '../base/field-element.base';
-import { IEventHandler } from '../../interfaces/events/event-handler.interface';
+import { Field } from '@domain/field';
+import { BaseFieldElement } from '@components/base/field-element.base';
+import { IEventHandler } from '@interfaces/events/event-handler.interface';
 
 export class TextFieldElement extends BaseFieldElement {
   private container: HTMLElement | null = null;
@@ -53,9 +53,27 @@ export class TextFieldElement extends BaseFieldElement {
     // Set input type and common attributes
     if (input instanceof HTMLInputElement) {
       input.type = config.type || 'text';
+    }
+    input.name = field.name;
+    input.setAttribute('part', 'input');
 
-      // Set validation attributes for HTMLInputElement only
-      if (config.validation) {
+    // Set common attributes
+    if (field.config.placeholder) {
+      input.placeholder = field.config.placeholder;
+    }
+    if (field.config.required) {
+      input.required = true;
+    }
+    if (field.config.disabled) {
+      input.disabled = true;
+    }
+    if (field.config.readonly) {
+      input.readOnly = true;
+    }
+
+    // Set validation attributes
+    if (config.validation) {
+      if (input instanceof HTMLInputElement) {
         if (config.validation.pattern) {
           input.pattern = config.validation.pattern;
         }
@@ -74,23 +92,6 @@ export class TextFieldElement extends BaseFieldElement {
           }
         }
       }
-    }
-
-    input.name = field.name;
-    input.setAttribute('part', 'input');
-
-    // Set common attributes
-    if (field.config.placeholder) {
-      input.placeholder = field.config.placeholder;
-    }
-    if (field.config.required) {
-      input.required = true;
-    }
-    if (field.config.disabled) {
-      input.disabled = true;
-    }
-    if (field.config.readonly) {
-      input.readOnly = true;
     }
 
     // Set initial value

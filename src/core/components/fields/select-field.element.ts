@@ -2,14 +2,10 @@
  * @file Select field element implementation
  */
 
-import { Field } from '../../domain/field';
-import { BaseFieldElement } from '../base/field-element.base';
-import { IEventHandler } from '../../interfaces/events/event-handler.interface';
-
-interface SelectOption {
-  value: string;
-  label: string;
-}
+import { Field } from '@domain/field';
+import { BaseFieldElement } from '@components/base/field-element.base';
+import { IEventHandler } from '@interfaces/events/event-handler.interface';
+import { SelectOption } from '@components/fields';
 
 export class SelectFieldElement extends BaseFieldElement {
   private container: HTMLElement | null = null;

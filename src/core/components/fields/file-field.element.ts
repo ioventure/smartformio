@@ -2,16 +2,10 @@
  * @file File field element implementation
  */
 
-import { Field } from '../../domain/field';
-import { BaseFieldElement } from '../base/field-element.base';
-import { IEventHandler } from '../../interfaces/events/event-handler.interface';
-
-interface FileValidation {
-  maxFileSize?: number; // in bytes
-  maxTotalSize?: number; // in bytes
-  maxFiles?: number;
-  accept?: string;
-}
+import { Field } from '@domain/field';
+import { BaseFieldElement } from '@components/base/field-element.base';
+import { IEventHandler } from '@interfaces/events/event-handler.interface';
+import { FileValidation } from '@components/fields';
 
 export class FileFieldElement extends BaseFieldElement {
   private container: HTMLElement | null = null;
