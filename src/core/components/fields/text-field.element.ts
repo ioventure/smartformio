@@ -5,13 +5,11 @@
 import { Field } from '@domain/field';
 import { BaseFieldElement } from '@components/base/field-element.base';
 import { IEventHandler } from '@interfaces/events/event-handler.interface';
-import { DOMUtils, StringUtils, ValidationUtils, ErrorUtils, CollectionUtils } from '@utils/index';
+import { DOMUtils, ValidationUtils, ErrorUtils } from '@utils/index';
 import {
   COMPONENT_PARTS,
   INPUT_TYPES,
   VALIDATION_MESSAGES,
-  EVENT_NAMES,
-  ARIA_ATTRIBUTES,
 } from '@core/constants/component.constants';
 
 export class TextFieldElement extends BaseFieldElement {
