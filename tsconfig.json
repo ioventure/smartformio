@@ -31,7 +31,8 @@
       "@components/*": ["core/components/*"],
       "@services/*": ["core/services/*"],
       "@interfaces/*": ["core/interfaces/*"],
-      "@domain/*": ["core/domain/*"]
+      "@domain/*": ["core/domain/*"],
+      "@utils/*": ["core/utils/*"]
     },
     "esModuleInterop": true,
     "skipLibCheck": true,

@@ -5,7 +5,16 @@
 import { Field } from '@domain/field';
 import { BaseFieldElement } from '@components/base/field-element.base';
 import { IEventHandler } from '@interfaces/events/event-handler.interface';
-import { SelectOption } from '@components/fields';
+import { DOMUtils, StringUtils, ValidationUtils, ErrorUtils, CollectionUtils } from '@utils/index';
+import {
+  COMPONENT_PARTS,
+  INPUT_TYPES,
+  VALIDATION_MESSAGES,
+  EVENT_NAMES,
+  ARIA_ATTRIBUTES,
+  DISPLAY_ORIENTATIONS,
+} from '@core/constants/component.constants';
+import { SelectOption } from './index';
 
 export class SelectFieldElement extends BaseFieldElement {
   private container: HTMLElement | null = null;
@@ -29,8 +38,9 @@ export class SelectFieldElement extends BaseFieldElement {
     this.shadow.innerHTML = '';
 
     // Create container
-    this.container = document.createElement('div');
-    this.container.setAttribute('part', 'field-root');
+    this.container = DOMUtils.createElement('div', {
+      part: COMPONENT_PARTS.field.root,
+    });
     this.shadow.appendChild(this.container);
 
     // Render field content
@@ -41,26 +51,30 @@ export class SelectFieldElement extends BaseFieldElement {
    * Create select element
    */
   protected override createInputElement(field: Field): HTMLElement {
-    // Create select element
-    const select = document.createElement('select');
-    this.inputElement = select;
-    select.setAttribute('part', 'select');
-    select.name = field.name;
-
-    // Set common attributes
-    if (field.config.required) {
-      select.required = true;
-    }
-    if (field.config.disabled) {
-      select.disabled = true;
-    }
-    if ((field.config as any).multiple) {
-      select.multiple = true;
-    }
+    const config = field.config as any;
 
     // Create wrapper
-    this.inputWrapper = document.createElement('div');
-    this.inputWrapper.setAttribute('part', 'select-wrapper');
+    this.inputWrapper = DOMUtils.createElement('div', {
+      part: COMPONENT_PARTS.select.wrapper,
+    });
+
+    // Create properties object with only defined values
+    const properties: Partial<HTMLSelectElement> = {
+      name: field.name,
+    };
+
+    // Add optional properties only if they are defined
+    if (field.config.required) properties.required = true;
+    if (field.config.disabled) properties.disabled = true;
+    if (config.multiple) properties.multiple = true;
+
+    // Create select element
+    const select = DOMUtils.createElement('select', {
+      properties,
+      part: COMPONENT_PARTS.select.select,
+    });
+
+    this.inputElement = select;
 
     // Add options
     this.renderOptions(field, select);
@@ -69,9 +83,10 @@ export class SelectFieldElement extends BaseFieldElement {
     this.addSelectEventListeners(select);
 
     // Create custom arrow indicator
-    const arrow = document.createElement('span');
-    arrow.setAttribute('part', 'select-arrow');
-    arrow.innerHTML = '▼';
+    const arrow = DOMUtils.createElement('span', {
+      part: COMPONENT_PARTS.select.arrow,
+      text: '▼',
+    });
 
     // Assemble components
     this.inputWrapper.appendChild(select);
@@ -89,32 +104,29 @@ export class SelectFieldElement extends BaseFieldElement {
 
     // Add placeholder option if specified
     if (field.config.placeholder && !select.multiple) {
-      const placeholder = document.createElement('option');
-      placeholder.value = '';
-      placeholder.textContent = field.config.placeholder;
-      placeholder.disabled = true;
-      placeholder.selected = !currentValue;
+      const placeholder = DOMUtils.createElement('option', {
+        properties: {
+          value: '',
+          disabled: true,
+          selected: !currentValue,
+        },
+        text: field.config.placeholder,
+      });
       select.appendChild(placeholder);
     }
 
     // Add options
     options.forEach((option: string | SelectOption) => {
-      const optionElement = document.createElement('option');
-
-      if (typeof option === 'string') {
-        optionElement.value = option;
-        optionElement.textContent = option;
-      } else {
-        optionElement.value = option.value;
-        optionElement.textContent = option.label;
-      }
-
-      // Set selected state
-      if (select.multiple && Array.isArray(currentValue)) {
-        optionElement.selected = currentValue.includes(optionElement.value);
-      } else {
-        optionElement.selected = currentValue === optionElement.value;
-      }
+      const optionElement = DOMUtils.createElement('option', {
+        properties: {
+          value: typeof option === 'string' ? option : option.value,
+          selected: select.multiple
+            ? Array.isArray(currentValue) &&
+              currentValue.includes(typeof option === 'string' ? option : option.value)
+            : currentValue === (typeof option === 'string' ? option : option.value),
+        },
+        text: typeof option === 'string' ? option : option.label,
+      });
 
       select.appendChild(optionElement);
     });
@@ -125,7 +137,7 @@ export class SelectFieldElement extends BaseFieldElement {
    */
   private addSelectEventListeners(select: HTMLSelectElement): void {
     // Handle change events
-    select.addEventListener('change', () => {
+    select.addEventListener(EVENT_NAMES.change, () => {
       const value = select.multiple
         ? Array.from(select.selectedOptions).map((opt) => opt.value)
         : select.value;
@@ -134,17 +146,17 @@ export class SelectFieldElement extends BaseFieldElement {
     });
 
     // Handle focus/blur
-    select.addEventListener('focus', () => {
-      select.setAttribute('part', select.getAttribute('part') + ' focused');
+    select.addEventListener(EVENT_NAMES.focus, () => {
+      DOMUtils.updatePart(select, { add: [COMPONENT_PARTS.states.focused] });
       if (this.inputWrapper) {
-        this.inputWrapper.setAttribute('part', 'select-wrapper focused');
+        DOMUtils.updatePart(this.inputWrapper, { add: [COMPONENT_PARTS.states.focused] });
       }
     });
 
-    select.addEventListener('blur', () => {
-      select.setAttribute('part', select.getAttribute('part')?.replace(' focused', '') || 'select');
+    select.addEventListener(EVENT_NAMES.blur, () => {
+      DOMUtils.updatePart(select, { remove: [COMPONENT_PARTS.states.focused] });
       if (this.inputWrapper) {
-        this.inputWrapper.setAttribute('part', 'select-wrapper');
+        DOMUtils.updatePart(this.inputWrapper, { remove: [COMPONENT_PARTS.states.focused] });
       }
       if (this.field) {
         this.field.markAsTouched();
@@ -159,7 +171,6 @@ export class SelectFieldElement extends BaseFieldElement {
   protected override updateFieldContent(field: Field, container: HTMLElement): void {
     super.updateFieldContent(field, container);
 
-    // Update select options if input element exists and is a select
     if (this.inputElement instanceof HTMLSelectElement) {
       // Clear existing options
       this.inputElement.innerHTML = '';
@@ -171,27 +182,63 @@ export class SelectFieldElement extends BaseFieldElement {
   /**
    * Handle attribute changes
    */
-  protected override handleAttributeChange(name: string, value: string): void {
-    super.handleAttributeChange(name, value);
+  protected override handleAttributeChange(name: string, value: string | null): void {
+    super.handleAttributeChange(name, value || '');
 
-    if (this.inputElement instanceof HTMLSelectElement) {
-      switch (name) {
-        case 'options':
-          try {
-            const options = JSON.parse(value);
-            if (this.field) {
-              (this.field.config as any).options = options;
-              this.renderOptions(this.field, this.inputElement);
-            }
-          } catch (error) {
-            console.error('Invalid options format:', error);
+    if (!(this.inputElement instanceof HTMLSelectElement)) return;
+
+    switch (name) {
+      case 'options': {
+        try {
+          const options = JSON.parse(value || '[]');
+          if (this.field) {
+            (this.field.config as any).options = options;
+            this.renderOptions(this.field, this.inputElement);
           }
-          break;
-        case 'multiple':
-          this.inputElement.multiple = value !== null;
-          break;
+        } catch (error) {
+          const err = ErrorUtils.handleError(error);
+          console.error('Invalid options format:', err.message);
+        }
+        break;
+      }
+      case 'multiple': {
+        this.inputElement.multiple = value !== null;
+        break;
       }
     }
+  }
+
+  /**
+   * Validate field value
+   */
+  protected validateField(value: any): string[] {
+    const errors: string[] = [];
+
+    try {
+      // Required validation
+      if (this.field?.config.required) {
+        if (Array.isArray(value)) {
+          if (value.length === 0) {
+            errors.push(VALIDATION_MESSAGES.required);
+          }
+        } else if (!value) {
+          errors.push(VALIDATION_MESSAGES.required);
+        }
+      }
+
+      // Custom validation
+      if (this.field?.config.validation?.custom) {
+        const customError = this.field.config.validation.custom(value);
+        if (customError) {
+          errors.push(customError);
+        }
+      }
+    } catch (error) {
+      const err = ErrorUtils.handleError(error);
+      errors.push(err.message);
+    }
+
+    return errors;
   }
 
   /**

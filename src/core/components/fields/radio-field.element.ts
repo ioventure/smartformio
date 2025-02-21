@@ -5,7 +5,16 @@
 import { Field } from '@domain/field';
 import { BaseFieldElement } from '@components/base/field-element.base';
 import { IEventHandler } from '@interfaces/events/event-handler.interface';
-import { RadioOption } from '@components/fields';
+import { DOMUtils, StringUtils, ValidationUtils, ErrorUtils, CollectionUtils } from '@utils/index';
+import {
+  COMPONENT_PARTS,
+  INPUT_TYPES,
+  VALIDATION_MESSAGES,
+  EVENT_NAMES,
+  ARIA_ATTRIBUTES,
+  DISPLAY_ORIENTATIONS,
+} from '@core/constants/component.constants';
+import { RadioOption } from './index';
 
 export class RadioFieldElement extends BaseFieldElement {
   private container: HTMLElement | null = null;
@@ -29,8 +38,9 @@ export class RadioFieldElement extends BaseFieldElement {
     this.shadow.innerHTML = '';
 
     // Create container
-    this.container = document.createElement('div');
-    this.container.setAttribute('part', 'field-root');
+    this.container = DOMUtils.createElement('div', {
+      part: COMPONENT_PARTS.field.root,
+    });
     this.shadow.appendChild(this.container);
 
     // Render field content
@@ -41,40 +51,40 @@ export class RadioFieldElement extends BaseFieldElement {
    * Create radio group element
    */
   protected override createInputElement(field: Field): HTMLElement {
-    // Create wrapper
-    const wrapper = document.createElement('div');
-    wrapper.setAttribute('part', `radio-wrapper ${(field.config as any).display || 'vertical'}`);
+    const config = field.config as any;
+
+    // Create wrapper with display orientation
+    const wrapper = DOMUtils.createElement('div', {
+      part: `${COMPONENT_PARTS.radio.wrapper} ${config.display || DISPLAY_ORIENTATIONS.vertical}`,
+    });
 
     // Get options and current value
-    const options = (field.config as any).options || [];
+    const options = config.options || [];
     const currentValue = field.value.raw;
 
     // Create radio group
     options.forEach((option: string | RadioOption, index: number) => {
-      const container = document.createElement('label');
-      container.setAttribute('part', 'radio-container');
+      const container = DOMUtils.createElement('label', {
+        part: COMPONENT_PARTS.radio.container,
+      });
+
+      // Create properties object with only defined values
+      const properties: Partial<HTMLInputElement> = {
+        type: INPUT_TYPES.radio,
+        name: field.name,
+        value: typeof option === 'string' ? option : option.value,
+        checked: currentValue === (typeof option === 'string' ? option : option.value),
+      };
+
+      // Add optional properties only if they are defined
+      if (field.config.required) properties.required = true;
+      if (field.config.disabled) properties.disabled = true;
 
       // Create radio input
-      const radio = document.createElement('input');
-      radio.type = 'radio';
-      radio.name = field.name;
-
-      if (typeof option === 'string') {
-        radio.value = option;
-        radio.checked = currentValue === option;
-      } else {
-        radio.value = option.value;
-        radio.checked = currentValue === option.value;
-      }
-
-      radio.setAttribute('part', 'radio');
-
-      if (field.config.disabled) {
-        radio.disabled = true;
-      }
-      if (field.config.required) {
-        radio.required = true;
-      }
+      const radio = DOMUtils.createElement('input', {
+        properties,
+        part: COMPONENT_PARTS.radio.radio,
+      });
 
       // Store reference
       this.radioButtons.set(radio.value, radio);
@@ -87,9 +97,10 @@ export class RadioFieldElement extends BaseFieldElement {
       this.addRadioEventListeners(radio);
 
       // Create label text
-      const labelText = document.createElement('span');
-      labelText.setAttribute('part', 'radio-label');
-      labelText.textContent = typeof option === 'string' ? option : option.label;
+      const labelText = DOMUtils.createElement('span', {
+        part: COMPONENT_PARTS.radio.label,
+        text: typeof option === 'string' ? option : option.label,
+      });
 
       // Assemble container
       container.appendChild(radio);
@@ -97,9 +108,10 @@ export class RadioFieldElement extends BaseFieldElement {
 
       // Add description if available
       if (typeof option !== 'string' && option.description) {
-        const description = document.createElement('div');
-        description.setAttribute('part', 'radio-description');
-        description.textContent = option.description;
+        const description = DOMUtils.createElement('div', {
+          part: COMPONENT_PARTS.radio.description,
+          text: option.description,
+        });
         container.appendChild(description);
       }
 
@@ -113,28 +125,26 @@ export class RadioFieldElement extends BaseFieldElement {
    * Add radio-specific event listeners
    */
   private addRadioEventListeners(radio: HTMLInputElement): void {
-    radio.addEventListener('change', () => {
+    radio.addEventListener(EVENT_NAMES.change, () => {
       if (radio.checked) {
         this.handleFieldChange(radio.value);
       }
     });
 
     // Handle focus/blur
-    radio.addEventListener('focus', () => {
-      const currentPart = radio.getAttribute('part') || 'radio';
-      radio.setAttribute('part', `${currentPart} focused`);
-      const container = radio.closest('[part="radio-container"]');
+    radio.addEventListener(EVENT_NAMES.focus, () => {
+      DOMUtils.updatePart(radio, { add: [COMPONENT_PARTS.states.focused] });
+      const container = radio.closest(`[part="${COMPONENT_PARTS.radio.container}"]`);
       if (container instanceof HTMLElement) {
-        container.setAttribute('part', 'radio-container focused');
+        DOMUtils.updatePart(container, { add: [COMPONENT_PARTS.states.focused] });
       }
     });
 
-    radio.addEventListener('blur', () => {
-      const currentPart = radio.getAttribute('part') || 'radio';
-      radio.setAttribute('part', currentPart.replace(' focused', ''));
-      const container = radio.closest('[part="radio-container"]');
+    radio.addEventListener(EVENT_NAMES.blur, () => {
+      DOMUtils.updatePart(radio, { remove: [COMPONENT_PARTS.states.focused] });
+      const container = radio.closest(`[part="${COMPONENT_PARTS.radio.container}"]`);
       if (container instanceof HTMLElement) {
-        container.setAttribute('part', 'radio-container');
+        DOMUtils.updatePart(container, { remove: [COMPONENT_PARTS.states.focused] });
       }
       if (this.field) {
         this.field.markAsTouched();
@@ -143,7 +153,7 @@ export class RadioFieldElement extends BaseFieldElement {
     });
 
     // Handle keyboard navigation
-    radio.addEventListener('keydown', ((event: Event) => {
+    radio.addEventListener(EVENT_NAMES.keydown, ((event: Event) => {
       const keyboardEvent = event as KeyboardEvent;
       this.handleKeyboardNavigation(keyboardEvent, radio);
     }) as EventListener);
@@ -178,10 +188,11 @@ export class RadioFieldElement extends BaseFieldElement {
         return;
     }
 
-    // The modulo operation ensures targetIndex is within bounds
-    const targetOption = options[targetIndex] as HTMLInputElement;
-    targetOption.focus();
-    targetOption.click();
+    const targetOption = options[targetIndex];
+    if (targetOption) {
+      targetOption.focus();
+      targetOption.click();
+    }
   }
 
   /**
@@ -201,30 +212,64 @@ export class RadioFieldElement extends BaseFieldElement {
   /**
    * Handle attribute changes
    */
-  protected override handleAttributeChange(name: string, value: string): void {
-    super.handleAttributeChange(name, value);
+  protected override handleAttributeChange(name: string, value: string | null): void {
+    super.handleAttributeChange(name, value || '');
 
     switch (name) {
-      case 'options':
+      case 'options': {
         try {
-          const options = JSON.parse(value);
+          const options = JSON.parse(value || '[]');
           if (this.field && this.container) {
             (this.field.config as any).options = options;
             this.render(); // Re-render to update options
           }
         } catch (error) {
-          console.error('Invalid options format:', error);
+          const err = ErrorUtils.handleError(error);
+          console.error('Invalid options format:', err.message);
         }
         break;
-      case 'display':
+      }
+      case 'display': {
         if (this.container) {
-          const wrapper = this.container.querySelector('[part^="radio-wrapper"]');
+          const wrapper = this.container.querySelector(
+            `[part^="${COMPONENT_PARTS.radio.wrapper}"]`
+          );
           if (wrapper instanceof HTMLElement) {
-            wrapper.setAttribute('part', `radio-wrapper ${value || 'vertical'}`);
+            DOMUtils.updatePart(wrapper, {
+              set: `${COMPONENT_PARTS.radio.wrapper} ${value || DISPLAY_ORIENTATIONS.vertical}`,
+            });
           }
         }
         break;
+      }
     }
+  }
+
+  /**
+   * Validate field value
+   */
+  protected validateField(value: string): string[] {
+    const errors: string[] = [];
+
+    try {
+      // Required validation
+      if (this.field?.config.required && !value) {
+        errors.push(VALIDATION_MESSAGES.required);
+      }
+
+      // Custom validation
+      if (this.field?.config.validation?.custom) {
+        const customError = this.field.config.validation.custom(value);
+        if (customError) {
+          errors.push(customError);
+        }
+      }
+    } catch (error) {
+      const err = ErrorUtils.handleError(error);
+      errors.push(err.message);
+    }
+
+    return errors;
   }
 
   /**

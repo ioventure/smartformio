@@ -5,7 +5,21 @@
 import { Field } from '@domain/field';
 import { BaseFieldElement } from '@components/base/field-element.base';
 import { IEventHandler } from '@interfaces/events/event-handler.interface';
-import { FileValidation } from '@components/fields';
+import { DOMUtils, StringUtils, ValidationUtils, ErrorUtils, CollectionUtils } from '@utils/index';
+import {
+  COMPONENT_PARTS,
+  INPUT_TYPES,
+  VALIDATION_MESSAGES,
+  EVENT_NAMES,
+  ARIA_ATTRIBUTES,
+  FILE_SIZE_UNITS,
+} from '@core/constants/component.constants';
+import { FileValidation } from './index';
+
+type FileFieldConfig = Omit<Field['config'], 'validation'> & {
+  validation?: FileValidation;
+  multiple?: boolean;
+};
 
 export class FileFieldElement extends BaseFieldElement {
   private container: HTMLElement | null = null;
@@ -30,8 +44,9 @@ export class FileFieldElement extends BaseFieldElement {
     this.shadow.innerHTML = '';
 
     // Create container
-    this.container = document.createElement('div');
-    this.container.setAttribute('part', 'field-root');
+    this.container = DOMUtils.createElement('div', {
+      part: COMPONENT_PARTS.field.root,
+    });
     this.shadow.appendChild(this.container);
 
     // Render field content
@@ -42,70 +57,84 @@ export class FileFieldElement extends BaseFieldElement {
    * Create file input element
    */
   protected override createInputElement(field: Field): HTMLElement {
-    const config = field.config as any;
+    const config = field.config as unknown as FileFieldConfig;
 
     // Create wrapper
-    const wrapper = document.createElement('div');
-    wrapper.setAttribute('part', 'file-wrapper');
+    const wrapper = DOMUtils.createElement('div', {
+      part: COMPONENT_PARTS.file.wrapper,
+    });
+
+    // Create properties object with only defined values
+    const properties: Partial<HTMLInputElement> = {
+      type: INPUT_TYPES.file,
+      name: field.name,
+    };
+
+    // Add optional properties only if they are defined
+    if (config.validation?.accept) properties.accept = config.validation.accept;
+    if (config.multiple) properties.multiple = true;
+    if (field.config.required) properties.required = true;
+    if (field.config.disabled) properties.disabled = true;
 
     // Create file input
-    const input = document.createElement('input');
+    const input = DOMUtils.createElement('input', {
+      properties,
+      part: COMPONENT_PARTS.file.input,
+    });
     this.inputElement = input;
-    input.type = 'file';
-    input.name = field.name;
-    input.setAttribute('part', 'file-input');
-
-    if (config.multiple) {
-      input.multiple = true;
-    }
-    if (config.accept) {
-      input.accept = config.accept;
-    }
-    if (field.config.disabled) {
-      input.disabled = true;
-    }
-    if (field.config.required) {
-      input.required = true;
-    }
 
     // Create drop zone
-    this.dropZone = document.createElement('div');
-    this.dropZone.setAttribute('part', 'drop-zone');
+    this.dropZone = DOMUtils.createElement('div', {
+      part: COMPONENT_PARTS.file.dropZone,
+    });
 
     // Create upload icon
-    const uploadIcon = document.createElement('div');
-    uploadIcon.setAttribute('part', 'upload-icon');
-    uploadIcon.innerHTML = `
+    const uploadIcon = DOMUtils.createIcon(
+      `
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
         <polyline points="17 8 12 3 7 8"/>
         <line x1="12" y1="3" x2="12" y2="15"/>
       </svg>
-    `;
+    `,
+      {
+        part: COMPONENT_PARTS.file.uploadIcon,
+      }
+    );
 
     // Create upload text
-    const uploadText = document.createElement('div');
-    uploadText.setAttribute('part', 'upload-text');
-    uploadText.textContent = config.multiple
-      ? 'Drop files here or click to upload'
-      : 'Drop a file here or click to upload';
+    const uploadText = DOMUtils.createElement('div', {
+      part: COMPONENT_PARTS.file.uploadText,
+      text: config.multiple
+        ? 'Drop files here or click to upload'
+        : 'Drop a file here or click to upload',
+    });
 
     // Create file list
-    this.fileList = document.createElement('div');
-    this.fileList.setAttribute('part', 'file-list');
+    this.fileList = DOMUtils.createElement('div', {
+      part: COMPONENT_PARTS.file.fileList,
+    });
 
     // Assemble drop zone
-    this.dropZone.appendChild(uploadIcon);
-    this.dropZone.appendChild(uploadText);
-    this.dropZone.appendChild(input);
+    if (this.dropZone) {
+      this.dropZone.appendChild(uploadIcon);
+      this.dropZone.appendChild(uploadText);
+      this.dropZone.appendChild(input);
+    }
 
     // Assemble wrapper
-    wrapper.appendChild(this.dropZone);
-    wrapper.appendChild(this.fileList);
+    if (this.dropZone) {
+      wrapper.appendChild(this.dropZone);
+    }
+    if (this.fileList) {
+      wrapper.appendChild(this.fileList);
+    }
 
     // Add event listeners
     this.addFileEventListeners(input);
-    this.addDropZoneEventListeners(this.dropZone);
+    if (this.dropZone) {
+      this.addDropZoneEventListeners(this.dropZone);
+    }
 
     return wrapper;
   }
@@ -114,22 +143,22 @@ export class FileFieldElement extends BaseFieldElement {
    * Add file input event listeners
    */
   private addFileEventListeners(input: HTMLInputElement): void {
-    input.addEventListener('change', () => {
+    input.addEventListener(EVENT_NAMES.change, () => {
       if (input.files) {
         this.handleFiles(input.files);
       }
     });
 
     // Handle focus/blur
-    input.addEventListener('focus', () => {
+    input.addEventListener(EVENT_NAMES.focus, () => {
       if (this.dropZone) {
-        this.dropZone.setAttribute('part', 'drop-zone focused');
+        DOMUtils.updatePart(this.dropZone, { add: [COMPONENT_PARTS.states.focused] });
       }
     });
 
-    input.addEventListener('blur', () => {
+    input.addEventListener(EVENT_NAMES.blur, () => {
       if (this.dropZone) {
-        this.dropZone.setAttribute('part', 'drop-zone');
+        DOMUtils.updatePart(this.dropZone, { remove: [COMPONENT_PARTS.states.focused] });
       }
       if (this.field) {
         this.field.markAsTouched();
@@ -142,18 +171,18 @@ export class FileFieldElement extends BaseFieldElement {
    * Add drop zone event listeners
    */
   private addDropZoneEventListeners(dropZone: HTMLElement): void {
-    dropZone.addEventListener('dragover', (e) => {
+    dropZone.addEventListener(EVENT_NAMES.dragover, (e) => {
       e.preventDefault();
-      dropZone.setAttribute('part', 'drop-zone dragover');
+      DOMUtils.updatePart(dropZone, { add: ['dragover'] });
     });
 
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.setAttribute('part', 'drop-zone');
+    dropZone.addEventListener(EVENT_NAMES.dragleave, () => {
+      DOMUtils.updatePart(dropZone, { remove: ['dragover'] });
     });
 
-    dropZone.addEventListener('drop', (e) => {
+    dropZone.addEventListener(EVENT_NAMES.drop, (e) => {
       e.preventDefault();
-      dropZone.setAttribute('part', 'drop-zone');
+      DOMUtils.updatePart(dropZone, { remove: ['dragover'] });
       if (e.dataTransfer?.files) {
         this.handleFiles(e.dataTransfer.files);
       }
@@ -166,9 +195,11 @@ export class FileFieldElement extends BaseFieldElement {
   private handleFiles(files: FileList): void {
     if (!this.field) return;
 
-    const validation = this.validateFiles(files);
+    const config = this.field.config as unknown as FileFieldConfig;
+    const validation = config.validation || {};
+    const result = ValidationUtils.validateFiles(files, validation);
 
-    if (validation.valid) {
+    if (result.isValid) {
       this.updateFileList(files);
       this.handleFieldChange(files);
     } else {
@@ -177,115 +208,103 @@ export class FileFieldElement extends BaseFieldElement {
         this.inputElement.value = '';
       }
       // Show error
-      this.field.setErrors([validation.error || 'Invalid file selection']);
+      this.field.setErrors([result.errors[0] || VALIDATION_MESSAGES.fileType]);
       this.updateFieldState(this.field);
     }
-  }
-
-  /**
-   * Validate selected files
-   */
-  private validateFiles(files: FileList): { valid: boolean; error?: string } {
-    if (!this.field) {
-      return { valid: false, error: 'Field not initialized' };
-    }
-
-    const config = this.field.config as any;
-    const validation: FileValidation = config.validation || {};
-
-    // Check number of files
-    if (validation.maxFiles && files.length > validation.maxFiles) {
-      return {
-        valid: false,
-        error: `Maximum ${validation.maxFiles} files allowed`,
-      };
-    }
-
-    // Check file sizes
-    let totalSize = 0;
-    for (let i = 0; i < files.length; i++) {
-      const file = files.item(i);
-      if (!file) continue;
-
-      totalSize += file.size;
-
-      if (validation.maxFileSize && file.size > validation.maxFileSize) {
-        return {
-          valid: false,
-          error: `File "${file.name}" exceeds maximum size of ${this.formatSize(validation.maxFileSize)}`,
-        };
-      }
-    }
-
-    if (validation.maxTotalSize && totalSize > validation.maxTotalSize) {
-      return {
-        valid: false,
-        error: `Total size exceeds maximum of ${this.formatSize(validation.maxTotalSize)}`,
-      };
-    }
-
-    return { valid: true };
   }
 
   /**
    * Update file list display
    */
   private updateFileList(files: FileList): void {
-    const fileListElement = this.fileList;
-    if (!fileListElement) return;
+    if (!this.fileList) return;
 
-    fileListElement.innerHTML = '';
+    this.fileList.innerHTML = '';
 
     Array.from(files).forEach((file) => {
-      const fileItem = document.createElement('div');
-      fileItem.setAttribute('part', 'file-item');
+      const fileItem = DOMUtils.createElement('div', {
+        part: COMPONENT_PARTS.file.fileItem,
+      });
 
-      const fileName = document.createElement('span');
-      fileName.setAttribute('part', 'file-name');
-      fileName.textContent = file.name;
+      const fileName = DOMUtils.createElement('span', {
+        part: COMPONENT_PARTS.file.fileName,
+        text: file.name,
+      });
 
-      const fileSize = document.createElement('span');
-      fileSize.setAttribute('part', 'file-size');
-      fileSize.textContent = this.formatSize(file.size);
+      const fileSize = DOMUtils.createElement('span', {
+        part: COMPONENT_PARTS.file.fileSize,
+        text: StringUtils.formatBytes(file.size),
+      });
 
       fileItem.appendChild(fileName);
       fileItem.appendChild(fileSize);
 
-      fileListElement.appendChild(fileItem);
+      if (this.fileList) {
+        this.fileList.appendChild(fileItem);
+      }
     });
-  }
-
-  /**
-   * Format file size for display
-   */
-  private formatSize(bytes: number): string {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
   }
 
   /**
    * Handle attribute changes
    */
-  protected override handleAttributeChange(name: string, value: string): void {
-    super.handleAttributeChange(name, value);
+  protected override handleAttributeChange(name: string, value: string | null): void {
+    super.handleAttributeChange(name, value || '');
 
-    if (this.inputElement instanceof HTMLInputElement) {
-      switch (name) {
-        case 'accept':
-          if (value) {
-            this.inputElement.accept = value;
-          } else {
-            this.inputElement.removeAttribute('accept');
-          }
-          break;
-        case 'multiple':
-          this.inputElement.multiple = value !== null;
-          break;
+    if (!(this.inputElement instanceof HTMLInputElement)) return;
+
+    switch (name) {
+      case 'accept': {
+        if (value) {
+          this.inputElement.setAttribute('accept', value);
+        } else {
+          this.inputElement.removeAttribute('accept');
+        }
+        break;
+      }
+      case 'multiple': {
+        this.inputElement.multiple = value !== null;
+        break;
       }
     }
+  }
+
+  /**
+   * Validate field value
+   */
+  protected validateField(value: FileList | null): string[] {
+    const errors: string[] = [];
+
+    try {
+      // Required validation
+      if (this.field?.config.required && (!value || value.length === 0)) {
+        errors.push(VALIDATION_MESSAGES.required);
+      }
+
+      // File validation
+      if (value && value.length > 0 && this.field?.config) {
+        const config = this.field.config as unknown as FileFieldConfig;
+        if (config.validation) {
+          const result = ValidationUtils.validateFiles(value, config.validation);
+          if (!result.isValid && result.errors.length > 0) {
+            errors.push(result.errors[0] || VALIDATION_MESSAGES.fileType);
+          }
+        }
+      }
+
+      // Custom validation
+      if (this.field?.config.validation?.custom) {
+        const customError = this.field.config.validation.custom(value);
+        if (customError) {
+          errors.push(customError);
+        }
+      }
+    } catch (error) {
+      const err = ErrorUtils.handleError(error);
+      errors.push(err.message);
+    }
+
+    return errors;
   }
 
   /**

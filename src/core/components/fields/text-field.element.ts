@@ -5,6 +5,14 @@
 import { Field } from '@domain/field';
 import { BaseFieldElement } from '@components/base/field-element.base';
 import { IEventHandler } from '@interfaces/events/event-handler.interface';
+import { DOMUtils, StringUtils, ValidationUtils, ErrorUtils, CollectionUtils } from '@utils/index';
+import {
+  COMPONENT_PARTS,
+  INPUT_TYPES,
+  VALIDATION_MESSAGES,
+  EVENT_NAMES,
+  ARIA_ATTRIBUTES,
+} from '@core/constants/component.constants';
 
 export class TextFieldElement extends BaseFieldElement {
   private container: HTMLElement | null = null;
@@ -28,8 +36,9 @@ export class TextFieldElement extends BaseFieldElement {
     this.shadow.innerHTML = '';
 
     // Create container
-    this.container = document.createElement('div');
-    this.container.setAttribute('part', 'field-root');
+    this.container = DOMUtils.createElement('div', {
+      part: COMPONENT_PARTS.field.root,
+    });
     this.shadow.appendChild(this.container);
 
     // Render field content
@@ -43,60 +52,57 @@ export class TextFieldElement extends BaseFieldElement {
     const config = field.config as any;
 
     // Create wrapper
-    this.inputWrapper = document.createElement('div');
-    this.inputWrapper.setAttribute('part', 'input-wrapper');
+    this.inputWrapper = DOMUtils.createElement('div', {
+      part: COMPONENT_PARTS.field.inputWrapper,
+    });
+
+    // Create properties object with only defined values
+    const properties: Partial<HTMLInputElement | HTMLTextAreaElement> = {
+      name: field.name,
+    };
+
+    // Add optional properties only if they are defined
+    if (field.config.placeholder) properties.placeholder = field.config.placeholder;
+    if (field.config.required) properties.required = true;
+    if (field.config.disabled) properties.disabled = true;
+    if (field.config.readonly) properties.readOnly = true;
+    if (field.value.raw !== undefined) properties.value = field.value.raw;
 
     // Create input element
-    const input = document.createElement(config.type === 'textarea' ? 'textarea' : 'input');
+    const input = DOMUtils.createElement(
+      config.type === INPUT_TYPES.textarea ? 'textarea' : 'input',
+      {
+        properties,
+        part: COMPONENT_PARTS.field.input,
+      }
+    );
+
+    // Set type attribute for input elements
+    if (input instanceof HTMLInputElement) {
+      input.setAttribute('type', config.type || INPUT_TYPES.text);
+    }
+
     this.inputElement = input;
 
-    // Set input type and common attributes
-    if (input instanceof HTMLInputElement) {
-      input.type = config.type || 'text';
-    }
-    input.name = field.name;
-    input.setAttribute('part', 'input');
-
-    // Set common attributes
-    if (field.config.placeholder) {
-      input.placeholder = field.config.placeholder;
-    }
-    if (field.config.required) {
-      input.required = true;
-    }
-    if (field.config.disabled) {
-      input.disabled = true;
-    }
-    if (field.config.readonly) {
-      input.readOnly = true;
-    }
-
     // Set validation attributes
-    if (config.validation) {
-      if (input instanceof HTMLInputElement) {
-        if (config.validation.pattern) {
-          input.pattern = config.validation.pattern;
+    if (config.validation && input instanceof HTMLInputElement) {
+      if (config.validation.pattern) {
+        input.pattern = config.validation.pattern;
+      }
+      if (config.validation.minLength) {
+        input.minLength = config.validation.minLength;
+      }
+      if (config.validation.maxLength) {
+        input.maxLength = config.validation.maxLength;
+      }
+      if (config.type === INPUT_TYPES.number) {
+        if (config.validation.min !== undefined) {
+          input.min = String(config.validation.min);
         }
-        if (config.validation.minLength) {
-          input.minLength = config.validation.minLength;
-        }
-        if (config.validation.maxLength) {
-          input.maxLength = config.validation.maxLength;
-        }
-        if (config.type === 'number') {
-          if (config.validation.min !== undefined) {
-            input.min = String(config.validation.min);
-          }
-          if (config.validation.max !== undefined) {
-            input.max = String(config.validation.max);
-          }
+        if (config.validation.max !== undefined) {
+          input.max = String(config.validation.max);
         }
       }
-    }
-
-    // Set initial value
-    if (field.value.raw) {
-      input.value = field.value.raw;
     }
 
     // Add event listeners
@@ -104,28 +110,22 @@ export class TextFieldElement extends BaseFieldElement {
 
     // Add icons if specified
     if (config.leadingIcon) {
-      const leadingIcon = this.createIcon(config.leadingIcon, 'leading-icon');
+      const leadingIcon = DOMUtils.createIcon(config.leadingIcon, {
+        part: 'leading-icon',
+      });
       this.inputWrapper.appendChild(leadingIcon);
     }
 
     this.inputWrapper.appendChild(input);
 
     if (config.trailingIcon) {
-      const trailingIcon = this.createIcon(config.trailingIcon, 'trailing-icon');
+      const trailingIcon = DOMUtils.createIcon(config.trailingIcon, {
+        part: 'trailing-icon',
+      });
       this.inputWrapper.appendChild(trailingIcon);
     }
 
     return this.inputWrapper;
-  }
-
-  /**
-   * Create icon element
-   */
-  private createIcon(icon: string, part: string): HTMLElement {
-    const iconElement = document.createElement('span');
-    iconElement.setAttribute('part', part);
-    iconElement.innerHTML = icon;
-    return iconElement;
   }
 
   /**
@@ -139,16 +139,16 @@ export class TextFieldElement extends BaseFieldElement {
 
     // Handle focus/blur
     input.addEventListener('focus', () => {
-      input.setAttribute('part', input.getAttribute('part') + ' focused');
+      DOMUtils.updatePart(input, { add: ['focused'] });
       if (this.inputWrapper) {
-        this.inputWrapper.setAttribute('part', 'input-wrapper focused');
+        DOMUtils.updatePart(this.inputWrapper, { add: ['focused'] });
       }
     });
 
     input.addEventListener('blur', () => {
-      input.setAttribute('part', input.getAttribute('part')?.replace(' focused', '') || 'input');
+      DOMUtils.updatePart(input, { remove: ['focused'] });
       if (this.inputWrapper) {
-        this.inputWrapper.setAttribute('part', 'input-wrapper');
+        DOMUtils.updatePart(this.inputWrapper, { remove: ['focused'] });
       }
       if (this.field) {
         this.field.markAsTouched();
@@ -189,37 +189,98 @@ export class TextFieldElement extends BaseFieldElement {
   /**
    * Handle attribute changes
    */
-  protected override handleAttributeChange(name: string, value: string): void {
-    super.handleAttributeChange(name, value);
+  protected override handleAttributeChange(name: string, value: string | null): void {
+    // Call parent with empty string if value is null
+    super.handleAttributeChange(name, value || '');
 
-    if (this.inputElement instanceof HTMLInputElement) {
-      switch (name) {
-        case 'type':
-          this.inputElement.type = value || 'text';
-          break;
-        case 'pattern':
-          if (value) {
-            this.inputElement.pattern = value;
-          } else {
-            this.inputElement.removeAttribute('pattern');
-          }
-          break;
-        case 'minlength':
-          if (value) {
-            this.inputElement.minLength = parseInt(value, 10);
-          } else {
-            this.inputElement.removeAttribute('minlength');
-          }
-          break;
-        case 'maxlength':
-          if (value) {
-            this.inputElement.maxLength = parseInt(value, 10);
-          } else {
-            this.inputElement.removeAttribute('maxlength');
-          }
-          break;
+    if (!(this.inputElement instanceof HTMLInputElement)) return;
+
+    switch (name) {
+      case 'type': {
+        const inputType = value || INPUT_TYPES.text;
+        this.inputElement.setAttribute('type', inputType);
+        break;
+      }
+      case 'pattern': {
+        if (value) {
+          this.inputElement.setAttribute('pattern', value);
+        } else {
+          this.inputElement.removeAttribute('pattern');
+        }
+        break;
+      }
+      case 'minlength': {
+        if (value && !isNaN(parseInt(value, 10))) {
+          this.inputElement.setAttribute('minlength', value);
+        } else {
+          this.inputElement.removeAttribute('minlength');
+        }
+        break;
+      }
+      case 'maxlength': {
+        if (value && !isNaN(parseInt(value, 10))) {
+          this.inputElement.setAttribute('maxlength', value);
+        } else {
+          this.inputElement.removeAttribute('maxlength');
+        }
+        break;
       }
     }
+  }
+
+  /**
+   * Validate field value
+   */
+  protected validateField(value: string): string[] {
+    const errors: string[] = [];
+
+    try {
+      // Required validation
+      if (this.field?.config.required && !value) {
+        errors.push(VALIDATION_MESSAGES.required);
+      }
+
+      // Pattern validation
+      if (this.field?.config.validation?.pattern && value) {
+        const pattern = this.field.config.validation.pattern;
+        if (typeof pattern === 'string') {
+          const result = ValidationUtils.validatePattern(value, pattern);
+          if (!result.isValid && result.errors.length > 0) {
+            errors.push(result.errors[0] || '');
+          }
+        }
+      }
+
+      // Length validation
+      if (this.field?.config.validation) {
+        const { minLength, maxLength } = this.field.config.validation;
+        if (typeof minLength === 'number' && value) {
+          const result = ValidationUtils.validateMinLength(value, minLength);
+          if (!result.isValid && result.errors.length > 0) {
+            errors.push(result.errors[0] || '');
+          }
+        }
+        if (typeof maxLength === 'number' && value) {
+          const result = ValidationUtils.validateMaxLength(value, maxLength);
+          if (!result.isValid && result.errors.length > 0) {
+            errors.push(result.errors[0] || '');
+          }
+        }
+      }
+
+      // Custom validation
+      if (this.field?.config.validation?.custom) {
+        const customError = this.field.config.validation.custom(value);
+        if (customError) {
+          errors.push(customError);
+        }
+      }
+    } catch (error) {
+      const err = ErrorUtils.handleError(error);
+      errors.push(err.message);
+    }
+
+    return errors;
   }
 
   /**

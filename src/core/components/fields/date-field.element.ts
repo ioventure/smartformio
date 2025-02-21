@@ -5,7 +5,20 @@
 import { Field } from '@domain/field';
 import { BaseFieldElement } from '@components/base/field-element.base';
 import { IEventHandler } from '@interfaces/events/event-handler.interface';
-import { DateValidation } from '@components/fields';
+import { DOMUtils, StringUtils, ValidationUtils, ErrorUtils, CollectionUtils } from '@utils/index';
+import {
+  COMPONENT_PARTS,
+  INPUT_TYPES,
+  VALIDATION_MESSAGES,
+  EVENT_NAMES,
+  ARIA_ATTRIBUTES,
+  DATE_FORMAT,
+} from '@core/constants/component.constants';
+import { DateValidation } from './index';
+
+type DateFieldConfig = Omit<Field['config'], 'validation'> & {
+  validation?: DateValidation;
+};
 
 export class DateFieldElement extends BaseFieldElement {
   private container: HTMLElement | null = null;
@@ -28,8 +41,9 @@ export class DateFieldElement extends BaseFieldElement {
     this.shadow.innerHTML = '';
 
     // Create container
-    this.container = document.createElement('div');
-    this.container.setAttribute('part', 'field-root');
+    this.container = DOMUtils.createElement('div', {
+      part: COMPONENT_PARTS.field.root,
+    });
     this.shadow.appendChild(this.container);
 
     // Render field content
@@ -40,67 +54,67 @@ export class DateFieldElement extends BaseFieldElement {
    * Create date input element
    */
   protected override createInputElement(field: Field): HTMLElement {
-    const config = field.config as any;
+    const config = field.config as unknown as DateFieldConfig;
 
     // Create wrapper
-    const wrapper = document.createElement('div');
-    wrapper.setAttribute('part', 'date-wrapper');
+    const wrapper = DOMUtils.createElement('div', {
+      part: COMPONENT_PARTS.date.wrapper,
+    });
 
-    // Create input
-    const input = document.createElement('input');
-    this.inputElement = input;
-    input.type = 'date';
-    input.name = field.name;
-    input.setAttribute('part', 'date-input');
+    // Create properties object with only defined values
+    const properties: Partial<HTMLInputElement> = {
+      type: INPUT_TYPES.date,
+      name: field.name,
+    };
 
-    // Set common attributes
-    if (field.config.placeholder) {
-      input.placeholder = field.config.placeholder;
-    }
-    if (field.config.required) {
-      input.required = true;
-    }
-    if (field.config.disabled) {
-      input.disabled = true;
-    }
-    if (field.config.readonly) {
-      input.readOnly = true;
-    }
+    // Add optional properties only if they are defined
+    if (field.config.placeholder) properties.placeholder = field.config.placeholder;
+    if (field.config.required) properties.required = true;
+    if (field.config.disabled) properties.disabled = true;
+    if (field.config.readonly) properties.readOnly = true;
 
     // Set validation attributes
     if (config.validation) {
-      const validation = config.validation as DateValidation;
-
-      if (validation.min) {
-        input.min = this.formatDate(new Date(validation.min));
+      if (config.validation.min) {
+        properties.min = StringUtils.formatDate(new Date(config.validation.min));
       }
-      if (validation.max) {
-        input.max = this.formatDate(new Date(validation.max));
+      if (config.validation.max) {
+        properties.max = StringUtils.formatDate(new Date(config.validation.max));
       }
     }
 
     // Set initial value
     if (field.value.raw) {
-      input.value = this.formatDate(new Date(field.value.raw));
+      properties.value = StringUtils.formatDate(new Date(field.value.raw));
     }
+
+    // Create input element
+    const input = DOMUtils.createElement('input', {
+      properties,
+      part: COMPONENT_PARTS.date.input,
+    });
+    this.inputElement = input;
 
     // Add event listeners
     this.addDateEventListeners(input);
 
     // Create calendar icon
-    const calendarIcon = document.createElement('span');
-    calendarIcon.setAttribute('part', 'calendar-icon');
-    calendarIcon.innerHTML = `
+    const calendarIcon = DOMUtils.createIcon(
+      `
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
         <rect x="3" y="4" width="14" height="14" rx="2" ry="2"/>
         <line x1="3" y1="8" x2="17" y2="8"/>
         <line x1="8" y1="2" x2="8" y2="6"/>
         <line x1="12" y1="2" x2="12" y2="6"/>
       </svg>
-    `;
+    `,
+      {
+        part: COMPONENT_PARTS.date.calendarIcon,
+      }
+    );
 
     // Add click handler to calendar icon
-    calendarIcon.addEventListener('click', () => {
+    calendarIcon.addEventListener(EVENT_NAMES.click, () => {
       if (!input.disabled && !input.readOnly) {
         input.showPicker();
       }
@@ -117,7 +131,7 @@ export class DateFieldElement extends BaseFieldElement {
    * Add date-specific event listeners
    */
   private addDateEventListeners(input: HTMLInputElement): void {
-    input.addEventListener('change', () => {
+    input.addEventListener(EVENT_NAMES.change, () => {
       if (input.value) {
         const date = new Date(input.value);
         this.handleFieldChange(date);
@@ -127,15 +141,12 @@ export class DateFieldElement extends BaseFieldElement {
     });
 
     // Handle focus/blur
-    input.addEventListener('focus', () => {
-      input.setAttribute('part', input.getAttribute('part') + ' focused');
+    input.addEventListener(EVENT_NAMES.focus, () => {
+      DOMUtils.updatePart(input, { add: [COMPONENT_PARTS.states.focused] });
     });
 
-    input.addEventListener('blur', () => {
-      input.setAttribute(
-        'part',
-        input.getAttribute('part')?.replace(' focused', '') || 'date-input'
-      );
+    input.addEventListener(EVENT_NAMES.blur, () => {
+      DOMUtils.updatePart(input, { remove: [COMPONENT_PARTS.states.focused] });
       if (this.field) {
         this.field.markAsTouched();
         this.updateFieldState(this.field);
@@ -143,7 +154,7 @@ export class DateFieldElement extends BaseFieldElement {
     });
 
     // Handle keyboard events
-    input.addEventListener('keydown', ((event: Event) => {
+    input.addEventListener(EVENT_NAMES.keydown, ((event: Event) => {
       const keyboardEvent = event as KeyboardEvent;
       if (keyboardEvent.key === 'Enter') {
         // Prevent form submission on enter if there are other fields
@@ -152,21 +163,6 @@ export class DateFieldElement extends BaseFieldElement {
         }
       }
     }) as EventListener);
-  }
-
-  /**
-   * Format date according to HTML input[type="date"] format (YYYY-MM-DD)
-   */
-  private formatDate(date: Date): string {
-    if (!date || isNaN(date.getTime())) {
-      return '';
-    }
-
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
   }
 
   /**
@@ -180,7 +176,7 @@ export class DateFieldElement extends BaseFieldElement {
       if (value) {
         const date = new Date(value);
         if (!isNaN(date.getTime())) {
-          this.inputElement.value = this.formatDate(date);
+          this.inputElement.value = StringUtils.formatDate(date);
         }
       } else {
         this.inputElement.value = '';
@@ -191,24 +187,68 @@ export class DateFieldElement extends BaseFieldElement {
   /**
    * Handle attribute changes
    */
-  protected override handleAttributeChange(name: string, value: string): void {
-    super.handleAttributeChange(name, value);
+  protected override handleAttributeChange(name: string, value: string | null): void {
+    super.handleAttributeChange(name, value || '');
 
-    if (this.inputElement instanceof HTMLInputElement) {
-      switch (name) {
-        case 'min':
-        case 'max':
-          if (value) {
+    if (!(this.inputElement instanceof HTMLInputElement)) return;
+
+    switch (name) {
+      case 'min':
+      case 'max': {
+        if (value) {
+          try {
             const date = new Date(value);
             if (!isNaN(date.getTime())) {
-              this.inputElement.setAttribute(name, this.formatDate(date));
+              this.inputElement.setAttribute(name, StringUtils.formatDate(date));
             }
-          } else {
-            this.inputElement.removeAttribute(name);
+          } catch (error) {
+            const err = ErrorUtils.handleError(error);
+            console.error(`Invalid ${name} date:`, err.message);
           }
-          break;
+        } else {
+          this.inputElement.removeAttribute(name);
+        }
+        break;
       }
     }
+  }
+
+  /**
+   * Validate field value
+   */
+  protected validateField(value: Date | null): string[] {
+    const errors: string[] = [];
+
+    try {
+      // Required validation
+      if (this.field?.config.required && !value) {
+        errors.push(VALIDATION_MESSAGES.required);
+      }
+
+      // Date range validation
+      if (value && this.field?.config.validation) {
+        const config = this.field.config as unknown as DateFieldConfig;
+        if (config.validation) {
+          const result = ValidationUtils.validateDate(value, config.validation);
+          if (!result.isValid && result.errors.length > 0) {
+            errors.push(result.errors[0] || VALIDATION_MESSAGES.dateRange);
+          }
+        }
+      }
+
+      // Custom validation
+      if (this.field?.config.validation?.custom) {
+        const customError = this.field.config.validation.custom(value);
+        if (customError) {
+          errors.push(customError);
+        }
+      }
+    } catch (error) {
+      const err = ErrorUtils.handleError(error);
+      errors.push(err.message);
+    }
+
+    return errors;
   }
 
   /**
