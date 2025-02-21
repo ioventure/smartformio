@@ -93,10 +93,10 @@ export class Field {
   }
 
   setErrors(errors: string[]): void {
-    this._errors = CollectionUtils.deepClone(errors);
+    this._errors = CollectionUtils.unique(CollectionUtils.deepClone(errors));
     this._value = CollectionUtils.deepClone({
       ...this._value,
-      valid: errors.length === 0,
+      valid: this._errors.length === 0,
     });
   }
 

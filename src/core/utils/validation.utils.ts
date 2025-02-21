@@ -2,14 +2,14 @@
  * @file Validation utility functions
  */
 
-import { VALIDATION_MESSAGES } from '@core/constants/component.constants';
-import { Field, FieldConfig } from '@domain/field';
+import { Field } from '@domain/field';
 import { ValidationResult } from '@domain/validation';
+import { VALIDATION_MESSAGES } from '@core/constants/component.constants';
 import { FileValidation, DateValidation } from '@components/fields';
-import { FieldUtils } from './field.utils';
 import { CollectionUtils } from './collection.utils';
+import { FieldUtils } from './field.utils';
 
-type FieldWithConfig = Field & { config: FieldConfig };
+type FieldWithConfig = Field;
 
 interface BaseValidation {
   custom?: (value: any) => string | null;
@@ -42,10 +42,10 @@ export class ValidationUtils {
    * Create validation result
    */
   private static createResult(isValid: boolean, error?: string): ValidationResult {
-    return {
+    return CollectionUtils.deepClone({
       isValid,
-      errors: error ? [error] : [],
-    };
+      errors: error ? CollectionUtils.unique([error]) : [],
+    });
   }
 
   /**
@@ -165,10 +165,12 @@ export class ValidationUtils {
     const failedValidations = validationResults.filter((result) => !result.isValid);
 
     if (failedValidations.length > 0) {
-      return {
+      return CollectionUtils.deepClone({
         isValid: false,
-        errors: CollectionUtils.flatten(failedValidations.map((result) => result.errors)),
-      };
+        errors: CollectionUtils.unique(
+          CollectionUtils.flatten(failedValidations.map((result) => result.errors))
+        ),
+      });
     }
 
     // Custom validation

@@ -30,13 +30,13 @@ export class Form {
     public readonly id: string,
     public readonly config: FormConfig
   ) {
-    this._state = {
+    this._state = CollectionUtils.deepClone({
       isValid: true,
       isDirty: false,
       isSubmitting: false,
       submitCount: 0,
       errors: {},
-    };
+    });
   }
 
   /**
@@ -63,7 +63,7 @@ export class Form {
    * Get all form fields
    */
   get fields(): Field[] {
-    return Array.from(this._fields.values());
+    return CollectionUtils.unique(Array.from(this._fields.values()));
   }
 
   /**
@@ -157,11 +157,11 @@ export class Form {
    * Update form state based on fields
    */
   private _updateFormState(): void {
-    const fieldsArray = Array.from(this._fields.entries());
+    const fieldsArray = CollectionUtils.unique(Array.from(this._fields.entries()));
     const fieldErrors = Object.fromEntries(
       fieldsArray
         .filter(([_, field]) => field.errors.length > 0)
-        .map(([name, field]) => [name, field.errors])
+        .map(([name, field]) => [name, CollectionUtils.unique(field.errors)])
     ) as Record<string, string[]>;
 
     const isValid = Object.keys(fieldErrors).length === 0;
@@ -171,7 +171,7 @@ export class Form {
       ...this._state,
       isValid,
       isDirty,
-      errors: fieldErrors,
+      errors: CollectionUtils.deepClone(fieldErrors),
     });
   }
 }

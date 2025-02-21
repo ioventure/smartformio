@@ -4,8 +4,8 @@
 
 import { Form } from '@domain/form';
 import { Field, FieldConfig, FieldType } from '@domain/field';
-import { FieldUtils } from './field.utils';
 import { CollectionUtils } from './collection.utils';
+import { FieldUtils } from './field.utils';
 
 export class FormUtils {
   /**
