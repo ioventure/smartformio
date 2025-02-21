@@ -7,6 +7,7 @@ import { Field, FieldConfig } from '@domain/field';
 import { ValidationResult } from '@domain/validation';
 import { FileValidation, DateValidation } from '@components/fields';
 import { FieldUtils } from './field.utils';
+import { CollectionUtils } from './collection.utils';
 
 type FieldWithConfig = Field & { config: FieldConfig };
 
@@ -27,95 +28,99 @@ interface NumberValidation extends BaseValidation {
 
 type ValidationTypes = TextValidation | NumberValidation | FileValidation | DateValidation;
 
+type ValidationFunction<T = any> = (value: T) => ValidationResult;
+
 export class ValidationUtils {
+  private static readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  private static readonly VALIDATION_MAP: Record<string, ValidationFunction> = {
+    email: ValidationUtils.validateEmail,
+    required: ValidationUtils.validateRequired,
+  };
+
+  /**
+   * Create validation result
+   */
+  private static createResult(isValid: boolean, error?: string): ValidationResult {
+    return {
+      isValid,
+      errors: error ? [error] : [],
+    };
+  }
+
   /**
    * Validate required field
    */
   static validateRequired(value: any): ValidationResult {
     const isValid = value != null && value !== '';
-    return {
-      isValid,
-      errors: isValid ? [] : [VALIDATION_MESSAGES.required],
-    };
+    return this.createResult(isValid, isValid ? undefined : VALIDATION_MESSAGES.required);
   }
 
   /**
    * Validate email format
    */
   static validateEmail(value: string): ValidationResult {
-    if (!value) return { isValid: true, errors: [] };
+    if (!value) return this.createResult(true);
 
-    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-    return {
-      isValid,
-      errors: isValid ? [] : [VALIDATION_MESSAGES.email],
-    };
+    const isValid = this.EMAIL_REGEX.test(value);
+    return this.createResult(isValid, isValid ? undefined : VALIDATION_MESSAGES.email);
   }
 
   /**
    * Validate minimum length
    */
   static validateMinLength(value: string, minLength: number): ValidationResult {
-    if (!value) return { isValid: true, errors: [] };
+    if (!value) return this.createResult(true);
 
     const isValid = value.length >= minLength;
-    return {
+    return this.createResult(
       isValid,
-      errors: isValid ? [] : [VALIDATION_MESSAGES.minLength(minLength)],
-    };
+      isValid ? undefined : VALIDATION_MESSAGES.minLength(minLength)
+    );
   }
 
   /**
    * Validate maximum length
    */
   static validateMaxLength(value: string, maxLength: number): ValidationResult {
-    if (!value) return { isValid: true, errors: [] };
+    if (!value) return this.createResult(true);
 
     const isValid = value.length <= maxLength;
-    return {
+    return this.createResult(
       isValid,
-      errors: isValid ? [] : [VALIDATION_MESSAGES.maxLength(maxLength)],
-    };
+      isValid ? undefined : VALIDATION_MESSAGES.maxLength(maxLength)
+    );
   }
 
   /**
    * Validate minimum value
    */
   static validateMin(value: number, min: number): ValidationResult {
-    if (value == null) return { isValid: true, errors: [] };
+    if (value == null) return this.createResult(true);
 
     const isValid = value >= min;
-    return {
-      isValid,
-      errors: isValid ? [] : [VALIDATION_MESSAGES.min(min)],
-    };
+    return this.createResult(isValid, isValid ? undefined : VALIDATION_MESSAGES.min(min));
   }
 
   /**
    * Validate maximum value
    */
   static validateMax(value: number, max: number): ValidationResult {
-    if (value == null) return { isValid: true, errors: [] };
+    if (value == null) return this.createResult(true);
 
     const isValid = value <= max;
-    return {
-      isValid,
-      errors: isValid ? [] : [VALIDATION_MESSAGES.max(max)],
-    };
+    return this.createResult(isValid, isValid ? undefined : VALIDATION_MESSAGES.max(max));
   }
 
   /**
    * Validate pattern
    */
   static validatePattern(value: string, pattern: string | RegExp): ValidationResult {
-    if (!value) return { isValid: true, errors: [] };
+    if (!value) return this.createResult(true);
 
     const regex = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
     const isValid = regex.test(value);
-    return {
-      isValid,
-      errors: isValid ? [] : [VALIDATION_MESSAGES.pattern],
-    };
+    return this.createResult(isValid, isValid ? undefined : VALIDATION_MESSAGES.pattern);
   }
 
   /**
@@ -123,10 +128,7 @@ export class ValidationUtils {
    */
   static validateFiles(files: FileList, validation: FileValidation): ValidationResult {
     const result = FieldUtils.validateFiles(files, validation);
-    return {
-      isValid: result.valid,
-      errors: result.error ? [result.error] : [],
-    };
+    return this.createResult(result.valid, result.error);
   }
 
   /**
@@ -134,10 +136,7 @@ export class ValidationUtils {
    */
   static validateDate(date: Date, validation: DateValidation): ValidationResult {
     const result = FieldUtils.validateDate(date, validation);
-    return {
-      isValid: result.valid,
-      errors: result.error ? [result.error] : [],
-    };
+    return this.createResult(result.valid, result.error);
   }
 
   /**
@@ -152,67 +151,24 @@ export class ValidationUtils {
     if (config.required) {
       const result = this.validateRequired(value);
       if (!result.isValid) {
-        errors.push(...result.errors);
-        return { isValid: false, errors };
+        return CollectionUtils.deepClone(result);
       }
     }
 
     // Skip other validations if value is empty and not required
     if (!value && !config.required) {
-      return { isValid: true, errors: [] };
+      return this.createResult(true);
     }
 
     // Type-specific validations
-    switch (field.type) {
-      case 'email': {
-        const result = this.validateEmail(value);
-        if (!result.isValid) errors.push(...result.errors);
-        break;
-      }
-      case 'number': {
-        const validation = config.validation as NumberValidation;
-        if (validation?.min !== undefined) {
-          const result = this.validateMin(value, validation.min);
-          if (!result.isValid) errors.push(...result.errors);
-        }
-        if (validation?.max !== undefined) {
-          const result = this.validateMax(value, validation.max);
-          if (!result.isValid) errors.push(...result.errors);
-        }
-        break;
-      }
-      case 'text':
-      case 'textarea':
-      case 'password': {
-        const validation = config.validation as TextValidation;
-        if (validation?.minLength) {
-          const result = this.validateMinLength(value, validation.minLength);
-          if (!result.isValid) errors.push(...result.errors);
-        }
-        if (validation?.maxLength) {
-          const result = this.validateMaxLength(value, validation.maxLength);
-          if (!result.isValid) errors.push(...result.errors);
-        }
-        if (validation?.pattern) {
-          const result = this.validatePattern(value, validation.pattern);
-          if (!result.isValid) errors.push(...result.errors);
-        }
-        break;
-      }
-      case 'file': {
-        if (value instanceof FileList && this.isFileValidation(config.validation)) {
-          const result = this.validateFiles(value, config.validation);
-          if (!result.isValid) errors.push(...result.errors);
-        }
-        break;
-      }
-      case 'date': {
-        if (value instanceof Date && this.isDateValidation(config.validation)) {
-          const result = this.validateDate(value, config.validation);
-          if (!result.isValid) errors.push(...result.errors);
-        }
-        break;
-      }
+    const validationResults = this.getTypeValidations(field.type, value, config.validation);
+    const failedValidations = validationResults.filter((result) => !result.isValid);
+
+    if (failedValidations.length > 0) {
+      return {
+        isValid: false,
+        errors: CollectionUtils.flatten(failedValidations.map((result) => result.errors)),
+      };
     }
 
     // Custom validation
@@ -220,34 +176,98 @@ export class ValidationUtils {
     if (validation?.custom) {
       const customError = validation.custom(value);
       if (customError) {
-        errors.push(customError);
+        return this.createResult(false, customError);
       }
     }
 
-    return {
-      isValid: errors.length === 0,
-      errors,
-    };
+    return this.createResult(true);
   }
 
   /**
-   * Type guard for FileValidation
+   * Get type-specific validations
    */
+  private static getTypeValidations(
+    type: string,
+    value: any,
+    validation: ValidationTypes | undefined
+  ): ValidationResult[] {
+    const results: ValidationResult[] = [];
+
+    switch (type) {
+      case 'email':
+        results.push(this.validateEmail(value));
+        break;
+
+      case 'number':
+        if (this.isNumberValidation(validation)) {
+          if (validation.min !== undefined) {
+            results.push(this.validateMin(value, validation.min));
+          }
+          if (validation.max !== undefined) {
+            results.push(this.validateMax(value, validation.max));
+          }
+        }
+        break;
+
+      case 'text':
+      case 'textarea':
+      case 'password':
+        if (this.isTextValidation(validation)) {
+          if (validation.minLength) {
+            results.push(this.validateMinLength(value, validation.minLength));
+          }
+          if (validation.maxLength) {
+            results.push(this.validateMaxLength(value, validation.maxLength));
+          }
+          if (validation.pattern) {
+            results.push(this.validatePattern(value, validation.pattern));
+          }
+        }
+        break;
+
+      case 'file':
+        if (value instanceof FileList && this.isFileValidation(validation)) {
+          results.push(this.validateFiles(value, validation));
+        }
+        break;
+
+      case 'date':
+        if (value instanceof Date && this.isDateValidation(validation)) {
+          results.push(this.validateDate(value, validation));
+        }
+        break;
+    }
+
+    return results;
+  }
+
+  /**
+   * Type guards
+   */
+  private static isTextValidation(
+    validation: ValidationTypes | undefined
+  ): validation is TextValidation {
+    return (
+      validation !== undefined &&
+      ('minLength' in validation || 'maxLength' in validation || 'pattern' in validation)
+    );
+  }
+
+  private static isNumberValidation(
+    validation: ValidationTypes | undefined
+  ): validation is NumberValidation {
+    return validation !== undefined && ('min' in validation || 'max' in validation);
+  }
+
   private static isFileValidation(
     validation: ValidationTypes | undefined
   ): validation is FileValidation {
     if (!validation) return false;
-    return (
-      'maxFileSize' in validation ||
-      'maxTotalSize' in validation ||
-      'maxFiles' in validation ||
-      'accept' in validation
+    return CollectionUtils.entries(validation).some(([key]) =>
+      ['maxFileSize', 'maxTotalSize', 'maxFiles', 'accept'].includes(key)
     );
   }
 
-  /**
-   * Type guard for DateValidation
-   */
   private static isDateValidation(
     validation: ValidationTypes | undefined
   ): validation is DateValidation {

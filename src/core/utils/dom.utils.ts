@@ -3,30 +3,39 @@
  */
 
 import { ARIA_ATTRIBUTES } from '@core/constants/component.constants';
+import { CollectionUtils } from './collection.utils';
+
+type ElementText = string | number | boolean;
 
 interface ElementOptions<K extends keyof HTMLElementTagNameMap> {
   attributes?: Record<string, string>;
   properties?: Partial<HTMLElementTagNameMap[K]>;
-  part?: string | undefined;
+  part?: string | null;
   children?: (string | Node)[];
-  html?: string | undefined;
-  text?: string | undefined;
+  html?: string;
+  text?: ElementText;
 }
 
 interface IconOptions {
-  part?: string | undefined;
-  size?: number | undefined;
-  className?: string | undefined;
+  part?: string;
+  size?: number;
+  className?: string;
 }
 
 interface SVGOptions {
-  width?: number | undefined;
-  height?: number | undefined;
-  viewBox?: string | undefined;
-  fill?: string | undefined;
-  stroke?: string | undefined;
-  part?: string | undefined;
+  width?: number;
+  height?: number;
+  viewBox?: string;
+  fill?: string;
+  stroke?: string;
+  part?: string;
 }
+
+type PartOptions = {
+  add?: string[];
+  remove?: string[];
+  set?: string;
+};
 
 export class DOMUtils {
   /**
@@ -40,7 +49,7 @@ export class DOMUtils {
 
     // Set attributes
     if (options.attributes) {
-      Object.entries(options.attributes).forEach(([key, value]) => {
+      CollectionUtils.entries(options.attributes).forEach(([key, value]) => {
         element.setAttribute(key, value);
       });
     }
@@ -51,18 +60,18 @@ export class DOMUtils {
     }
 
     // Set part
-    if (options.part !== undefined) {
+    if (typeof options.part === 'string') {
       element.setAttribute('part', options.part);
     }
 
     // Set innerHTML
-    if (options.html !== undefined) {
+    if (options.html) {
       element.innerHTML = options.html;
     }
 
     // Set textContent
     if (options.text !== undefined) {
-      element.textContent = options.text;
+      element.textContent = String(options.text);
     }
 
     // Append children
@@ -83,7 +92,7 @@ export class DOMUtils {
    * Set multiple attributes on an element
    */
   static setAttributes(element: Element, attributes: Record<string, string | null>): void {
-    Object.entries(attributes).forEach(([key, value]) => {
+    CollectionUtils.entries(attributes).forEach(([key, value]) => {
       if (value === null) {
         element.removeAttribute(key);
       } else {
@@ -95,30 +104,28 @@ export class DOMUtils {
   /**
    * Update element part
    */
-  static updatePart(
-    element: Element,
-    options: {
-      add?: string[];
-      remove?: string[];
-      set?: string;
-    }
-  ): void {
-    if (options.set !== undefined) {
+  static updatePart(element: Element, options: PartOptions): void {
+    // Get current parts
+    const currentParts = new Set((element.getAttribute('part') || '').split(' ').filter(Boolean));
+
+    if (options.set) {
+      // If set is provided, use it directly
       element.setAttribute('part', options.set);
       return;
     }
 
-    const parts = new Set((element.getAttribute('part') || '').split(' ').filter(Boolean));
-
+    // Remove parts
     if (options.remove) {
-      options.remove.forEach((part) => parts.delete(part));
+      options.remove.forEach((part) => currentParts.delete(part));
     }
 
+    // Add parts
     if (options.add) {
-      options.add.forEach((part) => parts.add(part));
+      options.add.forEach((part) => currentParts.add(part));
     }
 
-    element.setAttribute('part', Array.from(parts).join(' '));
+    // Update attribute
+    element.setAttribute('part', Array.from(currentParts).join(' '));
   }
 
   /**
@@ -128,11 +135,11 @@ export class DOMUtils {
     element: Element,
     attributes: Partial<Record<keyof typeof ARIA_ATTRIBUTES, string | null>>
   ): void {
-    Object.entries(attributes).forEach(([key, value]) => {
+    CollectionUtils.entries(attributes).forEach(([key, value]) => {
       const ariaKey = ARIA_ATTRIBUTES[key as keyof typeof ARIA_ATTRIBUTES];
       if (value === null) {
         element.removeAttribute(ariaKey);
-      } else {
+      } else if (value !== undefined) {
         element.setAttribute(ariaKey, value);
       }
     });
@@ -144,15 +151,21 @@ export class DOMUtils {
   static createSVG(path: string, options: SVGOptions = {}): SVGSVGElement {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 
-    svg.setAttribute('width', String(options.width ?? 24));
-    svg.setAttribute('height', String(options.height ?? 24));
-    svg.setAttribute('viewBox', options.viewBox ?? '0 0 24 24');
-    svg.setAttribute('fill', options.fill ?? 'none');
-    svg.setAttribute('stroke', options.stroke ?? 'currentColor');
+    const svgAttributes: Record<string, string> = {
+      width: String(options.width ?? 24),
+      height: String(options.height ?? 24),
+      viewBox: options.viewBox ?? '0 0 24 24',
+      fill: options.fill ?? 'none',
+      stroke: options.stroke ?? 'currentColor',
+    };
 
-    if (options.part !== undefined) {
-      svg.setAttribute('part', options.part);
+    if (typeof options.part === 'string') {
+      svgAttributes['part'] = options.part;
     }
+
+    CollectionUtils.entries(svgAttributes).forEach(([key, value]) => {
+      svg.setAttribute(key, value);
+    });
 
     svg.innerHTML = path;
     return svg;
@@ -162,20 +175,22 @@ export class DOMUtils {
    * Create icon element
    */
   static createIcon(svg: string, options: IconOptions = {}): HTMLElement {
-    const icon = this.createElement('span', {
+    const iconOptions: ElementOptions<'span'> = {
       html: svg,
-    });
+    };
 
-    if (options.part !== undefined) {
-      icon.setAttribute('part', options.part);
+    if (typeof options.part === 'string') {
+      iconOptions.part = options.part;
     }
 
-    if (options.size !== undefined) {
+    const icon = this.createElement('span', iconOptions);
+
+    if (options.size) {
       icon.style.width = `${options.size}px`;
       icon.style.height = `${options.size}px`;
     }
 
-    if (options.className !== undefined) {
+    if (options.className) {
       icon.className = options.className;
     }
 
@@ -189,7 +204,7 @@ export class DOMUtils {
     element: HTMLElement,
     listeners: Partial<Record<K, (event: HTMLElementEventMap[K]) => void>>
   ): void {
-    Object.entries(listeners).forEach(([event, handler]) => {
+    CollectionUtils.entries(listeners).forEach(([event, handler]) => {
       element.addEventListener(event as K, handler as EventListener);
     });
   }
@@ -201,7 +216,7 @@ export class DOMUtils {
     element: HTMLElement,
     listeners: Partial<Record<K, (event: HTMLElementEventMap[K]) => void>>
   ): void {
-    Object.entries(listeners).forEach(([event, handler]) => {
+    CollectionUtils.entries(listeners).forEach(([event, handler]) => {
       element.removeEventListener(event as K, handler as EventListener);
     });
   }
@@ -210,17 +225,19 @@ export class DOMUtils {
    * Create style element
    */
   static createStyle(css: string): HTMLStyleElement {
-    return this.createElement('style', {
+    const styleOptions: ElementOptions<'style'> = {
       text: css,
-    });
+    };
+    return this.createElement('style', styleOptions);
   }
 
   /**
    * Create template element
    */
   static createTemplate(html: string): HTMLTemplateElement {
-    return this.createElement('template', {
+    const templateOptions: ElementOptions<'template'> = {
       html,
-    });
+    };
+    return this.createElement('template', templateOptions);
   }
 }

@@ -7,24 +7,22 @@ import { Field, FieldConfig, FieldType, FieldValidation } from '@domain/field';
 import { ValidationResult } from '@domain/validation';
 import { ValidationUtils } from './validation.utils';
 import { FieldUtils } from './field.utils';
+import { CollectionUtils } from './collection.utils';
 
 export class FormUtils {
   /**
    * Get form values as an object
    */
   static getFormValues(form: Form): Record<string, any> {
-    const values: Record<string, any> = {};
-    form.fields.forEach((field) => {
-      values[field.name] = field.value.raw;
-    });
-    return values;
+    const fieldsByName = CollectionUtils.groupBy(form.fields, 'name');
+    return CollectionUtils.mapValues(fieldsByName, (fields: Field[]) => fields[0]?.value.raw);
   }
 
   /**
    * Set form values from an object
    */
   static setFormValues(form: Form, values: Record<string, any>): void {
-    Object.entries(values).forEach(([name, value]) => {
+    CollectionUtils.entries(values).forEach(([name, value]) => {
       const field = form.getField(name);
       if (field) {
         field.setValue(value);
@@ -36,27 +34,9 @@ export class FormUtils {
    * Reset form to initial values
    */
   static resetForm(form: Form): void {
-    form.fields.forEach((field) => {
+    form.fields.forEach((field: Field) => {
       field.reset();
     });
-  }
-
-  /**
-   * Validate entire form
-   */
-  static validateForm(form: Form): ValidationResult {
-    const errors: string[] = [];
-    let isValid = true;
-
-    form.fields.forEach((field) => {
-      const result = ValidationUtils.validateField(field);
-      if (!result.isValid) {
-        errors.push(...result.errors);
-        isValid = false;
-      }
-    });
-
-    return { isValid, errors };
   }
 
   /**
@@ -65,15 +45,15 @@ export class FormUtils {
   static getFormData(form: Form): FormData {
     const formData = new FormData();
 
-    form.fields.forEach((field) => {
+    form.fields.forEach((field: Field) => {
       const value = field.value.raw;
 
       if (value instanceof FileList) {
-        Array.from(value).forEach((file) => {
+        CollectionUtils.unique(Array.from(value)).forEach((file) => {
           formData.append(field.name, file);
         });
       } else if (Array.isArray(value)) {
-        value.forEach((val) => {
+        CollectionUtils.unique(value).forEach((val) => {
           formData.append(field.name, val);
         });
       } else if (value !== null && value !== undefined) {
@@ -88,73 +68,68 @@ export class FormUtils {
    * Get form JSON
    */
   static getFormJSON(form: Form): Record<string, any> {
-    const json: Record<string, any> = {};
-
-    form.fields.forEach((field) => {
-      const value = field.value.raw;
-
+    const fieldsByName = CollectionUtils.groupBy(form.fields, 'name');
+    return CollectionUtils.mapValues(fieldsByName, (fields: Field[]) => {
+      const value = fields[0]?.value.raw;
       if (value instanceof FileList) {
-        json[field.name] = Array.from(value).map((file) => ({
+        return CollectionUtils.unique(Array.from(value)).map((file) => ({
           name: file.name,
           type: file.type,
           size: file.size,
         }));
-      } else {
-        json[field.name] = value;
       }
+      return value;
     });
-
-    return json;
   }
 
   /**
    * Get form errors
    */
   static getFormErrors(form: Form): Record<string, string[]> {
-    const errors: Record<string, string[]> = {};
-
-    form.fields.forEach((field) => {
-      if (field.errors.length > 0) {
-        errors[field.name] = field.errors;
-      }
-    });
-
-    return errors;
+    const fieldsByName = CollectionUtils.groupBy(form.fields, 'name');
+    const errorsByName = CollectionUtils.mapValues(
+      fieldsByName,
+      (fields: Field[]) => fields[0]?.errors || []
+    );
+    return CollectionUtils.filterObject(errorsByName, (errors) => errors.length > 0) as Record<
+      string,
+      string[]
+    >;
   }
 
   /**
    * Check if form is valid
    */
   static isFormValid(form: Form): boolean {
-    return form.fields.every((field) => field.isValid);
+    return form.fields.every((field: Field) => field.isValid);
   }
 
   /**
    * Check if form is dirty
    */
   static isFormDirty(form: Form): boolean {
-    return form.fields.some((field) => field.isDirty);
+    return form.fields.some((field: Field) => field.isDirty);
   }
 
   /**
    * Check if form is touched
    */
   static isFormTouched(form: Form): boolean {
-    return form.fields.some((field) => field.isTouched);
+    return form.fields.some((field: Field) => field.isTouched);
   }
 
   /**
    * Get field by name
    */
   static getFieldByName(form: Form, name: string): Field | undefined {
-    return form.fields.find((field) => field.name === name);
+    return form.fields.find((field: Field) => field.name === name);
   }
 
   /**
    * Get fields by type
    */
   static getFieldsByType(form: Form, type: FieldType): Field[] {
-    return form.fields.filter((field) => field.type === type);
+    return form.fields.filter((field: Field) => field.type === type);
   }
 
   /**
@@ -171,7 +146,7 @@ export class FormUtils {
   static setFieldValue(form: Form, name: string, value: any): void {
     const field = this.getFieldByName(form, name);
     if (field) {
-      field.setValue(value);
+      field.setValue(CollectionUtils.deepClone(value));
     }
   }
 
@@ -179,35 +154,42 @@ export class FormUtils {
    * Parse form values based on field types
    */
   static parseFormValues(form: Form): Record<string, any> {
-    const values: Record<string, any> = {};
-
-    form.fields.forEach((field) => {
-      values[field.name] = FieldUtils.parseValue(field.value.raw, field.type);
+    const fieldsByName = CollectionUtils.groupBy(form.fields, 'name');
+    return CollectionUtils.mapValues(fieldsByName, (fields: Field[]) => {
+      const field = fields[0];
+      return field ? FieldUtils.parseValue(field.value.raw, field.type) : undefined;
     });
-
-    return values;
   }
 
   /**
    * Create field config
    */
   static createFieldConfig(type: FieldType, options: Partial<FieldConfig> = {}): FieldConfig {
-    const config: FieldConfig = {};
+    const defaultConfig = {
+      label: '',
+      placeholder: '',
+      required: false,
+      disabled: false,
+      readonly: false,
+      className: '',
+      helpText: '',
+      validationMessage: '',
+      hiddenLabel: false,
+      defaultValue: null,
+    } as const;
 
-    if (options.label !== undefined) config.label = options.label;
-    if (options.placeholder !== undefined) config.placeholder = options.placeholder;
-    if (options.required !== undefined) config.required = options.required;
-    if (options.disabled !== undefined) config.disabled = options.disabled;
-    if (options.readonly !== undefined) config.readonly = options.readonly;
-    if (options.className !== undefined) config.className = options.className;
-    if (options.helpText !== undefined) config.helpText = options.helpText;
-    if (options.validationMessage !== undefined)
-      config.validationMessage = options.validationMessage;
-    if (options.hiddenLabel !== undefined) config.hiddenLabel = options.hiddenLabel;
-    if (options.defaultValue !== undefined) config.defaultValue = options.defaultValue;
-    if (options.validation !== undefined) config.validation = options.validation;
+    // Create a new config by merging the default config with the provided options
+    const mergedConfig = CollectionUtils.deepMerge(
+      defaultConfig,
+      CollectionUtils.omit(options, ['validation'])
+    );
 
-    return config;
+    // Handle validation separately to ensure type safety
+    if (options.validation) {
+      (mergedConfig as FieldConfig).validation = options.validation;
+    }
+
+    return mergedConfig as FieldConfig;
   }
 
   /**
@@ -223,15 +205,16 @@ export class FormUtils {
     disabledFields: number;
     readonlyFields: number;
   } {
+    const fields = form.fields;
     return {
-      totalFields: form.fields.length,
-      validFields: form.fields.filter((f) => f.isValid).length,
-      invalidFields: form.fields.filter((f) => !f.isValid).length,
-      touchedFields: form.fields.filter((f) => f.isTouched).length,
-      dirtyFields: form.fields.filter((f) => f.isDirty).length,
-      requiredFields: form.fields.filter((f) => f.config.required).length,
-      disabledFields: form.fields.filter((f) => f.config.disabled).length,
-      readonlyFields: form.fields.filter((f) => f.config.readonly).length,
+      totalFields: fields.length,
+      validFields: fields.filter((f: Field) => f.isValid).length,
+      invalidFields: fields.filter((f: Field) => !f.isValid).length,
+      touchedFields: fields.filter((f: Field) => f.isTouched).length,
+      dirtyFields: fields.filter((f: Field) => f.isDirty).length,
+      requiredFields: fields.filter((f: Field) => f.config.required).length,
+      disabledFields: fields.filter((f: Field) => f.config.disabled).length,
+      readonlyFields: fields.filter((f: Field) => f.config.readonly).length,
     };
   }
 }

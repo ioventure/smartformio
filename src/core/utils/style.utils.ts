@@ -3,6 +3,7 @@
  */
 
 import { COMPONENT_PARTS } from '@core/constants/component.constants';
+import { CollectionUtils } from './collection.utils';
 
 type CSSProperties = Partial<CSSStyleDeclaration>;
 
@@ -13,7 +14,8 @@ interface StyleOptions {
 }
 
 interface ComponentStyles {
-  [key: string]: CSSProperties;
+  root?: CSSProperties;
+  [key: string]: CSSProperties | undefined;
 }
 
 export class StyleUtils {
@@ -21,22 +23,25 @@ export class StyleUtils {
    * Convert camelCase to kebab-case
    */
   static toKebabCase(str: string): string {
-    return str.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+    return str
+      .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+      .replace(/([A-Z])([A-Z])(?=[a-z])/g, '$1-$2')
+      .toLowerCase();
   }
 
   /**
    * Convert object of styles to CSS string
    */
   static toCSS(styles: CSSProperties, options: StyleOptions = {}): string {
-    return Object.entries(styles)
+    const cssEntries = CollectionUtils.entries(styles as Record<string, string>)
+      .filter(([_, value]) => value !== undefined && value !== null)
       .map(([key, value]) => {
-        if (value === undefined || value === null) return '';
         const property = this.toKebabCase(key);
         const important = options.important ? ' !important' : '';
         return `${property}: ${value}${important};`;
-      })
-      .filter(Boolean)
-      .join('\n');
+      });
+
+    return cssEntries.join('\n');
   }
 
   /**
@@ -57,20 +62,21 @@ export class StyleUtils {
 
     // Base styles
     if (styles['root']) {
-      rules.push(this.createRule(`:host`, styles['root']));
+      rules.push(this.createRule(':host', styles['root']));
     }
 
     // Part styles
-    Object.entries(styles).forEach(([part, css]) => {
-      if (part === 'root') return;
+    CollectionUtils.entries(styles).forEach(([part, css]) => {
+      if (part === 'root' || !css) return;
       rules.push(this.createRule(`[part~="${part}"]`, css));
     });
 
     // State styles
-    Object.entries(COMPONENT_PARTS.states).forEach(([state, className]) => {
-      if (styles[state]) {
-        rules.push(this.createRule(`:host(.${className})`, styles[state]));
-        rules.push(this.createRule(`[part~="${className}"]`, styles[state]));
+    CollectionUtils.entries(COMPONENT_PARTS.states).forEach(([state, className]) => {
+      const stateStyles = styles[state];
+      if (stateStyles) {
+        rules.push(this.createRule(`:host(.${className})`, stateStyles));
+        rules.push(this.createRule(`[part~="${className}"]`, stateStyles));
       }
     });
 
@@ -81,7 +87,7 @@ export class StyleUtils {
    * Create theme styles
    */
   static createThemeStyles(theme: Record<string, string | number>): string {
-    const properties = Object.entries(theme).map(([key, value]) => {
+    const properties = CollectionUtils.entries(theme).map(([key, value]) => {
       const property = this.toKebabCase(key);
       return `--${property}: ${value};`;
     });
@@ -93,7 +99,7 @@ export class StyleUtils {
    * Create keyframe animation
    */
   static createKeyframes(name: string, frames: Record<string, CSSProperties>): string {
-    const rules = Object.entries(frames)
+    const rules = CollectionUtils.entries(frames)
       .map(([key, styles]) => this.createRule(key, styles))
       .join('\n\n');
 
@@ -104,7 +110,7 @@ export class StyleUtils {
    * Create media query
    */
   static createMediaQuery(query: string, styles: Record<string, CSSProperties>): string {
-    const rules = Object.entries(styles)
+    const rules = CollectionUtils.entries(styles)
       .map(([selector, css]) => this.createRule(selector, css))
       .join('\n\n');
 
@@ -143,13 +149,15 @@ export class StyleUtils {
       outlineStyle?: string;
     } = {}
   ): CSSProperties {
-    return {
+    const defaultStyles = {
       outline: 'none',
-      outlineWidth: options.outlineWidth || '2px',
-      outlineColor: options.outlineColor || 'var(--focus-color, #007bff)',
-      outlineOffset: options.outlineOffset || '2px',
-      outlineStyle: options.outlineStyle || 'solid',
-    };
+      outlineWidth: '2px',
+      outlineColor: 'var(--focus-color, #007bff)',
+      outlineOffset: '2px',
+      outlineStyle: 'solid',
+    } as CSSProperties;
+
+    return CollectionUtils.deepMerge(defaultStyles, options);
   }
 
   /**
@@ -157,15 +165,17 @@ export class StyleUtils {
    */
   static createDisabledStyles(
     options: {
-      opacity?: number;
+      opacity?: string;
       cursor?: string;
     } = {}
   ): CSSProperties {
-    return {
-      opacity: options.opacity?.toString() || '0.6',
-      cursor: options.cursor || 'not-allowed',
+    const defaultStyles = {
+      opacity: '0.6',
+      cursor: 'not-allowed',
       pointerEvents: 'none',
-    };
+    } as CSSProperties;
+
+    return CollectionUtils.deepMerge(defaultStyles, options);
   }
 
   /**
