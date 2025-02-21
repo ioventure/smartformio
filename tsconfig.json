@@ -1,61 +1,45 @@
 {
   "compilerOptions": {
-    /* Base Options */
     "target": "ES2020",
     "module": "ESNext",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "skipLibCheck": true,
-    "moduleResolution": "node",
-
-    /* Type Checking */
+    "jsx": "react",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
-    "noImplicitThis": true,
-    "noImplicitReturns": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
     "strictPropertyInitialization": true,
-
-    /* Output Configuration */
-    "declaration": true,
-    "declarationDir": "dist/types",
-    "sourceMap": true,
-    "outDir": "dist",
-    "noEmit": false,
-
-    /* Module Resolution */
-    "baseUrl": ".",
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "moduleResolution": "node",
+    "baseUrl": "./src",
     "paths": {
-      "@events/*": ["src/events/*"],
-      "@interfaces/*": ["src/interfaces/*"],
-      "@renderer/*": ["src/renderer/*"],
-      "@services/*": ["src/services/*"],
-      "@utils/*": ["src/utils/*"],
-      "@web-components/*": ["src/web-components/*"],
-      "@wrappers/*": ["src/wrappers/*"],
-      "@renderer/inputs/*": ["src/renderer/inputs/*"],
-      "@wrappers/next/*": ["src/wrappers/Next/*"],
-      "@wrappers/react/*": ["src/wrappers/React/*"]
+      "@core/*": ["core/*"],
+      "@components/*": ["core/components/*"],
+      "@services/*": ["core/services/*"],
+      "@interfaces/*": ["core/interfaces/*"],
+      "@domain/*": ["core/domain/*"]
     },
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-
-    /* JSX */
-    "jsx": "react-jsx",
-
-    /* Advanced */
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "useDefineForClassFields": true
+    "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "dist"]
 }
