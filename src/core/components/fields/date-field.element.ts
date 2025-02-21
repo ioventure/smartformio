@@ -5,7 +5,7 @@
 import { Field } from '@domain/field';
 import { BaseFieldElement } from '@components/base/field-element.base';
 import { IEventHandler } from '@interfaces/events/event-handler.interface';
-import { DOMUtils, StringUtils, ValidationUtils, ErrorUtils } from '@utils/index';
+import { DOMUtils, StringUtils, ValidationUtils, ErrorUtils, CollectionUtils } from '@utils/index';
 import {
   COMPONENT_PARTS,
   INPUT_TYPES,
@@ -22,7 +22,7 @@ export class DateFieldElement extends BaseFieldElement {
   private container: HTMLElement | null = null;
 
   public static override get observedAttributes(): string[] {
-    return [...super.observedAttributes, 'min', 'max'];
+    return CollectionUtils.unique([...super.observedAttributes, 'min', 'max']);
   }
 
   constructor(eventHandler: IEventHandler) {
@@ -132,7 +132,7 @@ export class DateFieldElement extends BaseFieldElement {
     input.addEventListener(EVENT_NAMES.change, () => {
       if (input.value) {
         const date = new Date(input.value);
-        this.handleFieldChange(date);
+        this.handleFieldChange(CollectionUtils.deepClone(date));
       } else {
         this.handleFieldChange(null);
       }
@@ -170,7 +170,7 @@ export class DateFieldElement extends BaseFieldElement {
     super.updateFieldContent(field, container);
 
     if (this.inputElement instanceof HTMLInputElement) {
-      const value = field.value.raw;
+      const value = CollectionUtils.deepClone(field.value.raw);
       if (value) {
         const date = new Date(value);
         if (!isNaN(date.getTime())) {
@@ -216,18 +216,20 @@ export class DateFieldElement extends BaseFieldElement {
    */
   protected validateField(value: Date | null): string[] {
     const errors: string[] = [];
+    const safeValue = value ? CollectionUtils.deepClone(value) : null;
 
     try {
       // Required validation
-      if (this.field?.config.required && !value) {
+      if (this.field?.config.required && !safeValue) {
         errors.push(VALIDATION_MESSAGES.required);
       }
 
       // Date range validation
-      if (value && this.field?.config.validation) {
+      if (safeValue && this.field?.config.validation) {
         const config = this.field.config as unknown as DateFieldConfig;
-        if (config.validation) {
-          const result = ValidationUtils.validateDate(value, config.validation);
+        const safeConfig = CollectionUtils.deepClone(config);
+        if (safeConfig.validation) {
+          const result = ValidationUtils.validateDate(safeValue, safeConfig.validation);
           if (!result.isValid && result.errors.length > 0) {
             errors.push(result.errors[0] || VALIDATION_MESSAGES.dateRange);
           }
@@ -236,7 +238,7 @@ export class DateFieldElement extends BaseFieldElement {
 
       // Custom validation
       if (this.field?.config.validation?.custom) {
-        const customError = this.field.config.validation.custom(value);
+        const customError = this.field.config.validation.custom(safeValue);
         if (customError) {
           errors.push(customError);
         }
@@ -246,7 +248,7 @@ export class DateFieldElement extends BaseFieldElement {
       errors.push(err.message);
     }
 
-    return errors;
+    return CollectionUtils.unique(errors);
   }
 
   /**

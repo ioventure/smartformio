@@ -9,6 +9,7 @@ import {
   FormEventType,
   IFieldChangeEvent,
 } from '@interfaces/events/event-handler.interface';
+import { CollectionUtils } from '@core/utils/collection.utils';
 
 export type InputElementType = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
@@ -24,7 +25,7 @@ export abstract class BaseFieldElement extends BaseFormElement {
    * Field-specific attribute handling
    */
   public static override get observedAttributes(): string[] {
-    return [
+    return CollectionUtils.unique([
       ...super.observedAttributes,
       'name',
       'label',
@@ -32,7 +33,7 @@ export abstract class BaseFieldElement extends BaseFormElement {
       'required',
       'value',
       'help-text',
-    ];
+    ]);
   }
 
   /**
@@ -166,20 +167,22 @@ export abstract class BaseFieldElement extends BaseFormElement {
   protected handleFieldChange(newValue: any): void {
     if (!this.field) return;
 
-    const previousValue = this.field.value.raw;
+    const previousValue = CollectionUtils.deepClone(this.field.value.raw);
 
     // Update field value
     this.field.setValue(newValue);
 
     // Emit change event
-    this.eventHandler.emit({
-      type: FormEventType.FIELD_CHANGE,
-      timestamp: Date.now(),
-      field: this.field,
-      formId: this.form?.id || '',
-      previousValue,
-      currentValue: newValue,
-    } as IFieldChangeEvent);
+    this.eventHandler.emit(
+      CollectionUtils.deepClone({
+        type: FormEventType.FIELD_CHANGE,
+        timestamp: Date.now(),
+        field: this.field,
+        formId: this.form?.id || '',
+        previousValue,
+        currentValue: newValue,
+      }) as IFieldChangeEvent
+    );
   }
 
   /**

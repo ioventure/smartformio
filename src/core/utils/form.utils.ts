@@ -3,9 +3,7 @@
  */
 
 import { Form } from '@domain/form';
-import { Field, FieldConfig, FieldType, FieldValidation } from '@domain/field';
-import { ValidationResult } from '@domain/validation';
-import { ValidationUtils } from './validation.utils';
+import { Field, FieldConfig, FieldType } from '@domain/field';
 import { FieldUtils } from './field.utils';
 import { CollectionUtils } from './collection.utils';
 

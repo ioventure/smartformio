@@ -14,13 +14,14 @@ import {
   DISPLAY_ORIENTATIONS,
 } from '@core/constants/component.constants';
 import { RadioOption } from './index';
+import { CollectionUtils } from '@core/utils/collection.utils';
 
 export class RadioFieldElement extends BaseFieldElement {
   private container: HTMLElement | null = null;
   private radioButtons: Map<string, HTMLInputElement> = new Map();
 
   public static override get observedAttributes(): string[] {
-    return [...super.observedAttributes, 'options', 'display'];
+    return CollectionUtils.unique([...super.observedAttributes, 'options', 'display']);
   }
 
   constructor(eventHandler: IEventHandler) {
@@ -162,7 +163,7 @@ export class RadioFieldElement extends BaseFieldElement {
    * Handle keyboard navigation
    */
   private handleKeyboardNavigation(event: KeyboardEvent, radio: HTMLInputElement): void {
-    const options = Array.from(this.radioButtons.values());
+    const options = CollectionUtils.unique(Array.from(this.radioButtons.values()));
     if (options.length === 0) return;
 
     const currentIndex = options.indexOf(radio);
@@ -217,7 +218,7 @@ export class RadioFieldElement extends BaseFieldElement {
     switch (name) {
       case 'options': {
         try {
-          const options = JSON.parse(value || '[]');
+          const options = CollectionUtils.deepClone(JSON.parse(value || '[]'));
           if (this.field && this.container) {
             (this.field.config as any).options = options;
             this.render(); // Re-render to update options
@@ -268,7 +269,7 @@ export class RadioFieldElement extends BaseFieldElement {
       errors.push(err.message);
     }
 
-    return errors;
+    return CollectionUtils.unique(errors);
   }
 
   /**

@@ -62,25 +62,27 @@ export class StyleUtils {
 
     // Base styles
     if (styles['root']) {
-      rules.push(this.createRule(':host', styles['root']));
+      rules.push(this.createRule(':host', CollectionUtils.deepClone(styles['root'])));
     }
 
     // Part styles
     CollectionUtils.entries(styles).forEach(([part, css]) => {
       if (part === 'root' || !css) return;
-      rules.push(this.createRule(`[part~="${part}"]`, css));
+      rules.push(this.createRule(`[part~="${part}"]`, CollectionUtils.deepClone(css)));
     });
 
     // State styles
     CollectionUtils.entries(COMPONENT_PARTS.states).forEach(([state, className]) => {
       const stateStyles = styles[state];
       if (stateStyles) {
-        rules.push(this.createRule(`:host(.${className})`, stateStyles));
-        rules.push(this.createRule(`[part~="${className}"]`, stateStyles));
+        rules.push(this.createRule(`:host(.${className})`, CollectionUtils.deepClone(stateStyles)));
+        rules.push(
+          this.createRule(`[part~="${className}"]`, CollectionUtils.deepClone(stateStyles))
+        );
       }
     });
 
-    return rules.join('\n\n');
+    return CollectionUtils.unique(rules).join('\n\n');
   }
 
   /**
@@ -193,7 +195,9 @@ export class StyleUtils {
     const timingFunction = options.timingFunction || 'ease';
     const delay = options.delay || '0ms';
 
-    return properties.map((prop) => `${prop} ${duration} ${timingFunction} ${delay}`).join(', ');
+    return CollectionUtils.unique(properties)
+      .map((prop) => `${prop} ${duration} ${timingFunction} ${delay}`)
+      .join(', ');
   }
 
   /**
@@ -209,7 +213,10 @@ export class StyleUtils {
       inset?: boolean;
     }>
   ): string {
-    return layers
+    const uniqueLayers = CollectionUtils.unique(
+      layers.map((layer) => CollectionUtils.deepClone(layer))
+    );
+    return uniqueLayers
       .map((layer) => {
         const x = layer.x || '0';
         const y = layer.y || '0';

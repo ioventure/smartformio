@@ -7,6 +7,7 @@ import { Field, FieldConfig, FieldType } from '@domain/field';
 import { IFormRenderer, RenderOptions } from '@interfaces/renderers/form-renderer.interface';
 import { IFormValidator } from '@interfaces/validators/validator.interface';
 import { IEventHandler, FormEventType } from '@interfaces/events/event-handler.interface';
+import { CollectionUtils } from '@core/utils/collection.utils';
 
 export interface FormServiceConfig {
   renderer: IFormRenderer;
@@ -23,7 +24,7 @@ export class FormService {
    * Create a new form
    */
   createForm(formConfig: FormConfig): Form {
-    const form = new Form(crypto.randomUUID(), formConfig);
+    const form = new Form(crypto.randomUUID(), CollectionUtils.deepClone(formConfig));
     this.forms.set(form.id, form);
     return form;
   }
@@ -41,11 +42,13 @@ export class FormService {
   deleteForm(id: string): void {
     const form = this.forms.get(id);
     if (form) {
-      this.config.eventHandler.emit({
-        type: FormEventType.DESTROY,
-        timestamp: Date.now(),
-        form,
-      });
+      this.config.eventHandler.emit(
+        CollectionUtils.deepClone({
+          type: FormEventType.DESTROY,
+          timestamp: Date.now(),
+          form,
+        })
+      );
       this.forms.delete(id);
     }
   }
@@ -57,7 +60,7 @@ export class FormService {
     const form = this.forms.get(formId);
     if (!form) return;
 
-    const field = form.addField(name, type, config);
+    const field = form.addField(name, type, CollectionUtils.deepClone(config));
     this.config.renderer.renderField(field, document.createElement('div'));
     return field;
   }
@@ -71,11 +74,13 @@ export class FormService {
 
     const field = form.getField(fieldName);
     if (field) {
-      this.config.eventHandler.emit({
-        type: FormEventType.DESTROY,
-        timestamp: Date.now(),
-        form,
-      });
+      this.config.eventHandler.emit(
+        CollectionUtils.deepClone({
+          type: FormEventType.DESTROY,
+          timestamp: Date.now(),
+          form,
+        })
+      );
     }
   }
 
@@ -121,12 +126,14 @@ export class FormService {
 
     const validationResult = this.config.validator.validateForm(form);
 
-    this.config.eventHandler.emit({
-      type: FormEventType.FORM_VALIDATION,
-      timestamp: Date.now(),
-      form,
-      validationResult,
-    });
+    this.config.eventHandler.emit(
+      CollectionUtils.deepClone({
+        type: FormEventType.FORM_VALIDATION,
+        timestamp: Date.now(),
+        form,
+        validationResult,
+      })
+    );
 
     return validationResult.isValid;
   }
@@ -144,13 +151,15 @@ export class FormService {
     const validationResult = this.config.validator.validateField(form, fieldName);
 
     if (validationResult) {
-      this.config.eventHandler.emit({
-        type: FormEventType.FIELD_VALIDATION,
-        timestamp: Date.now(),
-        field,
-        formId: form.id,
-        validationResult,
-      });
+      this.config.eventHandler.emit(
+        CollectionUtils.deepClone({
+          type: FormEventType.FIELD_VALIDATION,
+          timestamp: Date.now(),
+          field,
+          formId: form.id,
+          validationResult,
+        })
+      );
     }
 
     return validationResult?.isValid ?? false;
@@ -166,11 +175,13 @@ export class FormService {
     form.reset();
     this.config.renderer.updateForm(form);
 
-    this.config.eventHandler.emit({
-      type: FormEventType.FORM_RESET,
-      timestamp: Date.now(),
-      form,
-    });
+    this.config.eventHandler.emit(
+      CollectionUtils.deepClone({
+        type: FormEventType.FORM_RESET,
+        timestamp: Date.now(),
+        form,
+      })
+    );
   }
 
   /**

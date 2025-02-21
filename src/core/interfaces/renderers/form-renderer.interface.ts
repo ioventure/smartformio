@@ -4,6 +4,7 @@
 
 import { Form } from '@domain/form';
 import { Field } from '@domain/field';
+import { CollectionUtils } from '@core/utils/collection.utils';
 
 /**
  * Render options interface
@@ -72,8 +73,11 @@ export abstract class BaseFormRenderer implements IFormRenderer {
    * Render form implementation
    */
   renderForm(form: Form, options: RenderOptions): FormRenderResult {
-    this.form = form;
-    this.container = options.container;
+    const safeForm = CollectionUtils.deepClone(form);
+    const safeOptions = CollectionUtils.deepClone(options);
+
+    this.form = safeForm;
+    this.container = safeOptions.container;
 
     // Clear container
     this.container.innerHTML = '';
@@ -83,16 +87,16 @@ export abstract class BaseFormRenderer implements IFormRenderer {
     formElement.setAttribute('novalidate', '');
 
     // Add title if provided
-    if (form.config.title) {
+    if (safeForm.config.title) {
       const title = document.createElement('h2');
-      title.textContent = form.config.title;
+      title.textContent = safeForm.config.title;
       formElement.appendChild(title);
     }
 
     // Add description if provided
-    if (form.config.description) {
+    if (safeForm.config.description) {
       const description = document.createElement('p');
-      description.textContent = form.config.description;
+      description.textContent = safeForm.config.description;
       formElement.appendChild(description);
     }
 
@@ -101,27 +105,29 @@ export abstract class BaseFormRenderer implements IFormRenderer {
     formElement.appendChild(fieldsContainer);
 
     // Render fields
-    const fields = form.fields.map((field) => this.renderField(field, fieldsContainer));
+    const fields = CollectionUtils.unique(
+      safeForm.fields.map((field) => this.renderField(field, fieldsContainer))
+    );
 
     // Store field results
     fields.forEach((result) => {
-      this.fields.set(result.field.name, result);
+      this.fields.set(result.field.name, CollectionUtils.deepClone(result));
     });
 
     // Add submit button
     const submitButton = document.createElement('button');
     submitButton.type = 'submit';
-    submitButton.textContent = form.config.submitButtonText || 'Submit';
+    submitButton.textContent = safeForm.config.submitButtonText || 'Submit';
     formElement.appendChild(submitButton);
 
     // Add form to container
     this.container.appendChild(formElement);
 
-    return {
+    return CollectionUtils.deepClone({
       element: formElement,
-      form,
+      form: safeForm,
       fields,
-    };
+    });
   }
 
   /**
@@ -133,18 +139,20 @@ export abstract class BaseFormRenderer implements IFormRenderer {
    * Update form implementation
    */
   updateForm(form: Form): void {
-    this.form = form;
-    form.fields.forEach((field) => this.updateField(field));
+    const safeForm = CollectionUtils.deepClone(form);
+    this.form = safeForm;
+    safeForm.fields.forEach((field) => this.updateField(field));
   }
 
   /**
    * Update field implementation
    */
   updateField(field: Field): void {
-    const result = this.fields.get(field.name);
+    const safeField = CollectionUtils.deepClone(field);
+    const result = this.fields.get(safeField.name);
     if (result) {
       // Update field state
-      this.updateFieldState(result.element, field);
+      this.updateFieldState(result.element, safeField);
     }
   }
 

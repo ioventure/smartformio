@@ -4,6 +4,7 @@
 
 import { FormEvent, FormEventType, EventHandler } from '@interfaces/events/event-handler.interface';
 import { ErrorUtils } from './error.utils';
+import { CollectionUtils } from '@core/utils/collection.utils';
 
 type EventMap = {
   [K in FormEventType]: Extract<FormEvent, { type: K }>;
@@ -85,9 +86,12 @@ export class EventEmitter<Events extends Record<string, any>> {
    */
   async emit<K extends keyof Events>(type: K, event: Events[K]): Promise<void> {
     try {
+      // Create immutable event
+      const immutableEvent = CollectionUtils.deepClone(event);
+
       // Apply filters
       const filters = this.filters.get(type) || [];
-      if (!filters.every((filter) => filter(event))) {
+      if (!filters.every((filter) => filter(immutableEvent))) {
         return;
       }
 
@@ -99,11 +103,11 @@ export class EventEmitter<Events extends Record<string, any>> {
       const promises: Promise<void>[] = [];
 
       for (const handler of handlers) {
-        promises.push(Promise.resolve(handler(event)));
+        promises.push(Promise.resolve(handler(immutableEvent)));
       }
 
       for (const handler of onceHandlers) {
-        promises.push(Promise.resolve(handler(event)));
+        promises.push(Promise.resolve(handler(immutableEvent)));
         this.off(type, handler);
       }
 
@@ -135,11 +139,11 @@ export class EventUtils {
    * Create event with timestamp
    */
   static createEvent<T extends FormEvent>(type: T['type'], data: Omit<T, 'type' | 'timestamp'>): T {
-    return {
+    return CollectionUtils.deepClone({
       type,
       timestamp: Date.now(),
       ...data,
-    } as T;
+    }) as T;
   }
 
   /**
@@ -207,9 +211,11 @@ export class EventUtils {
   static composeEventHandlers<T extends FormEvent>(
     ...handlers: EventHandler<T>[]
   ): EventHandler<T> {
+    const uniqueHandlers = CollectionUtils.unique(handlers);
     return async (event: T) => {
-      for (const handler of handlers) {
-        await handler(event);
+      const immutableEvent = CollectionUtils.deepClone(event);
+      for (const handler of uniqueHandlers) {
+        await handler(immutableEvent);
       }
     };
   }
@@ -236,12 +242,19 @@ export class EventUtils {
     logger: Console = console
   ): EventHandler<T> {
     return async (event: T) => {
+      const immutableEvent = CollectionUtils.deepClone(event);
       const start = Date.now();
       try {
-        await handler(event);
-        logger.log(`Event ${event.type} handled successfully in ${Date.now() - start}ms`, event);
+        await handler(immutableEvent);
+        logger.log(
+          `Event ${immutableEvent.type} handled successfully in ${Date.now() - start}ms`,
+          immutableEvent
+        );
       } catch (error) {
-        logger.error(`Error handling event ${event.type} after ${Date.now() - start}ms:`, error);
+        logger.error(
+          `Error handling event ${immutableEvent.type} after ${Date.now() - start}ms:`,
+          error
+        );
         throw error;
       }
     };

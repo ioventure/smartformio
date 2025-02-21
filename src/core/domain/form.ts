@@ -3,6 +3,7 @@
  */
 
 import { Field, FieldConfig, FieldType } from '@domain/field';
+import { CollectionUtils } from '@core/utils/collection.utils';
 
 export interface FormConfig {
   title?: string;
@@ -69,18 +70,14 @@ export class Form {
    * Get form state
    */
   get state(): FormState {
-    return { ...this._state };
+    return CollectionUtils.deepClone(this._state);
   }
 
   /**
    * Get form values
    */
   get values(): Record<string, any> {
-    const values: Record<string, any> = {};
-    this._fields.forEach((field, name) => {
-      values[name] = field.value.raw;
-    });
-    return values;
+    return CollectionUtils.mapValues(Object.fromEntries(this._fields), (field) => field.value.raw);
   }
 
   /**
@@ -139,46 +136,42 @@ export class Form {
    * Start form submission
    */
   startSubmit(): void {
-    this._state = {
+    this._state = CollectionUtils.deepClone({
       ...this._state,
       isSubmitting: true,
       submitCount: this._state.submitCount + 1,
-    };
+    });
   }
 
   /**
    * End form submission
    */
   endSubmit(): void {
-    this._state = {
+    this._state = CollectionUtils.deepClone({
       ...this._state,
       isSubmitting: false,
-    };
+    });
   }
 
   /**
    * Update form state based on fields
    */
   private _updateFormState(): void {
-    const errors: Record<string, string[]> = {};
-    let isValid = true;
-    let isDirty = false;
+    const fieldsArray = Array.from(this._fields.entries());
+    const fieldErrors = Object.fromEntries(
+      fieldsArray
+        .filter(([_, field]) => field.errors.length > 0)
+        .map(([name, field]) => [name, field.errors])
+    ) as Record<string, string[]>;
 
-    this._fields.forEach((field, name) => {
-      if (field.errors.length > 0) {
-        errors[name] = field.errors;
-        isValid = false;
-      }
-      if (field.isDirty) {
-        isDirty = true;
-      }
-    });
+    const isValid = Object.keys(fieldErrors).length === 0;
+    const isDirty = fieldsArray.some(([_, field]) => field.isDirty);
 
-    this._state = {
+    this._state = CollectionUtils.deepClone({
       ...this._state,
       isValid,
       isDirty,
-      errors,
-    };
+      errors: fieldErrors,
+    });
   }
 }

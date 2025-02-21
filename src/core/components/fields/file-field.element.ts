@@ -5,7 +5,7 @@
 import { Field } from '@domain/field';
 import { BaseFieldElement } from '@components/base/field-element.base';
 import { IEventHandler } from '@interfaces/events/event-handler.interface';
-import { DOMUtils, StringUtils, ValidationUtils, ErrorUtils } from '@utils/index';
+import { DOMUtils, StringUtils, ValidationUtils, ErrorUtils, CollectionUtils } from '@utils/index';
 import {
   COMPONENT_PARTS,
   INPUT_TYPES,
@@ -25,7 +25,13 @@ export class FileFieldElement extends BaseFieldElement {
   private dropZone: HTMLElement | null = null;
 
   public static override get observedAttributes(): string[] {
-    return [...super.observedAttributes, 'accept', 'multiple', 'max-size', 'max-files'];
+    return CollectionUtils.unique([
+      ...super.observedAttributes,
+      'accept',
+      'multiple',
+      'max-size',
+      'max-files',
+    ]);
   }
 
   constructor(eventHandler: IEventHandler) {
@@ -219,19 +225,25 @@ export class FileFieldElement extends BaseFieldElement {
 
     this.fileList.innerHTML = '';
 
-    Array.from(files).forEach((file) => {
+    const uniqueFiles = CollectionUtils.unique(Array.from(files));
+    uniqueFiles.forEach((file) => {
+      const fileData = CollectionUtils.deepClone({
+        name: file.name,
+        size: file.size,
+      });
+
       const fileItem = DOMUtils.createElement('div', {
         part: COMPONENT_PARTS.file.fileItem,
       });
 
       const fileName = DOMUtils.createElement('span', {
         part: COMPONENT_PARTS.file.fileName,
-        text: file.name,
+        text: fileData.name,
       });
 
       const fileSize = DOMUtils.createElement('span', {
         part: COMPONENT_PARTS.file.fileSize,
-        text: StringUtils.formatBytes(file.size),
+        text: StringUtils.formatBytes(fileData.size),
       });
 
       fileItem.appendChild(fileName);
@@ -282,8 +294,9 @@ export class FileFieldElement extends BaseFieldElement {
       // File validation
       if (value && value.length > 0 && this.field?.config) {
         const config = this.field.config as unknown as FileFieldConfig;
-        if (config.validation) {
-          const result = ValidationUtils.validateFiles(value, config.validation);
+        const safeConfig = CollectionUtils.deepClone(config);
+        if (safeConfig.validation) {
+          const result = ValidationUtils.validateFiles(value, safeConfig.validation);
           if (!result.isValid && result.errors.length > 0) {
             errors.push(result.errors[0] || VALIDATION_MESSAGES.fileType);
           }
@@ -302,7 +315,7 @@ export class FileFieldElement extends BaseFieldElement {
       errors.push(err.message);
     }
 
-    return errors;
+    return CollectionUtils.unique(errors);
   }
 
   /**

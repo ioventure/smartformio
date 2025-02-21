@@ -6,13 +6,14 @@ import { Field } from '@domain/field';
 import { BaseFieldElement } from '@components/base/field-element.base';
 import { IEventHandler } from '@interfaces/events/event-handler.interface';
 import { CheckboxOption } from '@components/fields';
+import { CollectionUtils } from '@core/utils/collection.utils';
 
 export class CheckboxFieldElement extends BaseFieldElement {
   private container: HTMLElement | null = null;
   private checkboxes: Map<string, HTMLInputElement> = new Map();
 
   public static override get observedAttributes(): string[] {
-    return [...super.observedAttributes, 'options', 'display'];
+    return CollectionUtils.unique([...super.observedAttributes, 'options', 'display']);
   }
 
   constructor(eventHandler: IEventHandler) {
@@ -108,7 +109,9 @@ export class CheckboxFieldElement extends BaseFieldElement {
    */
   private renderCheckboxGroup(field: Field, wrapper: HTMLElement): void {
     const options = (field.config as any).options || [];
-    const currentValues = Array.isArray(field.value.raw) ? field.value.raw : [];
+    const currentValues = CollectionUtils.unique(
+      Array.isArray(field.value.raw) ? field.value.raw : []
+    );
 
     options.forEach((option: string | CheckboxOption) => {
       const container = document.createElement('label');
@@ -166,9 +169,11 @@ export class CheckboxFieldElement extends BaseFieldElement {
 
       if (isGroup) {
         // Collect all checked values for groups
-        value = Array.from(this.checkboxes.values())
-          .filter((cb) => cb.checked)
-          .map((cb) => cb.value);
+        value = CollectionUtils.unique(
+          Array.from(this.checkboxes.values())
+            .filter((cb) => cb.checked)
+            .map((cb) => cb.value)
+        );
       } else {
         // Single checkbox value
         value = checkbox.checked;
@@ -210,9 +215,7 @@ export class CheckboxFieldElement extends BaseFieldElement {
 
     const isGroup = this.checkboxes.size > 1;
     const currentValues = isGroup
-      ? Array.isArray(field.value.raw)
-        ? field.value.raw
-        : []
+      ? CollectionUtils.unique(Array.isArray(field.value.raw) ? field.value.raw : [])
       : field.value.raw;
 
     if (isGroup) {
@@ -238,7 +241,7 @@ export class CheckboxFieldElement extends BaseFieldElement {
     switch (name) {
       case 'options':
         try {
-          const options = JSON.parse(value);
+          const options = CollectionUtils.deepClone(JSON.parse(value));
           if (this.field && this.container) {
             (this.field.config as any).options = options;
             this.render(); // Re-render to update options

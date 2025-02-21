@@ -2,6 +2,8 @@
  * @file Logger service implementation
  */
 
+import { CollectionUtils } from '@core/utils/collection.utils';
+
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export interface LoggerConfig {
@@ -23,13 +25,13 @@ export class Logger {
   private config: Required<LoggerConfig>;
 
   constructor(config?: LoggerConfig) {
-    this.config = {
+    this.config = CollectionUtils.deepClone({
       level: config?.level ?? 'info',
       prefix: config?.prefix ?? 'SmartFormIO',
       timestamp: config?.timestamp ?? true,
       console: config?.console ?? true,
       customHandler: config?.customHandler ?? (() => {}),
-    };
+    });
   }
 
   /**
@@ -169,11 +171,13 @@ export class MemoryLogger extends Logger {
     super({
       ...config,
       customHandler: (level, message) => {
-        this.logs.push({
-          level,
-          message,
-          timestamp: new Date(),
-        });
+        this.logs.push(
+          CollectionUtils.deepClone({
+            level,
+            message,
+            timestamp: new Date(),
+          })
+        );
       },
     });
   }
@@ -182,14 +186,14 @@ export class MemoryLogger extends Logger {
    * Get all logs
    */
   getLogs(): LogEntry[] {
-    return [...this.logs];
+    return CollectionUtils.deepClone(this.logs);
   }
 
   /**
    * Get logs by level
    */
   getLogsByLevel(level: LogLevel): LogEntry[] {
-    return this.logs.filter((log) => log.level === level);
+    return CollectionUtils.deepClone(this.logs.filter((log) => log.level === level));
   }
 
   /**

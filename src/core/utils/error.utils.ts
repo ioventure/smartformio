@@ -2,6 +2,8 @@
  * @file Error utility functions and custom error classes
  */
 
+import { CollectionUtils } from '@core/utils/collection.utils';
+
 /**
  * Base error class for all custom errors
  */
@@ -20,13 +22,13 @@ export class SmartFormError extends Error {
    * Convert error to JSON
    */
   toJSON(): Record<string, any> {
-    return {
+    return CollectionUtils.deepClone({
       name: this.name,
       message: this.message,
       code: this.code,
       details: this.details,
       stack: this.stack,
-    };
+    });
   }
 }
 
@@ -48,7 +50,7 @@ export class FieldError extends SmartFormError {
     public readonly fieldName: string,
     details?: Record<string, any>
   ) {
-    super(message, 'FIELD_ERROR', { ...details, fieldName });
+    super(message, 'FIELD_ERROR', CollectionUtils.deepClone({ ...details, fieldName }));
   }
 }
 
@@ -61,7 +63,7 @@ export class FormError extends SmartFormError {
     public readonly formId: string,
     details?: Record<string, any>
   ) {
-    super(message, 'FORM_ERROR', { ...details, formId });
+    super(message, 'FORM_ERROR', CollectionUtils.deepClone({ ...details, formId }));
   }
 }
 
@@ -110,7 +112,8 @@ export class ErrorUtils {
    * Format error message with parameters
    */
   static formatMessage(message: string, params: Record<string, any> = {}): string {
-    return message.replace(/\{(\w+)\}/g, (_, key) => String(params[key] ?? `{${key}}`));
+    const safeParams = CollectionUtils.mapValues(params, (value: unknown) => String(value ?? ''));
+    return message.replace(/\{(\w+)\}/g, (_, key) => safeParams[key] ?? `{${key}}`);
   }
 
   /**
@@ -121,8 +124,9 @@ export class ErrorUtils {
     fieldName: string,
     details?: Record<string, any>
   ): FieldError {
-    const message = this.formatMessage(this.ERROR_MESSAGES[code], { ...details, fieldName });
-    return new FieldError(message, fieldName, details);
+    const params = CollectionUtils.deepClone({ ...details, fieldName });
+    const message = this.formatMessage(this.ERROR_MESSAGES[code], params);
+    return new FieldError(message, fieldName, params);
   }
 
   /**
@@ -133,8 +137,9 @@ export class ErrorUtils {
     formId: string,
     details?: Record<string, any>
   ): FormError {
-    const message = this.formatMessage(this.ERROR_MESSAGES[code], { ...details, formId });
-    return new FormError(message, formId, details);
+    const params = CollectionUtils.deepClone({ ...details, formId });
+    const message = this.formatMessage(this.ERROR_MESSAGES[code], params);
+    return new FormError(message, formId, params);
   }
 
   /**
@@ -144,8 +149,9 @@ export class ErrorUtils {
     code: keyof typeof ErrorUtils.ERROR_MESSAGES,
     details?: Record<string, any>
   ): ValidationError {
-    const message = this.formatMessage(this.ERROR_MESSAGES[code], details);
-    return new ValidationError(message, details);
+    const params = CollectionUtils.deepClone(details || {});
+    const message = this.formatMessage(this.ERROR_MESSAGES[code], params);
+    return new ValidationError(message, params);
   }
 
   /**
@@ -155,8 +161,9 @@ export class ErrorUtils {
     code: keyof typeof ErrorUtils.ERROR_MESSAGES,
     details?: Record<string, any>
   ): ConfigurationError {
-    const message = this.formatMessage(this.ERROR_MESSAGES[code], details);
-    return new ConfigurationError(message, details);
+    const params = CollectionUtils.deepClone(details || {});
+    const message = this.formatMessage(this.ERROR_MESSAGES[code], params);
+    return new ConfigurationError(message, params);
   }
 
   /**
@@ -166,8 +173,9 @@ export class ErrorUtils {
     code: keyof typeof ErrorUtils.ERROR_MESSAGES,
     details?: Record<string, any>
   ): RenderError {
-    const message = this.formatMessage(this.ERROR_MESSAGES[code], details);
-    return new RenderError(message, details);
+    const params = CollectionUtils.deepClone(details || {});
+    const message = this.formatMessage(this.ERROR_MESSAGES[code], params);
+    return new RenderError(message, params);
   }
 
   /**
@@ -179,12 +187,18 @@ export class ErrorUtils {
     }
 
     if (error instanceof Error) {
-      return new SmartFormError(error.message, 'UNKNOWN_ERROR', { originalError: error });
+      return new SmartFormError(
+        error.message,
+        'UNKNOWN_ERROR',
+        CollectionUtils.deepClone({ originalError: error })
+      );
     }
 
-    return new SmartFormError(this.ERROR_MESSAGES.UNKNOWN_ERROR, 'UNKNOWN_ERROR', {
-      originalError: error,
-    });
+    return new SmartFormError(
+      this.ERROR_MESSAGES.UNKNOWN_ERROR,
+      'UNKNOWN_ERROR',
+      CollectionUtils.deepClone({ originalError: error })
+    );
   }
 
   /**

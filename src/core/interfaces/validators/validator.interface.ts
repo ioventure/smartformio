@@ -5,6 +5,7 @@
 import { Field } from '@domain/field';
 import { Form } from '@domain/form';
 import { ValidationResult, FormValidationResult } from '@domain/validation';
+import { CollectionUtils } from '@core/utils/collection.utils';
 
 /**
  * Field validator interface
@@ -76,51 +77,72 @@ export interface ValidationRule {
  */
 export const ValidationRules = {
   required: (): ValidationRule => ({
-    validate: (value: any): ValidationResult => ({
-      isValid: value != null && value !== '',
-      errors: ['This field is required'],
-    }),
+    validate: (value: any): ValidationResult => {
+      const safeValue = CollectionUtils.deepClone(value);
+      return CollectionUtils.deepClone({
+        isValid: safeValue != null && safeValue !== '',
+        errors: CollectionUtils.unique(['This field is required']),
+      });
+    },
   }),
 
   minLength: (min: number): ValidationRule => ({
-    validate: (value: string): ValidationResult => ({
-      isValid: !value || value.length >= min,
-      errors: [`Minimum length is ${min} characters`],
-    }),
+    validate: (value: string): ValidationResult => {
+      const safeValue = CollectionUtils.deepClone(value);
+      return CollectionUtils.deepClone({
+        isValid: !safeValue || safeValue.length >= min,
+        errors: CollectionUtils.unique([`Minimum length is ${min} characters`]),
+      });
+    },
   }),
 
   maxLength: (max: number): ValidationRule => ({
-    validate: (value: string): ValidationResult => ({
-      isValid: !value || value.length <= max,
-      errors: [`Maximum length is ${max} characters`],
-    }),
+    validate: (value: string): ValidationResult => {
+      const safeValue = CollectionUtils.deepClone(value);
+      return CollectionUtils.deepClone({
+        isValid: !safeValue || safeValue.length <= max,
+        errors: CollectionUtils.unique([`Maximum length is ${max} characters`]),
+      });
+    },
   }),
 
   pattern: (regex: RegExp, message?: string): ValidationRule => ({
-    validate: (value: string): ValidationResult => ({
-      isValid: !value || regex.test(value),
-      errors: [message || 'Invalid format'],
-    }),
+    validate: (value: string): ValidationResult => {
+      const safeValue = CollectionUtils.deepClone(value);
+      return CollectionUtils.deepClone({
+        isValid: !safeValue || regex.test(safeValue),
+        errors: CollectionUtils.unique([message || 'Invalid format']),
+      });
+    },
   }),
 
   email: (): ValidationRule => ({
-    validate: (value: string): ValidationResult => ({
-      isValid: !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
-      errors: ['Invalid email address'],
-    }),
+    validate: (value: string): ValidationResult => {
+      const safeValue = CollectionUtils.deepClone(value);
+      return CollectionUtils.deepClone({
+        isValid: !safeValue || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(safeValue),
+        errors: CollectionUtils.unique(['Invalid email address']),
+      });
+    },
   }),
 
   min: (min: number): ValidationRule => ({
-    validate: (value: number): ValidationResult => ({
-      isValid: !value || value >= min,
-      errors: [`Minimum value is ${min}`],
-    }),
+    validate: (value: number): ValidationResult => {
+      const safeValue = CollectionUtils.deepClone(value);
+      return CollectionUtils.deepClone({
+        isValid: !safeValue || safeValue >= min,
+        errors: CollectionUtils.unique([`Minimum value is ${min}`]),
+      });
+    },
   }),
 
   max: (max: number): ValidationRule => ({
-    validate: (value: number): ValidationResult => ({
-      isValid: !value || value <= max,
-      errors: [`Maximum value is ${max}`],
-    }),
+    validate: (value: number): ValidationResult => {
+      const safeValue = CollectionUtils.deepClone(value);
+      return CollectionUtils.deepClone({
+        isValid: !safeValue || safeValue <= max,
+        errors: CollectionUtils.unique([`Maximum value is ${max}`]),
+      });
+    },
   }),
 };

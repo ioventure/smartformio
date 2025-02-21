@@ -114,9 +114,8 @@ export class StringUtils {
    * Generate random string
    */
   static random(length: number = 8): string {
-    return Array.from({ length }, () =>
-      this.RANDOM_CHARS.charAt(Math.floor(Math.random() * this.RANDOM_CHARS.length))
-    ).join('');
+    const chars = CollectionUtils.unique(Array.from(this.RANDOM_CHARS));
+    return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
   }
 
   /**
@@ -154,9 +153,10 @@ export class StringUtils {
     if (bytes === 0) return '0 Bytes';
 
     const k = 1024;
+    const units = CollectionUtils.unique(Array.from(this.BYTE_UNITS));
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(decimals))} ${this.BYTE_UNITS[i]}`;
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(decimals))} ${units[i]}`;
   }
 
   /**
@@ -182,13 +182,16 @@ export class StringUtils {
    * Parse date string
    */
   static parseDate(dateString: string, format: string = 'YYYY-MM-DD'): Date | null {
-    const parts = format.split(/[-/\s:]/);
-    const values = dateString.split(/[-/\s:]/);
+    const parts = CollectionUtils.unique(format.split(/[-/\s:]/));
+    const values = CollectionUtils.unique(dateString.split(/[-/\s:]/));
 
-    const indexes = this.DATE_FORMAT_PARTS.reduce<Partial<DateFormatIndexes>>((acc, part) => {
-      acc[part] = parts.indexOf(part);
-      return acc;
-    }, {}) as DateFormatIndexes;
+    const indexes = CollectionUtils.mapValues(
+      this.DATE_FORMAT_PARTS.reduce<Partial<DateFormatIndexes>>((acc, part) => {
+        acc[part] = parts.indexOf(part);
+        return acc;
+      }, {}),
+      (index) => index
+    ) as DateFormatIndexes;
 
     const date = new Date();
     if (indexes.YYYY !== -1) date.setFullYear(Number(values[indexes.YYYY]));
@@ -198,7 +201,7 @@ export class StringUtils {
     if (indexes.mm !== -1) date.setMinutes(Number(values[indexes.mm]));
     if (indexes.ss !== -1) date.setSeconds(Number(values[indexes.ss]));
 
-    return isNaN(date.getTime()) ? null : date;
+    return isNaN(date.getTime()) ? null : CollectionUtils.deepClone(date);
   }
 
   /**

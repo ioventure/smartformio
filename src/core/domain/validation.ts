@@ -4,6 +4,7 @@
 
 import { Field } from '@domain/field';
 import { Form } from '@domain/form';
+import { CollectionUtils } from '@core/utils/collection.utils';
 
 /**
  * Validation result interface
@@ -34,25 +35,37 @@ export abstract class BaseValidator {
    * Validate a form
    */
   validateForm(form: Form): FormValidationResult {
-    const errors: Record<string, string[]> = {};
-    let isValid = true;
+    // Group validation results by field name
+    const validationsByField = CollectionUtils.groupBy(
+      form.fields.map((field) => ({
+        name: field.name,
+        result: this.validateField(field),
+      })),
+      'name'
+    );
 
-    form.fields.forEach((field) => {
-      const result = this.validateField(field);
-      if (!result.isValid) {
-        errors[field.name] = result.errors;
-        isValid = false;
+    // Create errors object with proper typing
+    const errors: Record<string, string[]> = {};
+
+    // Process validation results
+    CollectionUtils.entries(validationsByField).forEach(([name, items]) => {
+      const fieldErrors = items[0]?.result.errors;
+      if (fieldErrors && fieldErrors.length > 0) {
+        errors[name] = fieldErrors;
       }
     });
 
-    return { isValid, errors };
+    return {
+      isValid: Object.keys(errors).length === 0,
+      errors,
+    };
   }
 
   /**
    * Create a validation result
    */
   protected createResult(isValid: boolean, errors: string[] = []): ValidationResult {
-    return { isValid, errors };
+    return CollectionUtils.deepClone({ isValid, errors });
   }
 
   /**
@@ -72,54 +85,56 @@ export abstract class BaseValidator {
 export class DefaultValidator extends BaseValidator {
   validateField(field: Field): ValidationResult {
     const errors: string[] = [];
+    const safeField = CollectionUtils.deepClone(field);
+    const safeValue = safeField.value.raw;
 
     // Required validation
-    if (field.config.required && !field.value.raw) {
-      errors.push(field.config.validationMessage || 'This field is required');
+    if (safeField.config.required && !safeValue) {
+      errors.push(safeField.config.validationMessage || 'This field is required');
     }
 
     // Pattern validation
-    if (field.config.validation?.pattern && field.value.raw) {
-      const pattern = new RegExp(field.config.validation.pattern);
-      if (!pattern.test(String(field.value.raw))) {
+    if (safeField.config.validation?.pattern && safeValue) {
+      const pattern = new RegExp(safeField.config.validation.pattern);
+      if (!pattern.test(String(safeValue))) {
         errors.push('Invalid format');
       }
     }
 
     // Length validation
-    if (typeof field.value.raw === 'string') {
-      const { minLength, maxLength } = field.config.validation || {};
+    if (typeof safeValue === 'string') {
+      const validation = CollectionUtils.deepClone(safeField.config.validation || {});
 
-      if (minLength !== undefined && field.value.raw.length < minLength) {
-        errors.push(`Minimum length is ${minLength} characters`);
+      if (validation.minLength !== undefined && safeValue.length < validation.minLength) {
+        errors.push(`Minimum length is ${validation.minLength} characters`);
       }
 
-      if (maxLength !== undefined && field.value.raw.length > maxLength) {
-        errors.push(`Maximum length is ${maxLength} characters`);
+      if (validation.maxLength !== undefined && safeValue.length > validation.maxLength) {
+        errors.push(`Maximum length is ${validation.maxLength} characters`);
       }
     }
 
     // Number range validation
-    if (typeof field.value.raw === 'number') {
-      const { min, max } = field.config.validation || {};
+    if (typeof safeValue === 'number') {
+      const validation = CollectionUtils.deepClone(safeField.config.validation || {});
 
-      if (min !== undefined && field.value.raw < min) {
-        errors.push(`Minimum value is ${min}`);
+      if (validation.min !== undefined && safeValue < validation.min) {
+        errors.push(`Minimum value is ${validation.min}`);
       }
 
-      if (max !== undefined && field.value.raw > max) {
-        errors.push(`Maximum value is ${max}`);
+      if (validation.max !== undefined && safeValue > validation.max) {
+        errors.push(`Maximum value is ${validation.max}`);
       }
     }
 
     // Custom validation
-    if (field.config.validation?.custom) {
-      const customError = field.config.validation.custom(field.value.raw);
+    if (safeField.config.validation?.custom) {
+      const customError = safeField.config.validation.custom(safeValue);
       if (customError) {
         errors.push(customError);
       }
     }
 
-    return this.createResult(errors.length === 0, errors);
+    return this.createResult(errors.length === 0, CollectionUtils.unique(errors));
   }
 }

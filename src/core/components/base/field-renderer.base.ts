@@ -4,6 +4,7 @@
 
 import { Field } from '@domain/field';
 import { InputElementType } from '@components/base/field-element.base';
+import { CollectionUtils } from '@core/utils/collection.utils';
 
 export abstract class BaseFieldRenderer {
   /**
@@ -55,7 +56,7 @@ export abstract class BaseFieldRenderer {
     const errorText = document.createElement('div');
     errorText.setAttribute('part', 'error-text');
     errorText.setAttribute('role', 'alert');
-    errorText.textContent = errors.join(', ');
+    errorText.textContent = CollectionUtils.unique(errors).join(', ');
     return errorText;
   }
 
@@ -96,7 +97,7 @@ export abstract class BaseFieldRenderer {
     }
 
     if (field.config.className) {
-      input.className = field.config.className;
+      input.className = CollectionUtils.unique(field.config.className.split(' ')).join(' ');
     }
   }
 
@@ -129,20 +130,29 @@ export abstract class BaseFieldRenderer {
     container: HTMLElement
   ): void {
     // Update input state
-    const currentInputPart = input.getAttribute('part') || 'input';
-    const currentContainerPart = container.getAttribute('part') || 'field-root';
+    const currentInputParts = (input.getAttribute('part') || 'input').split(' ');
+    const currentContainerParts = (container.getAttribute('part') || 'field-root').split(' ');
 
     if (field.isValid && field.isTouched) {
-      input.setAttribute('part', `${currentInputPart} valid`);
-      container.setAttribute('part', `${currentContainerPart} valid`);
+      input.setAttribute('part', CollectionUtils.unique([...currentInputParts, 'valid']).join(' '));
+      container.setAttribute(
+        'part',
+        CollectionUtils.unique([...currentContainerParts, 'valid']).join(' ')
+      );
     } else if (!field.isValid && field.isTouched) {
-      input.setAttribute('part', `${currentInputPart} invalid`);
-      container.setAttribute('part', `${currentContainerPart} invalid`);
+      input.setAttribute(
+        'part',
+        CollectionUtils.unique([...currentInputParts, 'invalid']).join(' ')
+      );
+      container.setAttribute(
+        'part',
+        CollectionUtils.unique([...currentContainerParts, 'invalid']).join(' ')
+      );
 
       // Add error message
       const existingError = container.querySelector('[part="error-text"]');
       if (existingError) {
-        existingError.textContent = field.errors.join(', ');
+        existingError.textContent = CollectionUtils.unique(field.errors).join(', ');
       } else {
         container.appendChild(this.createErrorText(field.errors));
       }
@@ -162,11 +172,21 @@ export abstract class BaseFieldRenderer {
    * Clear validation state
    */
   protected clearValidationState(input: InputElementType, container: HTMLElement): void {
-    const currentInputPart = input.getAttribute('part') || 'input';
-    const currentContainerPart = container.getAttribute('part') || 'field-root';
+    const currentInputParts = (input.getAttribute('part') || 'input').split(' ');
+    const currentContainerParts = (container.getAttribute('part') || 'field-root').split(' ');
 
-    input.setAttribute('part', currentInputPart.replace(/(valid|invalid)/g, '').trim());
-    container.setAttribute('part', currentContainerPart.replace(/(valid|invalid)/g, '').trim());
+    input.setAttribute(
+      'part',
+      CollectionUtils.unique(
+        currentInputParts.filter((part) => !['valid', 'invalid'].includes(part))
+      ).join(' ')
+    );
+    container.setAttribute(
+      'part',
+      CollectionUtils.unique(
+        currentContainerParts.filter((part) => !['valid', 'invalid'].includes(part))
+      ).join(' ')
+    );
 
     const errorText = container.querySelector('[part="error-text"]');
     if (errorText) {

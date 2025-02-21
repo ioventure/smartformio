@@ -5,6 +5,7 @@
 import { Field } from '@domain/field';
 import { FormEventType } from '@interfaces/events/event-handler.interface';
 import { InputElementType } from '@components/base/field-element.base';
+import { CollectionUtils } from '@core/utils/collection.utils';
 
 export abstract class BaseFieldEventHandler {
   /**
@@ -22,23 +23,25 @@ export abstract class BaseFieldEventHandler {
     // Update field value
     field.setValue(value);
 
-    // Emit change event
-    emit({
-      type: FormEventType.FIELD_CHANGE,
-      timestamp: Date.now(),
-      field,
-      formId,
-      previousValue,
-      currentValue: value,
-    });
+    // Emit change event with immutable data
+    emit(
+      CollectionUtils.deepClone({
+        type: FormEventType.FIELD_CHANGE,
+        timestamp: Date.now(),
+        field,
+        formId,
+        previousValue,
+        currentValue: value,
+      })
+    );
   }
 
   /**
    * Handle input focus event
    */
   protected handleInputFocus(input: InputElementType, wrapper: HTMLElement | null): void {
-    const currentPart = input.getAttribute('part') || 'input';
-    input.setAttribute('part', `${currentPart} focused`);
+    const currentParts = (input.getAttribute('part') || 'input').split(' ');
+    input.setAttribute('part', CollectionUtils.unique([...currentParts, 'focused']).join(' '));
 
     if (wrapper) {
       const wrapperPart = wrapper.getAttribute('part')?.split(' ')[0] || 'input-wrapper';
@@ -54,8 +57,11 @@ export abstract class BaseFieldEventHandler {
     wrapper: HTMLElement | null,
     field: Field
   ): void {
-    const currentPart = input.getAttribute('part') || 'input';
-    input.setAttribute('part', currentPart.replace(' focused', ''));
+    const currentParts = (input.getAttribute('part') || 'input').split(' ');
+    input.setAttribute(
+      'part',
+      CollectionUtils.unique(currentParts.filter((part) => part !== 'focused')).join(' ')
+    );
 
     if (wrapper) {
       const wrapperPart = wrapper.getAttribute('part')?.split(' ')[0] || 'input-wrapper';
@@ -90,7 +96,7 @@ export abstract class BaseFieldEventHandler {
    */
   protected getInputValue(input: InputElementType): any {
     if (input instanceof HTMLSelectElement && input.multiple) {
-      return Array.from(input.selectedOptions).map((opt) => opt.value);
+      return CollectionUtils.unique(Array.from(input.selectedOptions).map((opt) => opt.value));
     }
 
     if (input instanceof HTMLInputElement && input.type === 'checkbox') {
@@ -98,7 +104,7 @@ export abstract class BaseFieldEventHandler {
     }
 
     if (input instanceof HTMLInputElement && input.type === 'file') {
-      return input.files;
+      return input.files ? CollectionUtils.unique(Array.from(input.files)) : null;
     }
 
     if (input instanceof HTMLInputElement && input.type === 'date') {

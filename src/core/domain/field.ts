@@ -2,6 +2,8 @@
  * @file Core field domain model
  */
 
+import { CollectionUtils } from '@core/utils/collection.utils';
+
 export type FieldType =
   | 'text'
   | 'email'
@@ -82,20 +84,20 @@ export class Field {
   }
 
   setValue(value: any): void {
-    this._value = {
+    this._value = CollectionUtils.deepClone({
       raw: value,
       formatted: String(value || ''),
       valid: this.isValid,
-    };
+    });
     this._dirty = true;
   }
 
   setErrors(errors: string[]): void {
-    this._errors = errors;
-    this._value = {
+    this._errors = CollectionUtils.deepClone(errors);
+    this._value = CollectionUtils.deepClone({
       ...this._value,
       valid: errors.length === 0,
-    };
+    });
   }
 
   markAsTouched(): void {
@@ -103,11 +105,11 @@ export class Field {
   }
 
   reset(): void {
-    this._value = {
+    this._value = CollectionUtils.deepClone({
       raw: this.config.defaultValue,
       formatted: String(this.config.defaultValue || ''),
       valid: true,
-    };
+    });
     this._errors = [];
     this._touched = false;
     this._dirty = false;

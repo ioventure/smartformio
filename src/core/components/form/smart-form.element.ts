@@ -9,6 +9,7 @@ import {
   FormEventType,
   IFormSubmitEvent,
 } from '@interfaces/events/event-handler.interface';
+import { CollectionUtils } from '@core/utils/collection.utils';
 
 interface SmartFormConfig extends FormConfig {
   schema?: string;
@@ -21,7 +22,7 @@ export class SmartFormElement extends BaseFormElement {
   private submitButton: HTMLButtonElement | null = null;
 
   public static override get observedAttributes(): string[] {
-    return [...super.observedAttributes, 'schema', 'validate-on-change'];
+    return CollectionUtils.unique([...super.observedAttributes, 'schema', 'validate-on-change']);
   }
 
   constructor(eventHandler: IEventHandler) {
@@ -85,12 +86,14 @@ export class SmartFormElement extends BaseFormElement {
       event.preventDefault();
       if (this.form) {
         this.form.startSubmit();
-        this.eventHandler.emit({
-          type: FormEventType.FORM_SUBMIT,
-          timestamp: Date.now(),
-          form: this.form,
-          values: this.form.values,
-        } as IFormSubmitEvent);
+        this.eventHandler.emit(
+          CollectionUtils.deepClone({
+            type: FormEventType.FORM_SUBMIT,
+            timestamp: Date.now(),
+            form: this.form,
+            values: this.form.values,
+          }) as IFormSubmitEvent
+        );
         this.form.endSubmit();
       }
     });
@@ -111,7 +114,7 @@ export class SmartFormElement extends BaseFormElement {
     switch (name) {
       case 'schema':
         try {
-          const schema = JSON.parse(value) as SmartFormConfig;
+          const schema = CollectionUtils.deepClone(JSON.parse(value)) as SmartFormConfig;
           const form = new Form(crypto.randomUUID(), schema);
           this.setForm(form);
         } catch (error) {

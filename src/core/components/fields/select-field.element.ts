@@ -12,13 +12,14 @@ import {
   EVENT_NAMES,
 } from '@core/constants/component.constants';
 import { SelectOption } from './index';
+import { CollectionUtils } from '@core/utils/collection.utils';
 
 export class SelectFieldElement extends BaseFieldElement {
   private container: HTMLElement | null = null;
   private inputWrapper: HTMLElement | null = null;
 
   public static override get observedAttributes(): string[] {
-    return [...super.observedAttributes, 'options', 'multiple'];
+    return CollectionUtils.unique([...super.observedAttributes, 'options', 'multiple']);
   }
 
   constructor(eventHandler: IEventHandler) {
@@ -136,7 +137,7 @@ export class SelectFieldElement extends BaseFieldElement {
     // Handle change events
     select.addEventListener(EVENT_NAMES.change, () => {
       const value = select.multiple
-        ? Array.from(select.selectedOptions).map((opt) => opt.value)
+        ? CollectionUtils.unique(Array.from(select.selectedOptions).map((opt) => opt.value))
         : select.value;
 
       this.handleFieldChange(value);
@@ -187,7 +188,7 @@ export class SelectFieldElement extends BaseFieldElement {
     switch (name) {
       case 'options': {
         try {
-          const options = JSON.parse(value || '[]');
+          const options = CollectionUtils.deepClone(JSON.parse(value || '[]'));
           if (this.field) {
             (this.field.config as any).options = options;
             this.renderOptions(this.field, this.inputElement);
@@ -215,7 +216,7 @@ export class SelectFieldElement extends BaseFieldElement {
       // Required validation
       if (this.field?.config.required) {
         if (Array.isArray(value)) {
-          if (value.length === 0) {
+          if (CollectionUtils.unique(value).length === 0) {
             errors.push(VALIDATION_MESSAGES.required);
           }
         } else if (!value) {
@@ -235,7 +236,7 @@ export class SelectFieldElement extends BaseFieldElement {
       errors.push(err.message);
     }
 
-    return errors;
+    return CollectionUtils.unique(errors);
   }
 
   /**

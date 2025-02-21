@@ -5,6 +5,7 @@
 import { FILE_SIZE_UNITS, VALIDATION_MESSAGES } from '@core/constants/component.constants';
 import { Field, FieldConfig } from '@domain/field';
 import { FileValidation, DateValidation } from '@components/fields';
+import { CollectionUtils } from '@core/utils/collection.utils';
 
 interface ValidationMessage {
   validationMessage?: string;
@@ -52,15 +53,15 @@ export class FieldUtils {
     validation?: FileValidation
   ): { valid: boolean; error?: string } {
     if (!validation) {
-      return { valid: true };
+      return CollectionUtils.deepClone({ valid: true });
     }
 
     // Check number of files
     if (validation.maxFiles && files.length > validation.maxFiles) {
-      return {
+      return CollectionUtils.deepClone({
         valid: false,
         error: `Maximum ${validation.maxFiles} files allowed`,
-      };
+      });
     }
 
     // Check file sizes
@@ -72,21 +73,21 @@ export class FieldUtils {
       totalSize += file.size;
 
       if (validation.maxFileSize && file.size > validation.maxFileSize) {
-        return {
+        return CollectionUtils.deepClone({
           valid: false,
           error: `File "${file.name}" exceeds maximum size of ${this.formatFileSize(validation.maxFileSize)}`,
-        };
+        });
       }
     }
 
     if (validation.maxTotalSize && totalSize > validation.maxTotalSize) {
-      return {
+      return CollectionUtils.deepClone({
         valid: false,
         error: `Total size exceeds maximum of ${this.formatFileSize(validation.maxTotalSize)}`,
-      };
+      });
     }
 
-    return { valid: true };
+    return CollectionUtils.deepClone({ valid: true });
   }
 
   /**
@@ -94,7 +95,7 @@ export class FieldUtils {
    */
   static validateDate(date: Date, validation?: DateValidation): { valid: boolean; error?: string } {
     if (!validation || !date) {
-      return { valid: true };
+      return CollectionUtils.deepClone({ valid: true });
     }
 
     const dateValue = date.getTime();
@@ -104,10 +105,10 @@ export class FieldUtils {
         typeof validation.min === 'string' ? new Date(validation.min) : validation.min;
 
       if (dateValue < minDate.getTime()) {
-        return {
+        return CollectionUtils.deepClone({
           valid: false,
           error: VALIDATION_MESSAGES.dateRange,
-        };
+        });
       }
     }
 
@@ -116,14 +117,14 @@ export class FieldUtils {
         typeof validation.max === 'string' ? new Date(validation.max) : validation.max;
 
       if (dateValue > maxDate.getTime()) {
-        return {
+        return CollectionUtils.deepClone({
           valid: false,
           error: VALIDATION_MESSAGES.dateRange,
-        };
+        });
       }
     }
 
-    return { valid: true };
+    return CollectionUtils.deepClone({ valid: true });
   }
 
   /**
@@ -156,7 +157,7 @@ export class FieldUtils {
    * Get field CSS classes based on state
    */
   static getFieldClasses(field: Field): string[] {
-    const classes: string[] = [];
+    const classes = [];
 
     if (field.config.className) {
       classes.push(field.config.className);
@@ -188,22 +189,27 @@ export class FieldUtils {
       classes.push('pristine');
     }
 
-    return classes;
+    return CollectionUtils.unique(classes);
   }
 
   /**
    * Parse value based on field type
    */
   static parseValue(value: any, type: string): any {
+    let parsedValue;
     switch (type) {
       case 'number':
-        return value === '' ? null : Number(value);
+        parsedValue = value === '' ? null : Number(value);
+        break;
       case 'date':
-        return value === '' ? null : new Date(value);
+        parsedValue = value === '' ? null : new Date(value);
+        break;
       case 'checkbox':
-        return Boolean(value);
+        parsedValue = Boolean(value);
+        break;
       default:
-        return value;
+        parsedValue = value;
     }
+    return CollectionUtils.deepClone(parsedValue);
   }
 }

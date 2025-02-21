@@ -5,6 +5,7 @@
 import { Field } from '@domain/field';
 import { Form } from '@domain/form';
 import { ValidationResult, FormValidationResult } from '@domain/validation';
+import { CollectionUtils } from '@core/utils/collection.utils';
 
 /**
  * Form event types
@@ -159,17 +160,20 @@ export abstract class BaseEventHandler implements IEventHandler {
   }
 
   async emit(event: FormEvent): Promise<void> {
+    // Create immutable event
+    const immutableEvent = CollectionUtils.deepClone(event);
+
     const handlers = this.handlers.get(event.type) || new Set();
     const oneTimeHandlers = this.oneTimeHandlers.get(event.type) || new Set();
 
     // Execute regular handlers
     for (const handler of handlers) {
-      await handler(event);
+      await handler(immutableEvent);
     }
 
     // Execute one-time handlers and remove them
     for (const handler of oneTimeHandlers) {
-      await handler(event);
+      await handler(immutableEvent);
       this.off(event.type, handler);
     }
   }
@@ -183,10 +187,10 @@ export abstract class BaseEventHandler implements IEventHandler {
     type: T['type'],
     data: Omit<T, 'type' | 'timestamp'>
   ): T {
-    return {
+    return CollectionUtils.deepClone({
       type,
       timestamp: Date.now(),
       ...data,
-    } as T;
+    }) as T;
   }
 }

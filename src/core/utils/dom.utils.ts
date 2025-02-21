@@ -31,11 +31,11 @@ interface SVGOptions {
   part?: string;
 }
 
-type PartOptions = {
+interface PartOptions {
   add?: string[];
   remove?: string[];
   set?: string;
-};
+}
 
 export class DOMUtils {
   /**
@@ -46,37 +46,38 @@ export class DOMUtils {
     options: ElementOptions<K> = {}
   ): HTMLElementTagNameMap[K] {
     const element = document.createElement(tagName);
+    const safeOptions = CollectionUtils.deepClone(options);
 
     // Set attributes
-    if (options.attributes) {
-      CollectionUtils.entries(options.attributes).forEach(([key, value]) => {
+    if (safeOptions.attributes) {
+      CollectionUtils.entries(safeOptions.attributes).forEach(([key, value]) => {
         element.setAttribute(key, value);
       });
     }
 
     // Set properties
-    if (options.properties) {
-      Object.assign(element, options.properties);
+    if (safeOptions.properties) {
+      Object.assign(element, safeOptions.properties);
     }
 
     // Set part
-    if (typeof options.part === 'string') {
-      element.setAttribute('part', options.part);
+    if (typeof safeOptions.part === 'string') {
+      element.setAttribute('part', safeOptions.part);
     }
 
     // Set innerHTML
-    if (options.html) {
-      element.innerHTML = options.html;
+    if (safeOptions.html) {
+      element.innerHTML = safeOptions.html;
     }
 
     // Set textContent
-    if (options.text !== undefined) {
-      element.textContent = String(options.text);
+    if (safeOptions.text !== undefined) {
+      element.textContent = String(safeOptions.text);
     }
 
     // Append children
-    if (options.children) {
-      options.children.forEach((child) => {
+    if (safeOptions.children) {
+      safeOptions.children.forEach((child) => {
         if (typeof child === 'string') {
           element.appendChild(document.createTextNode(child));
         } else {
@@ -105,27 +106,37 @@ export class DOMUtils {
    * Update element part
    */
   static updatePart(element: Element, options: PartOptions): void {
-    // Get current parts
-    const currentParts = new Set((element.getAttribute('part') || '').split(' ').filter(Boolean));
+    const safeOptions = CollectionUtils.deepClone(options);
 
-    if (options.set) {
-      // If set is provided, use it directly
-      element.setAttribute('part', options.set);
+    // Handle direct set
+    if (typeof safeOptions.set === 'string') {
+      element.setAttribute('part', safeOptions.set);
       return;
     }
 
-    // Remove parts
-    if (options.remove) {
-      options.remove.forEach((part) => currentParts.delete(part));
+    // Get current parts
+    const currentParts = (element.getAttribute('part') || '').split(' ').filter(Boolean);
+    const parts = [...currentParts];
+
+    // Remove parts if specified
+    if (Array.isArray(safeOptions.remove) && safeOptions.remove.length > 0) {
+      const removeSet = new Set(safeOptions.remove);
+      const filteredParts = parts.filter((part) => !removeSet.has(part));
+      parts.length = 0;
+      parts.push(...filteredParts);
     }
 
-    // Add parts
-    if (options.add) {
-      options.add.forEach((part) => currentParts.add(part));
+    // Add parts if specified
+    if (Array.isArray(safeOptions.add) && safeOptions.add.length > 0) {
+      parts.push(...safeOptions.add);
     }
 
-    // Update attribute
-    element.setAttribute('part', Array.from(currentParts).join(' '));
+    // Update attribute with unique parts
+    if (parts.length > 0) {
+      element.setAttribute('part', CollectionUtils.unique(parts).join(' '));
+    } else {
+      element.removeAttribute('part');
+    }
   }
 
   /**
@@ -150,21 +161,19 @@ export class DOMUtils {
    */
   static createSVG(path: string, options: SVGOptions = {}): SVGSVGElement {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const safeOptions = CollectionUtils.deepClone(options);
 
-    const svgAttributes: Record<string, string> = {
-      width: String(options.width ?? 24),
-      height: String(options.height ?? 24),
-      viewBox: options.viewBox ?? '0 0 24 24',
-      fill: options.fill ?? 'none',
-      stroke: options.stroke ?? 'currentColor',
+    const svgAttributes = {
+      width: String(safeOptions.width ?? 24),
+      height: String(safeOptions.height ?? 24),
+      viewBox: safeOptions.viewBox ?? '0 0 24 24',
+      fill: safeOptions.fill ?? 'none',
+      stroke: safeOptions.stroke ?? 'currentColor',
+      ...(typeof safeOptions.part === 'string' ? { part: safeOptions.part } : {}),
     };
 
-    if (typeof options.part === 'string') {
-      svgAttributes['part'] = options.part;
-    }
-
     CollectionUtils.entries(svgAttributes).forEach(([key, value]) => {
-      svg.setAttribute(key, value);
+      svg.setAttribute(key, value || '');
     });
 
     svg.innerHTML = path;
@@ -175,23 +184,20 @@ export class DOMUtils {
    * Create icon element
    */
   static createIcon(svg: string, options: IconOptions = {}): HTMLElement {
-    const iconOptions: ElementOptions<'span'> = {
-      html: svg,
-    };
+    const safeOptions = CollectionUtils.deepClone(options);
+    const icon = this.createElement('span', { html: svg });
 
-    if (typeof options.part === 'string') {
-      iconOptions.part = options.part;
+    if (typeof safeOptions.part === 'string') {
+      icon.setAttribute('part', safeOptions.part);
     }
 
-    const icon = this.createElement('span', iconOptions);
-
-    if (options.size) {
-      icon.style.width = `${options.size}px`;
-      icon.style.height = `${options.size}px`;
+    if (typeof safeOptions.size === 'number') {
+      icon.style.width = `${safeOptions.size}px`;
+      icon.style.height = `${safeOptions.size}px`;
     }
 
-    if (options.className) {
-      icon.className = options.className;
+    if (typeof safeOptions.className === 'string') {
+      icon.className = safeOptions.className;
     }
 
     return icon;
@@ -225,19 +231,13 @@ export class DOMUtils {
    * Create style element
    */
   static createStyle(css: string): HTMLStyleElement {
-    const styleOptions: ElementOptions<'style'> = {
-      text: css,
-    };
-    return this.createElement('style', styleOptions);
+    return this.createElement('style', { text: css });
   }
 
   /**
    * Create template element
    */
   static createTemplate(html: string): HTMLTemplateElement {
-    const templateOptions: ElementOptions<'template'> = {
-      html,
-    };
-    return this.createElement('template', templateOptions);
+    return this.createElement('template', { html });
   }
 }
